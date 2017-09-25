@@ -1,4 +1,2 @@
 #clion specific
-/cmake-build-debug
-/.idea
 /src/proj
