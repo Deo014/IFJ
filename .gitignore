@@ -1,3 +1,4 @@
-#clion specifics
-cmake-build-debug
-.idea
+#clion specific
+/cmake-build-debug
+/.idea
+/src/proj
