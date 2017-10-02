@@ -2,8 +2,8 @@
  * Předmět  :   IFJ / IAL
  * Soubor   :   main.c
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
- * Tým č    :
- * Varianta :
+ * Tým č    :   21
+ * Varianta :   1
  * Autoři   : xhribe02, David Hříbek
  *            xkoval14, Marek Kovalčík
  *            xvalus02, Ondřej Valušek
@@ -12,9 +12,8 @@
 
 #include <stdio.h>
 //#include <stdlib.h>
-#include "init.h"
-
-
+#include "init.c"
+#include "scanner.c"
 
 int main(int argc, char **argv)
 {
@@ -38,12 +37,8 @@ int main(int argc, char **argv)
     /*********************************************
     Tady se vyvolá funkce pro zpracování souboru
      ********************************************/
-    // code_error = nejakaFunkceZeScanneruNeboParseru();
-    int chr;
-    while ((chr = fgetc(pFile)) != EOF)
-        fputc(chr, stdout);
-    /********************************************
-     * *****************************************/
+    code_error = nejakaFunkceZeScanneruNeboParseru();
+    /*******************************************/
 
     // uvolnění paměti
     memFree();
