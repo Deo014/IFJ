@@ -12,11 +12,6 @@
 
 #include "error_code.h"
 
-ERROR_CODE nejakaFunkceZeScanneruNeboParseru(){
-
-    int chr;
-    while ((chr = fgetc(pFile)) != EOF)
-        fputc(chr, stdout);
-
+ERROR_CODE getToken(){
     return ERROR_CODE_OK;
 }
