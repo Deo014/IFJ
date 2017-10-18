@@ -12,18 +12,31 @@
 
 #include <stdio.h>
 //#include <stdlib.h>
-#include "init.c"
-#include "scanner.c"
+#include "error_code.h"
+#include "init.h"
+#include "scanner.h"
+#include "string.h"
 
 int main(int argc, char **argv)
 {
+    ERROR_CODE error_code = ERROR_CODE_OK;
+
     // kontrola argumentů
     ERROR_CODE helpStatus = checkArgs(argc, argv);
     if(helpStatus == ERROR_CODE_HELP)
-        return code_error = ERROR_CODE_HELP;
+        return error_code = ERROR_CODE_HELP;
     else if(helpStatus == ERROR_CODE_INTERNAL)
-        return code_error = ERROR_CODE_INTERNAL;
+        return error_code = ERROR_CODE_INTERNAL;
 
+
+    //char *token;
+    //getNextToken(token);
+
+
+
+
+
+    /*
     // inicializace paměti
     memInit();
     // získání filename z stdin
@@ -34,13 +47,12 @@ int main(int argc, char **argv)
     if(fileStatus == ERROR_CODE_INTERNAL)
         return code_error = ERROR_CODE_INTERNAL;
 
-    /*********************************************
-    Tady se vyvolá funkce pro zpracování souboru
-     ********************************************/
-    code_error = nejakaFunkceZeScanneruNeboParseru();
-    /*******************************************/
+    // Tady se vyvolá funkce pro zpracování souboru
+
+    //code_error = nejakaFunkceZeScanneruNeboParseru();
 
     // uvolnění paměti
-    memFree();
-    return code_error;
+    memFree(filename);
+     */
+    return error_code;
 }

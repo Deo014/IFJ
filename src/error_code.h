@@ -16,14 +16,16 @@
 #include <stdio.h>
 
 typedef enum error_code{
-    ERROR_CODE_OK = 0,  // chyba v rámci lexikální analýzy
-    ERROR_CODE_SYN = 1, // chyba v rámci syntaktické analýzy
-    ERROR_CODE_SEM_UNDEFINED  = 2, // nedefinová funkce/proměnná
-    ERROR_CODE_SEM_TYPE = 4,    // sémantická chyba typové kompatibility v operacích
+    ERROR_CODE_OK = 0,  // preklad probehl bez chyby
+    ERROR_CODE_LEX = 1, // chyba v ramci lexikalni analyzy
+    ERROR_CODE_SYN  = 2, // chyba v ramci syntakticke analyzy
+    ERROR_CODE_SEM = 4,    // semanticka chyba typové kompatibility v aritmetických, řetězcových a relačních výrazech, příp. špatný počet či typ parametrů u volání funkce
     ERROR_CODE_SEM_OTHER = 6,   // ostatní sémantické chyby
     ERROR_CODE_HELP = 7,
-    ERROR_CODE_INTERNAL = 99    // interní chyba překladače neovlivněná vstupním programem
+    ERROR_CODE_INTERNAL = 99,    // interní chyba překladače neovlivněná vstupním programem (napr. chyba alokace pameti)
 
+    ERROR_CODE_FALSE = 0,
+    ERROR_CODE_TRUE = 100
 } ERROR_CODE;
 
 #endif //IFJ_ERROR_CODE_H

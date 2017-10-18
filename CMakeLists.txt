@@ -3,5 +3,6 @@ project(IFJ)
 
 set(CMAKE_C_STANDARD 99)
 
-set(SOURCE_FILES src/main.c)
+set(CMAKE_C_FLAGS "-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread")
+set(SOURCE_FILES src/main.c src/init.h src/init.c src/scanner.h src/scanner.c src/parser.h src/parser.c src/symtable.c src/symtable.h src/error_code.h src/string.h src/string.c)
 add_executable(IFJ ${SOURCE_FILES})

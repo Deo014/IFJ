@@ -11,7 +11,7 @@
 #
 PROJ=proj
 #FILES=symtable.c symtable.h main.c
-FILES=main.c
+FILES=main.c init.c parser.c scanner.c symtable.c
 CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread
 CC=gcc
 RM=rm -f

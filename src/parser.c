@@ -9,3 +9,7 @@
  *            xvalus02, Ondřej Valušek
  *            xrutad00, Dominik Ruta
  */
+
+#include "parser.h"
+
+void nevim();

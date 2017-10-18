@@ -11,7 +11,28 @@
  */
 
 #include "error_code.h"
+#include "scanner.h"
+#include <string.h>
 
-ERROR_CODE getToken(){
-    return ERROR_CODE_OK;
+int getNextToken(char *attr){
+    attr = attr;
+    int state = 0; // stav automatu
+    //char c; // aktualni stav
+
+    while (1) {
+        //c = getchar(); // nacteni dalsiho znaku
+
+        switch (state) {
+            case 0:
+                // pocatecni stav automatu
+
+                break;
+            case 1:
+                // komentar
+                break;
+            case 2:
+                // indetifikator nebo klicove slovo
+                break;
+        }
+    }
 }
