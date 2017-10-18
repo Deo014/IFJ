@@ -2,8 +2,8 @@
  * Předmět  :   IFJ / IAL
  * Soubor   :   main.c
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
- * Tým č    :
- * Varianta :
+ * Tým č    :   21
+ * Varianta :   1
  * Autoři   : xhribe02, David Hříbek
  *            xkoval14, Marek Kovalčík
  *            xvalus02, Ondřej Valušek
@@ -11,29 +11,48 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-//#include "symtable.h"
+//#include <stdlib.h>
 #include "error_code.h"
+#include "init.h"
+#include "scanner.h"
+#include "string.h"
 
-ERROR_CODE code_error = ERROR_CODE_OK;
-FILE *pFile;
+int main(int argc, char **argv)
+{
+    ERROR_CODE error_code = ERROR_CODE_OK;
 
-int main(int argc, char **argv) {
+    // kontrola argumentů
+    ERROR_CODE helpStatus = checkArgs(argc, argv);
+    if(helpStatus == ERROR_CODE_HELP)
+        return error_code = ERROR_CODE_HELP;
+    else if(helpStatus == ERROR_CODE_INTERNAL)
+        return error_code = ERROR_CODE_INTERNAL;
 
-    // kontrola správného počtu argumentů
-    if(argc != 2){
-        fprintf(stderr, "Nespravny pocet argumentu. ERROR CODE 99\n");
-        return code_error = ERROR_CODE_INTERNAL;
-    }
+
+    //char *token;
+    //getNextToken(token);
+
+
+
+
+
+    /*
+    // inicializace paměti
+    memInit();
+    // získání filename z stdin
+    getFilename();
 
     // otevření souboru pro čtení
-    if((pFile = fopen(argv[1], "r")) == NULL){
-        fprintf(stderr,"Soubor '%s' se nepodarilo otevrit. ERROR CODE 99\n",argv[1]);
+    ERROR_CODE fileStatus = openFile(filename);
+    if(fileStatus == ERROR_CODE_INTERNAL)
         return code_error = ERROR_CODE_INTERNAL;
-    }
 
-    fprintf(stdout,"Soubor '%s' byl otevren a nasledne zavren. ERROR CODE 0\n", argv[1]);
+    // Tady se vyvolá funkce pro zpracování souboru
 
-    fclose(pFile);
-    return code_error;
+    //code_error = nejakaFunkceZeScanneruNeboParseru();
+
+    // uvolnění paměti
+    memFree(filename);
+     */
+    return error_code;
 }
