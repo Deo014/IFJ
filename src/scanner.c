@@ -90,40 +90,26 @@ tToken getNextToken(){
                 else if (c == '\'') {
                     state = sLineComment;
                 }
-                else {// cokoliv jineho indikuje chybu
+                else if ( charIsDigit(c) ) {
+                    stringAddChar(&token.atr, c);
+                    state = sInteger;
+                }
+                else {// jakykoliv jiny znak je nepovoleny
+                    stringAddChar(&token.atr, c);
                     state = sLexError;
                 }
                 break;
 
-            // KONECNE STAVY
-            case sMinus:
-            case sPlus:
-            case sMultiply:
-            case sDivideD:
-            case sDivideI:
-            case sLeftPar:
-            case sRightPar:
-            case sSemicolon:
-            case sAssignment:
-            case sLessEqual:
-            case sMoreEqueal:
-            case sNotEqual:
-                charUndo(c); // vrati zpet aktualne cteny znak
-                token.type = state; // naplni token typem nalezeneho lexemu
-                return token;
-                state = sEnd;
-                break;
-
             case sLess:
-                if (c == '=') { // <=
+                if (c == '=') { // vrat token <=
                     stringAddChar(&token.atr, c);
                     state = sLessEqual;
                 }
-                else if (c == '>') { // <>
+                else if (c == '>') { // vrat token <>
                     stringAddChar(&token.atr, c);
                     state = sNotEqual;
                 }
-                else { // <
+                else { // vrat token <
                     charUndo(c);
                     token.type = sLess;
                     return token;
@@ -131,11 +117,11 @@ tToken getNextToken(){
                 break;
 
             case sMore:
-                if (c == '=') { // >=
+                if (c == '=') { // vrat token >=
                     stringAddChar(&token.atr, c);
                     state = sMoreEqueal;
                 }
-                else { // >
+                else { // vrat token >
                     charUndo(c);
                     token.type = sMore;
                     return token;
@@ -151,7 +137,7 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sIdentificatorOrKeyWord;
                 }
-                else {
+                else { // vrat token identifikator/klicove slovo
                     charUndo(c);
                     /* TODO zjistit jestli je to ID nebo KEYWORD */
                     token.type = sIdentificatorOrKeyWord;
@@ -164,7 +150,7 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sIdentificator;
                 }
-                else {
+                else { // vrat token identifikator
                     charUndo(c);
                     token.type = sIdentificator;
                     return token;
@@ -192,14 +178,61 @@ tToken getNextToken(){
                     state = sBlockComment;
                 }
                 else {
+                    charUndo(c);
                     state = sDivideD;
                 }
                 break;
 
+            case sInteger:
+                if ( charIsDigit(c) ) { // cteni dalsich cislic
+                    stringAddChar(&token.atr, c);
+                    state = sInteger;
+                }
+                else if (c == '.') {
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
+                else { // vrat token integer
+                    charUndo(c);
+                    token.type = sInteger;
+                    return token;
+                }
+                break;
+
+            case sDouble:
+                if ( charIsDigit(c) ) { // cteni dalsich cislic
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
+                else { // vrat token double /* TODO ASK muze double koncit teckou? 12. */
+                    charUndo(c);
+                    token.type = sDouble;
+                    return token;
+                }
+                break;
+
+            // KONCOVE STAVY
+            case sMinus:
+            case sPlus:
+            case sMultiply:
+            case sDivideD:
+            case sDivideI:
+            case sLeftPar:
+            case sRightPar:
+            case sSemicolon:
+            case sAssignment:
+            case sLessEqual:
+            case sMoreEqueal:
+            case sNotEqual:
+                charUndo(c); // vrati zpet aktualne cteny znak
+                token.type = state; // naplni token typem nalezeneho lexemu
+                return token;
+                state = sEnd;
+                break;
 
             // lexikalni chyba
             case sLexError:
-                charUndo(c); // vrati zpet aktualne cteny znak
+                //charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
                 return token;
         }

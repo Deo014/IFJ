@@ -24,9 +24,8 @@ typedef enum {
     //sKeyWord,           //      klicove slovo                           KONCOVY STAV
 
     /* datove type */
-    //sInteger,           // F12  0..9    1+krat                          KONCOVY STAV
-
-    //sDouble,            // F13  double                                  KONCOVY STAV
+    sInteger,           // F12  0..9    1+krat                          KONCOVY STAV
+    sDouble,            // F13  double                                  KONCOVY STAV
     //sDoublePoint,       // Q1   .    (desetinna tecka)
     //sTODO,                   // Q3   0..9, +, -
 
