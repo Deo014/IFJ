@@ -99,7 +99,7 @@ tToken getNextToken(){
                     state = sLexError;
                 }
                 break;
-
+            // STAV: <
             case sLess:
                 if (c == '=') { // vrat token <=
                     stringAddChar(&token.atr, c);
@@ -116,6 +116,7 @@ tToken getNextToken(){
                 }
                 break;
 
+            // STAV: >
             case sMore:
                 if (c == '=') { // vrat token >=
                     stringAddChar(&token.atr, c);
@@ -128,6 +129,7 @@ tToken getNextToken(){
                 }
                 break;
 
+            // STAV: identifikator/klicove slovo
             case sIdentificatorOrKeyWord:
                 if (c == '_') {
                     stringAddChar(&token.atr, c);
@@ -145,6 +147,7 @@ tToken getNextToken(){
                 }
                 break;
 
+            // STAV: identifikator
             case sIdentificator:
                 if ( c == '_' || charIsLetter(c) || charIsDigit(c) ) {
                     stringAddChar(&token.atr, c);
@@ -157,12 +160,15 @@ tToken getNextToken(){
                 }
                 break;
 
+            // STAV: ' radkovy komentar
             case sLineComment:
-                if (c == '\n') {
+                if (c == '\n' || c == EOF) {
                     state = sStart;
                 }
+                // pokud precte jakykoliv jiny znak nez '\n' nebo EOF nic se nestane
                 break;
 
+            // STAV: /' blokovy komentar
             case sBlockComment:
                 if ( ((stringGetLastChar(&token.atr) == '\'') && (c == '/')) || (c == EOF) ) { // ukonceni blokoveho komentare
                     stringClear(&token.atr);
@@ -172,6 +178,7 @@ tToken getNextToken(){
                 stringAddChar(&token.atr, c);
                 break;
 
+            // STAV: / deleno nebo blokovy komentar
             case sDivideDOrBlockComment:
                 if (c == '\'') {
                     stringClear(&token.atr); // smaze znak / z tokenu
@@ -183,6 +190,7 @@ tToken getNextToken(){
                 }
                 break;
 
+            // STAV: 0..9 integer
             case sInteger:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
@@ -198,7 +206,7 @@ tToken getNextToken(){
                     return token;
                 }
                 break;
-
+            // STAV: . nebo eE double
             case sDouble:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
@@ -211,7 +219,7 @@ tToken getNextToken(){
                 }
                 break;
 
-            // KONCOVE STAVY
+            // OSTATNI KONCOVE STAVY
             case sMinus:
             case sPlus:
             case sMultiply:
@@ -227,10 +235,8 @@ tToken getNextToken(){
                 charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
                 return token;
-                state = sEnd;
-                break;
 
-            // lexikalni chyba
+            // STAV: Lexikalni chyba
             case sLexError:
                 //charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
