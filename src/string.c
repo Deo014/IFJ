@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   scaner.c - lexikální analyzátor
+ * Soubor   :   string.c - lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -15,9 +15,10 @@
 
 int stringInit(string *str) {
     // alokovani pameti
-    if ( (str->value = (char*)malloc(INIT_ALLOC_SIZE * sizeof(char))) == NULL )
+    if ( (str->value = (char*) malloc(INIT_ALLOC_SIZE * sizeof(char))) == NULL )
         return ERROR_CODE_INTERNAL;
     str->length = 0;
+    str->value[0] = '\0';
     str->lengthAllocated = INIT_ALLOC_SIZE;
     // pokud vse probehlo v poradku
     return ERROR_CODE_OK;
@@ -51,9 +52,19 @@ int stringClear(string *str) {
 
 
 // FUNKCE PRO PRACI SE ZNAKY
+void charUndo(char c) {
+    ungetc(c, stdin);
+}
 
 int charIsSpace(char c) {
     if (c == ' ')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsDigit(char c) {
+    if (c > '0' && c < '9')
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;

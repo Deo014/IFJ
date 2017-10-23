@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   scaner.c - lexikální analyzátor
+ * Soubor   :   string.h - lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -17,7 +17,7 @@
 
 
 typedef struct {
-    char * value; // retezec
+    char *value; // retezec
     int length; // delka retezce
     int lengthAllocated; // alokovana delka
 } string;
@@ -28,7 +28,8 @@ int stringClear(string *);
 
 
 // FUNKCE PRO PRACI SE ZNAKY
-
+void charUndo(char);
 int charIsSpace(char);
+int charIsDigit(char);
 
 #endif //IFJ_STRING_H
