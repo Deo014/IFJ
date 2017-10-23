@@ -26,10 +26,14 @@ int stringInit(string *);
 int stringAddChar(string *, char);
 int stringClear(string *);
 
+char stringGetLastChar(string *);
 
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char);
 int charIsSpace(char);
+int charIsWhiteChar(char);
 int charIsDigit(char);
+int charIsLetter(char);
+int charIsOperator(char);
 
 #endif //IFJ_STRING_H

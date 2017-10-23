@@ -19,7 +19,8 @@
 // datkovy typ enum popisujici stavy automatu
 typedef enum {
     sStart,             // s    pocatecni stav automatu
-    //sIdentificator,     // F15  identifikator/klicove slovo             KONCOVY STAV
+    sIdentificator,     // F15  identifikator/klicove slovo             KONCOVY STAV
+    sIdentificatorOrKeyWord,
     //sKeyWord,           //      klicove slovo                           KONCOVY STAV
 
     /* datove type */
@@ -33,23 +34,24 @@ typedef enum {
     sPlus,              // F1   +
     sMinus,             // F2   -
     sDivideD,           // F3   /
+    sDivideDOrBlockComment,
     sMultiply,          // F4   *
     sDivideI,           // F5
     sLess,              // F6   <
-    //sLessMore,          // F7   <>
+    sNotEqual,          // F7   <>
     sLessEqual,        // F8   <=
-    //sMore,              // F9   >
-    //sMoreEqueal,        // F10  >=
+    sMore,              // F9   >
+    sMoreEqueal,        // F10  >=
     sAssignment,        // F11  =
 
     sLeftPar,           // F16  (
     sRightPar,          // F17  )
     sSemicolon,         // F20  ;
 
-    //sLineComment,       // F18  `   zacatek jednoradkoveho komentare
-    //sBlockComment,      // F19  /`  zacatek blokoveho komentare ( ceka na ukonceni `/ )
+    sLineComment,       // F18  `   zacatek jednoradkoveho komentare
+    sBlockComment,      // F19  /`  zacatek blokoveho komentare ( ceka na ukonceni `/ )
     //sEndOfFile,         // END
-    sLexError,
+    sLexError = -1,
     sEnd
 
 } tState;

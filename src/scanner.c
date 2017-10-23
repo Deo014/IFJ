@@ -31,8 +31,9 @@ tToken getNextToken(){
         c = getchar(); // nacteni dalsiho znaku ze vstupu
 
         switch (state) {
-            case sStart: // STAV: pocatecni stav automatu
-                if (charIsSpace(c) /* tabulator a EOL TODO */)
+            // STAV: pocatecni stav automatu
+            case sStart:
+                if ( charIsWhiteChar(c) )
                     state = sStart;
                 else if (c == '-') {
                     stringAddChar(&token.atr, c); // zapsani znaku do tokenu
@@ -48,7 +49,7 @@ tToken getNextToken(){
                 }
                 else if (c == '/') {
                     stringAddChar(&token.atr, c);
-                    state = sDivideD;
+                    state = sDivideDOrBlockComment;
                 }
                 else if (c == '\\') {
                     stringAddChar(&token.atr, c);
@@ -74,12 +75,28 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sLess;
                 }
+                else if (c =='>') {
+                    stringAddChar(&token.atr, c);
+                    state = sMore;
+                }
+                else if (c == '_') {
+                    stringAddChar(&token.atr, c);
+                    state = sIdentificator;
+                }
+                else if( charIsLetter(c) ) {
+                    stringAddChar(&token.atr, c);
+                    state = sIdentificatorOrKeyWord;
+                }
+                else if (c == '\'') {
+                    state = sLineComment;
+                }
                 else {// cokoliv jineho indikuje chybu
                     state = sLexError;
                 }
                 break;
 
-            case sMinus: // KONECNE STAVY
+            // KONECNE STAVY
+            case sMinus:
             case sPlus:
             case sMultiply:
             case sDivideD:
@@ -88,25 +105,102 @@ tToken getNextToken(){
             case sRightPar:
             case sSemicolon:
             case sAssignment:
-            case sLexError: // lexx error
+            case sLessEqual:
+            case sMoreEqueal:
+            case sNotEqual:
                 charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
+                return token;
                 state = sEnd;
                 break;
 
             case sLess:
-                if (c == '=') {
+                if (c == '=') { // <=
                     stringAddChar(&token.atr, c);
                     state = sLessEqual;
                 }
-                else {
-                    charUndo(c);
-
+                else if (c == '>') { // <>
+                    stringAddChar(&token.atr, c);
+                    state = sNotEqual;
                 }
-
+                else { // <
+                    charUndo(c);
+                    token.type = sLess;
+                    return token;
+                }
                 break;
 
-            case sEnd:
+            case sMore:
+                if (c == '=') { // >=
+                    stringAddChar(&token.atr, c);
+                    state = sMoreEqueal;
+                }
+                else { // >
+                    charUndo(c);
+                    token.type = sMore;
+                    return token;
+                }
+                break;
+
+            case sIdentificatorOrKeyWord:
+                if (c == '_') {
+                    stringAddChar(&token.atr, c);
+                    state = sIdentificator;
+                }
+                else if ( charIsLetter(c) || charIsDigit(c) ) {
+                    stringAddChar(&token.atr, c);
+                    state = sIdentificatorOrKeyWord;
+                }
+                else {
+                    charUndo(c);
+                    /* TODO zjistit jestli je to ID nebo KEYWORD */
+                    token.type = sIdentificatorOrKeyWord;
+                    return token;
+                }
+                break;
+
+            case sIdentificator:
+                if ( c == '_' || charIsLetter(c) || charIsDigit(c) ) {
+                    stringAddChar(&token.atr, c);
+                    state = sIdentificator;
+                }
+                else {
+                    charUndo(c);
+                    token.type = sIdentificator;
+                    return token;
+                }
+                break;
+
+            case sLineComment:
+                if (c == '\n') {
+                    state = sStart;
+                }
+                break;
+
+            case sBlockComment:
+                if ( ((stringGetLastChar(&token.atr) == '\'') && (c == '/')) || (c == EOF) ) { // ukonceni blokoveho komentare
+                    stringClear(&token.atr);
+                    state = sStart;
+                    break;
+                }
+                stringAddChar(&token.atr, c);
+                break;
+
+            case sDivideDOrBlockComment:
+                if (c == '\'') {
+                    stringClear(&token.atr); // smaze znak / z tokenu
+                    state = sBlockComment;
+                }
+                else {
+                    state = sDivideD;
+                }
+                break;
+
+
+            // lexikalni chyba
+            case sLexError:
+                charUndo(c); // vrati zpet aktualne cteny znak
+                token.type = state; // naplni token typem nalezeneho lexemu
                 return token;
         }
     }

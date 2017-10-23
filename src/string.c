@@ -50,6 +50,12 @@ int stringClear(string *str) {
     return ERROR_CODE_OK;
 }
 
+char stringGetLastChar(string *str) {
+    if (str->length > 0)
+        return str->value[str->length-1];
+    else
+        return -1;
+}
 
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char c) {
@@ -63,8 +69,29 @@ int charIsSpace(char c) {
         return ERROR_CODE_FALSE;
 }
 
+int charIsWhiteChar(char c) {
+    if ( c == ' ' || c == '\n' || c == '\t')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
 int charIsDigit(char c) {
-    if (c > '0' && c < '9')
+    if (c >= '0' && c <= '9')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsLetter(char c) {
+    if ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsOperator(char c) {
+    if (c == '+' || c == '-' || c == '*' || c == '/' || c == '\\' || c == '=' || c == '<' || c == '>')
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;
