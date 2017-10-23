@@ -19,10 +19,18 @@
 #include<stdbool.h>
 #include"error_code.h"
 
+// pomocné proměnné pro účely testování
+bool checkTreeInit = false;
+bool checkTreeDispose = false;
+bool checkTreeSearch = false;
+bool checkTreeInsert = false;
+bool checkTreeNodesSearch = false;
+bool checkTreeNodesDelete = false;
+
 // Deklarace elementu binárního stromu
-typedef struct tree {
-    struct tree *left;
-    struct tree *right;
+typedef struct tree_structure {
+    struct tree_structure *left;
+    struct tree_structure *right;
     void *data;
     char *key;
 } *TreeStructure;
@@ -33,11 +41,12 @@ typedef struct {
 } TreePointer;
 
 // Deklarace funkcí binárního stromu
-void treeInit(TreePointer *);
-void treeDestroy(TreePointer *);
-TreeStructure treeSearch(TreePointer *, char *);
-ERROR_CODE treeInsert(TreePointer *,char *,void *);
-TreeStructure treeNodesSearch(Tree, char *key);
-void treeNodesDestroy(Tree);
+void BSTinit(TreePointer *);
+void BSTdispose(TreePointer *);
+TreeStructure BSTsearch(TreePointer *, char *);
+ERROR_CODE BSTinsert(TreePointer *,char *,void *);
+TreeStructure treeNodesSearch(TreeStructure, char *key);
+void BSTdelete(TreeStructure);
+
 
 #endif //IFJ_BINTREE_H
