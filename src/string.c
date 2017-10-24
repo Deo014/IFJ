@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   scaner.c - lexikální analyzátor
+ * Soubor   :   string.c - lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -15,9 +15,10 @@
 
 int stringInit(string *str) {
     // alokovani pameti
-    if ( (str->value = (char*)malloc(INIT_ALLOC_SIZE * sizeof(char))) == NULL )
+    if ( (str->value = (char*) malloc(INIT_ALLOC_SIZE * sizeof(char))) == NULL )
         return ERROR_CODE_INTERNAL;
     str->length = 0;
+    str->value[0] = '\0';
     str->lengthAllocated = INIT_ALLOC_SIZE;
     // pokud vse probehlo v poradku
     return ERROR_CODE_OK;
@@ -49,11 +50,56 @@ int stringClear(string *str) {
     return ERROR_CODE_OK;
 }
 
+char stringGetLastChar(string *str) {
+    if (str->length > 0)
+        return str->value[str->length-1];
+    else
+        return -1;
+}
+
+int stringContainsChar(string *str, char c) {
+    for (int i=0; i < str->length; i++) {
+        if (str->value[i] == c)
+            return ERROR_CODE_TRUE;
+    }
+    return ERROR_CODE_FALSE;
+}
 
 // FUNKCE PRO PRACI SE ZNAKY
+void charUndo(char c) {
+    ungetc(c, stdin);
+}
 
 int charIsSpace(char c) {
     if (c == ' ')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsWhiteChar(char c) {
+    if ( c == ' ' || c == '\n' || c == '\t')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsDigit(char c) {
+    if (c >= '0' && c <= '9')
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsLetter(char c) {
+    if ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
+        return ERROR_CODE_TRUE;
+    else
+        return ERROR_CODE_FALSE;
+}
+
+int charIsOperator(char c) {
+    if (c == '+' || c == '-' || c == '*' || c == '/' || c == '\\' || c == '=' || c == '<' || c == '>')
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;
