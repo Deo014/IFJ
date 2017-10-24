@@ -200,22 +200,38 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sDouble;
                 }
+                else if (c == 'e' || c == 'E') {
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
                 else { // vrat token integer
                     charUndo(c);
                     token.type = sInteger;
                     return token;
                 }
                 break;
+
             // STAV: . nebo eE double
             case sDouble:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
                     state = sDouble;
                 }
-                else { // vrat token double /* TODO ASK muze double koncit teckou? 12. */
-                    charUndo(c);
-                    token.type = sDouble;
-                    return token;
+                else if ( (c == 'e' || c == 'E') && (!stringContainsChar(&token.atr, 'e') || !stringContainsChar(&token.atr, 'E')) && (stringGetLastChar(&token.atr) != '.') ) {
+                    // pokud je cteny znak exponent a token neobsahuje exponent a zaroven posledni znak neni tecka: zapise exponent
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
+                else { // vrat token double nebo lexx error
+                    if ( charIsDigit(stringGetLastChar(&token.atr)) ) { // pokud token konci cislem: vrat token double
+                        charUndo(c);
+                        token.type = sDouble;
+                        return token;
+                    }
+                    else { // jinak lex error
+                        charUndo(c);
+                        state = sLexError;
+                    }
                 }
                 break;
 

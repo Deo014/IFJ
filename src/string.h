@@ -26,7 +26,10 @@ int stringInit(string *);
 int stringAddChar(string *, char);
 int stringClear(string *);
 
+
+int stringIsKeyWord(string *);
 char stringGetLastChar(string *);
+int stringContainsChar(string *, char);
 
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char);

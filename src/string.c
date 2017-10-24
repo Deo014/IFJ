@@ -57,6 +57,14 @@ char stringGetLastChar(string *str) {
         return -1;
 }
 
+int stringContainsChar(string *str, char c) {
+    for (int i=0; i < str->length; i++) {
+        if (str->value[i] == c)
+            return ERROR_CODE_TRUE;
+    }
+    return ERROR_CODE_FALSE;
+}
+
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char c) {
     ungetc(c, stdin);
