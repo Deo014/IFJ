@@ -20,6 +20,8 @@
 int main(int argc, char **argv)
 {
     ERROR_CODE error_code = ERROR_CODE_OK;
+    tToken token; // promenna token
+    //stringInit(&token.s); // inicializace tokenu
 
     // kontrola argumentů
     ERROR_CODE helpStatus = checkArgs(argc, argv);
@@ -28,11 +30,12 @@ int main(int argc, char **argv)
     else if(helpStatus == ERROR_CODE_INTERNAL)
         return error_code = ERROR_CODE_INTERNAL;
 
-
-    //char *token;
-    //getNextToken(token);
-
-
+    while (1) {
+        token = getNextToken();
+        printf("%d token:%s\n", token.type, token.atr.value);
+        printf("length:%d\n", token.atr.length);
+        printf("allocated:%d\n\n", token.atr.lengthAllocated);
+    }
 
 
 
