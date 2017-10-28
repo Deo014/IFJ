@@ -92,6 +92,20 @@ int stringIsKeyWord(string *str) {
     return ERROR_CODE_FALSE;
 }
 
+int stringIsResKeyWord(string *str) {
+    char *resKeywords[] = {
+            "and\0", "boolean\0", "continue\0", "elseif\0", "exit\0", "false\0", "for\0", "next\0",
+            "not\0", "or\0", "shared\0", "static\0", "true\0"
+    };
+    unsigned int resKeywordsLength = sizeof(resKeywords) / sizeof(resKeywords[0]); // pocet prvku v poli keywords
+    // porovnani tokenu s klicovymi slovy
+    for (unsigned int i=0; i<resKeywordsLength; i++) {
+        if ( strcmp(resKeywords[i], str->value) == 0 )
+            return ERROR_CODE_TRUE;
+    }
+    return ERROR_CODE_FALSE;
+}
+
 void stringToLowercase(string *str) {
     // prevod na lowercase
     for (int i=0; i<str->length; i++) {
