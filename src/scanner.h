@@ -19,18 +19,25 @@
 // datkovy typ enum popisujici stavy automatu
 typedef enum {
     sStart,                 //      POCATECNI STAV AUTOMATU
+
+    /* identifikator a klicove slovo */
     sIdentificator,         //      KONCOVY STAV
     sIdentificatorOrKeyWord,//      mezistav
     //sKeyWord,             //      KONCOVY STAV
 
     /* datove type */
     sInteger,               //      KONCOVY STAV
+
     sDouble,                //      KONCOVY STAV
     sDoublePoint,           //      mezistav
     sDoublePointNumber,     //      mezistav
     sDoubleExponent,        //      mezistav
     sDoubleExponentOperator,//      mezistav
-    //sTODO,                   // Q3   0..9, +, -
+
+    sString,                //      KONCOVY STAV
+    sStringStart,           //      mezistav
+    //sStringRead,            //      mezistav
+
 
     /* operatory */
     sPlus,                  //      KONCOVY STAV    +
@@ -50,10 +57,14 @@ typedef enum {
     sRightPar,              //      KONCOVY STAV    )
     sSemicolon,             //      KONCOVY STAV    ;
 
+    /* komentare */
     sLineComment,           //      mezistav        '
     sBlockComment,          //      mezistav /' ( ceka na ukonceni komentare: '/ )
-    //sEndOfFile,           //      KONEC VSTUPNIHO SOUBORU
+
+    /* chybovy stav */
     sLexError = -1,         //      LEXIKALNI CHYBA
+
+    //sEndOfFile,           //      KONEC VSTUPNIHO SOUBORU
     //sEnd
 
 } tState;

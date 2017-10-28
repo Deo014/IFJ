@@ -31,7 +31,7 @@ tToken getNextToken(){
         c = getchar(); // nacteni dalsiho znaku ze vstupu
 
         switch (state) {
-            // STAV: pocatecni stav automatu
+            /* ----------------------------------------START POCATECNI STAV AUTOMATU----------------------------------*/
             case sStart:
                 if ( charIsWhiteChar(c) )
                     state = sStart;
@@ -94,14 +94,21 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sInteger;
                 }
+                else if ( c == '!') { // pocatek retezce
+                    stringAddChar(&token.atr, c);
+                    state = sStringStart;
+                }
                 else {// nacteni nepovoleneho znaku: lex error
-                    charUndo(c);
+                    stringAddChar(&token.atr, c);
                     token.type = sLexError;
                     return token;
                 }
                 break;
-            // STAV: <
-            case sLess:
+            /* ----------------------------------------END POCATECNI STAV AUTOMATU------------------------------------*/
+
+
+            /* ----------------------------------------START LESS / MORE----------------------------------------------*/
+            case sLess: // <
                 if (c == '=') { // vrat token <=
                     stringAddChar(&token.atr, c);
                     state = sLessEqual;
@@ -117,8 +124,7 @@ tToken getNextToken(){
                 }
                 break;
 
-            // STAV: >
-            case sMore:
+            case sMore: // >
                 if (c == '=') { // vrat token >=
                     stringAddChar(&token.atr, c);
                     state = sMoreEqueal;
@@ -129,8 +135,10 @@ tToken getNextToken(){
                     return token;
                 }
                 break;
+            /* ----------------------------------------END LESS / MORE------------------------------------------------*/
 
-            // STAV: identifikator/klicove slovo
+
+            /* ----------------------------------------START IDENTIFIKATOR / KLICOVE SLOVO----------------------------*/
             case sIdentificatorOrKeyWord:
                 if (c == '_') {
                     stringAddChar(&token.atr, c);
@@ -148,7 +156,6 @@ tToken getNextToken(){
                 }
                 break;
 
-            // STAV: identifikator
             case sIdentificator:
                 if ( c == '_' || charIsLetter(c) || charIsDigit(c) ) {
                     stringAddChar(&token.atr, c);
@@ -160,17 +167,18 @@ tToken getNextToken(){
                     return token;
                 }
                 break;
+            /* ----------------------------------------END IDENTIFIKATOR / KLICOVE SLOVO------------------------------*/
 
-            // STAV: ' radkovy komentar
-            case sLineComment:
+
+            /* ----------------------------------------START KOMENTARE----------------------------------------------- */
+            case sLineComment: // '
                 if (c == '\n' || c == EOF) {
                     state = sStart;
                 }
                 // pokud precte jakykoliv jiny znak nez '\n' nebo EOF nic se nestane
                 break;
 
-            // STAV: /' blokovy komentar
-            case sBlockComment:
+            case sBlockComment: // /'
                 if ( ((stringGetLastChar(&token.atr) == '\'') && (c == '/')) || (c == EOF) ) { // ukonceni blokoveho komentare
                     stringClear(&token.atr);
                     state = sStart;
@@ -178,20 +186,10 @@ tToken getNextToken(){
                 }
                 stringAddChar(&token.atr, c);
                 break;
+            /* ----------------------------------------END KOMENTARE------------------------------------------------- */
 
-            // STAV: / deleno nebo blokovy komentar
-            case sDivideDOrBlockComment:
-                if (c == '\'') {
-                    stringClear(&token.atr); // smaze znak / z tokenu
-                    state = sBlockComment;
-                }
-                else {
-                    charUndo(c);
-                    state = sDivideD;
-                }
-                break;
 
-            // STAV: 0..9 integer
+            /* ----------------------------------------START INTEGER------------------------------------------------- */
             case sInteger:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
@@ -211,7 +209,10 @@ tToken getNextToken(){
                     return token;
                 }
                 break;
+            /* ----------------------------------------END INTEGER--------------------------------------------------- */
 
+
+            /* ----------------------------------------START DOUBLE-------------------------------------------------- */
             case sDoublePoint:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
@@ -279,8 +280,42 @@ tToken getNextToken(){
                     return token;
                 }
                 break;
+            /* ----------------------------------------END DOUBLE---------------------------------------------------- */
 
-            // OSTATNI KONCOVE STAVY
+
+            /* ----------------------------------------START STRING-------------------------------------------------- */
+            case sStringStart: // !
+                if ( c == '"' ) { // znak "
+                    stringAddChar(&token.atr, c);
+                    state = sString;
+                }
+                else { // nepovoleneny znak: lex error
+                    stringAddChar(&token.atr, c);
+                    token.type = sLexError;
+                    return token;
+                }
+                break;
+
+            case sString:
+                if ( c == '"' ) { // znak " ukonceni stringu: vrat token string
+                    stringAddChar(&token.atr, c);
+                    token.type = sString;
+                    return token;
+                }
+                else if ( c > 31 ) {
+                    stringAddChar(&token.atr, c);
+                    state = sString;
+                }
+                else { // nepovoleny znak: lex error
+                    charUndo(c);
+                    token.type = sLexError;
+                    return token;
+                }
+                break;
+            /* ----------------------------------------END STRING---------------------------------------------------- */
+
+
+            /* ----------------------------------------START OSTATNI KONCOVE STAVY------------------------------------*/
             case sMinus:
             case sPlus:
             case sMultiply:
@@ -297,6 +332,21 @@ tToken getNextToken(){
                 token.type = state; // naplni token typem nalezeneho lexemu
                 return token;
                 break;
+            /* ----------------------------------------END OSTATNI KONCOVE STAVY--------------------------------------*/
+
+
+            /* ----------------------------------------START OSTATNI POMOCNE STAVY------------------------------------*/
+            case sDivideDOrBlockComment: // deleno / nebo blokovy komentar /'
+                if (c == '\'') {
+                    stringClear(&token.atr); // smaze znak / z tokenu
+                    state = sBlockComment;
+                }
+                else {
+                    charUndo(c);
+                    state = sDivideD;
+                }
+                break;
+            /* ----------------------------------------END OSTATNI POMOCNE STAVY--------------------------------------*/
 
             case sLexError: // pouze pro preklad
                 break;
