@@ -32,53 +32,67 @@ tToken getNextToken(){
         switch (state) {
             /* ----------------------------------------START POCATECNI STAV AUTOMATU----------------------------------*/
             case sStart:
-                if ( charIsWhiteChar(c) )
+                if ( charIsSpace(c) || charIsTab(c) )
                     state = sStart;
-                else if (c == '-') {
+                else if ( c == EOF ) { // konec souboru
+                    stringAddChar(&token.atr, 'E');
+                    stringAddChar(&token.atr, 'O');
+                    stringAddChar(&token.atr, 'F');
+                    token.type = sEndOfFile;
+                    return token;
+                }
+                else if ( c == '\n' ) { // novy radek
+                    stringAddChar(&token.atr, 'E');
+                    stringAddChar(&token.atr, 'O');
+                    stringAddChar(&token.atr, 'L');
+                    token.type = sEndOfLine;
+                    return token;
+                }
+                else if (c == '-' ) {
                     stringAddChar(&token.atr, c); // zapsani znaku do tokenu
                     state = sMinus;
                 }
-                else if (c == '+') {
+                else if (c == '+' ) {
                     stringAddChar(&token.atr, c);
                     state = sPlus;
                 }
-                else if (c == '*') {
+                else if (c == '*' ) {
                     stringAddChar(&token.atr, c);
                     state = sMultiply;
                 }
-                else if (c == '/') {
+                else if (c == '/' ) {
                     stringAddChar(&token.atr, c);
                     state = sDivideDOrBlockComment;
                 }
-                else if (c == '\\') {
+                else if (c == '\\' ) {
                     stringAddChar(&token.atr, c);
                     state = sDivideI;
                 }
-                else if (c == '(') {
+                else if (c == '(' ) {
                     stringAddChar(&token.atr, c);
                     state = sLeftPar;
                 }
-                else if (c == ')') {
+                else if (c == ')' ) {
                     stringAddChar(&token.atr, c);
                     state = sRightPar;
                 }
-                else if (c == ';') {
+                else if (c == ';' ) {
                     stringAddChar(&token.atr, c);
                     state = sSemicolon;
                 }
-                else if (c == '=') {
+                else if (c == '=' ) {
                     stringAddChar(&token.atr, c);
                     state = sAssignment;
                 }
-                else if (c == '<') {
+                else if (c == '<' ) {
                     stringAddChar(&token.atr, c);
                     state = sLess;
                 }
-                else if (c =='>') {
+                else if (c =='>' ) {
                     stringAddChar(&token.atr, c);
                     state = sMore;
                 }
-                else if (c == '_') {
+                else if (c == '_' ) {
                     stringAddChar(&token.atr, c);
                     state = sIdentificator;
                 }
@@ -86,14 +100,14 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sIdentificatorOrKeyWord;
                 }
-                else if (c == '\'') {
+                else if (c == '\'' ) {
                     state = sLineComment;
                 }
                 else if ( charIsDigit(c) ) {
                     stringAddChar(&token.atr, c);
                     state = sInteger;
                 }
-                else if ( c == '!') { // pocatek retezce
+                else if ( c == '!' ) { // pocatek retezce
                     //stringAddChar(&token.atr, c);
                     state = sStringStart;
                 }
@@ -139,18 +153,23 @@ tToken getNextToken(){
 
             /* ----------------------------------------START IDENTIFIKATOR / KLICOVE SLOVO----------------------------*/
             case sIdentificatorOrKeyWord:
-                if (c == '_') {
+                if (c == '_' || charIsDigit(c) ) {
                     stringAddChar(&token.atr, c);
                     state = sIdentificator;
                 }
-                else if ( charIsLetter(c) || charIsDigit(c) ) {
+                else if ( charIsLetter(c) ) {
                     stringAddChar(&token.atr, c);
                     state = sIdentificatorOrKeyWord;
                 }
                 else { // vrat token identifikator/klicove slovo
                     charUndo(c);
-                    /* TODO zjistit jestli je to ID nebo KEYWORD */
-                    token.type = sIdentificatorOrKeyWord;
+                    // zjisteni, jeslti je token keyword nebo identifikator
+                    if ( stringIsKeyWord(&token.atr) ) {
+                        token.type = sKeyWord;
+                    }
+                    else {
+                        token.type = sIdentificator;
+                    }
                     return token;
                 }
                 break;
@@ -165,6 +184,9 @@ tToken getNextToken(){
                     token.type = sIdentificator;
                     return token;
                 }
+                break;
+
+            case sKeyWord:
                 break;
             /* ----------------------------------------END IDENTIFIKATOR / KLICOVE SLOVO------------------------------*/
 
@@ -289,7 +311,8 @@ tToken getNextToken(){
                     state = sString;
                 }
                 else { // nepovoleneny znak: lex error
-                    stringAddChar(&token.atr, '!'); // pro lepsi porozumeni chybe: prida do tokenu !
+                    charUndo(c);
+                    stringAddChar(&token.atr, '!'); // pro lepsi porozumeni chybe: prida do tokenu znak !
                     stringAddChar(&token.atr, c);
                     token.type = sLexError;
                     return token;
@@ -350,7 +373,10 @@ tToken getNextToken(){
                 break;
             /* ----------------------------------------END OSTATNI POMOCNE STAVY--------------------------------------*/
 
-            case sLexError: // pouze pro preklad
+
+            case sEndOfLine: // pouze pro preklad
+            case sEndOfFile:
+            case sLexError:
                 break;
         }
     }

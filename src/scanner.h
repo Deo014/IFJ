@@ -18,52 +18,54 @@
 
 // datkovy typ enum popisujici stavy automatu
 typedef enum {
-    sStart,                 //      POCATECNI STAV AUTOMATU
+    sStart,                     //      POCATECNI STAV AUTOMATU
 
-    /* identifikator a klicove slovo */
-    sIdentificator,         //      KONCOVY STAV
-    sIdentificatorOrKeyWord,//      mezistav
-    //sKeyWord,             //      KONCOVY STAV
+    /* identifikator / klicove slovo */
+    sIdentificator,             //      KONCOVY STAV
+    sIdentificatorOrKeyWord,    //      mezistav
+    sKeyWord,                   //      KONCOVY STAV
 
     /* datove type */
-    sInteger,               //      KONCOVY STAV
+    sInteger,                   //      KONCOVY STAV
 
-    sDouble,                //      KONCOVY STAV
-    sDoublePoint,           //      mezistav
-    sDoublePointNumber,     //      mezistav
-    sDoubleExponent,        //      mezistav
-    sDoubleExponentOperator,//      mezistav
+    sDouble,                    //      KONCOVY STAV
+    sDoublePoint,               //      mezistav
+    sDoublePointNumber,         //      mezistav
+    sDoubleExponent,            //      mezistav
+    sDoubleExponentOperator,    //      mezistav
 
-    sString,                //      KONCOVY STAV
-    sStringStart,           //      mezistav
+    sString,                    //      KONCOVY STAV
+    sStringStart,               //      mezistav
 
     /* operatory */
-    sPlus,                  //      KONCOVY STAV    +
-    sMinus,                 //      KONCOVY STAV    -
-    sDivideD,               //      KONCOVY STAV    /
-    sDivideDOrBlockComment, //      mezistav
-    sMultiply,              //      KONCOVY STAV    *
-    sDivideI,               //      KONCOVY STAV    obracene lomitko
-    sLess,                  //      KONCOVY STAV    <
-    sNotEqual,              //      KONCOVY STAV    <>
-    sLessEqual,             //      KONCOVY STAV    <=
-    sMore,                  //      KONCOVY STAV    >
-    sMoreEqueal,            //      KONCOVY STAV    >=
-    sAssignment,            //      KONCOVY STAV    =
+    sPlus,                      //      KONCOVY STAV    +
+    sMinus,                     //      KONCOVY STAV    -
+    sDivideD,                   //      KONCOVY STAV    /
+    sDivideDOrBlockComment,     //      mezistav
+    sMultiply,                  //      KONCOVY STAV    *
+    sDivideI,                   //      KONCOVY STAV    obracene lomitko
+    sLess,                      //      KONCOVY STAV    <
+    sNotEqual,                  //      KONCOVY STAV    <>
+    sLessEqual,                 //      KONCOVY STAV    <=
+    sMore,                      //      KONCOVY STAV    >
+    sMoreEqueal,                //      KONCOVY STAV    >=
+    sAssignment,                //      KONCOVY STAV    =
 
-    sLeftPar,               //      KONCOVY STAV    (
-    sRightPar,              //      KONCOVY STAV    )
-    sSemicolon,             //      KONCOVY STAV    ;
+    sLeftPar,                   //      KONCOVY STAV    (
+    sRightPar,                  //      KONCOVY STAV    )
+    sSemicolon,                 //      KONCOVY STAV    ;
 
     /* komentare */
-    sLineComment,           //      mezistav        '
-    sBlockComment,          //      mezistav /' ( ceka na ukonceni komentare: '/ )
+    sLineComment,               //      mezistav        '
+    sBlockComment,              //      mezistav /' ( ceka na ukonceni komentare: '/ )
 
-    /* chybovy stav */
-    sLexError = -1,         //      LEXIKALNI CHYBA
-
-    //sEndOfFile,           //      KONEC VSTUPNIHO SOUBORU
+    sEndOfLine,                 //      NOVY RADEK
+    sEndOfFile,                 //      KONEC VSTUPNIHO SOUBORU
     //sEnd
+    /* chybovy stav */
+    sLexError = -1,             //      LEXIKALNI CHYBA
+
+
 
 } tState;
 

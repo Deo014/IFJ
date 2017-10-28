@@ -27,6 +27,8 @@ int stringAddChar(string *, char);
 int stringAddFirstChar(string *, char);
 int stringClear(string *);
 
+char * stringToLowercase(string *);
+
 
 int stringIsKeyWord(string *);
 char stringGetLastChar(string *);
@@ -35,7 +37,7 @@ int stringContainsChar(string *, char);
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char);
 int charIsSpace(char);
-int charIsWhiteChar(char);
+int charIsTab(char);
 int charIsDigit(char);
 int charIsLetter(char);
 int charIsOperator(char);

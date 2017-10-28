@@ -12,6 +12,7 @@
 #include "string.h"
 #include "error_code.h"
 #include <malloc.h>
+#include <string.h>
 
 int stringInit(string *str) {
     // alokovani pameti
@@ -59,7 +60,6 @@ int stringAddFirstChar(string * str, char c) {
     return ERROR_CODE_OK;
 }
 
-
 int stringClear(string *str) {
     // smaze znaky v retezci
     for (int i = 0; i < str->lengthAllocated; i++) {
@@ -85,6 +85,29 @@ int stringContainsChar(string *str, char c) {
     return ERROR_CODE_FALSE;
 }
 
+int stringIsKeyWord(string *str) {
+    char *keywords[] = {
+            "as\0" , "asc\0" , "declare\0" , "dim\0" , "do\0" , "double\0" , "else\0" , "end\0", "chr\0",
+            "function\0", "if\0", "input\0", "integer\0", "length\0", "loop\0", "print\0", "return\0",
+            "scope\0", "string\0", "substr\0", "then\0" , "while\0"
+    };
+    unsigned int keywordsLength = sizeof(keywords) / sizeof(keywords[0]); // pocet prvku v poli keywords
+    // porovnani tokenu s klicovymi slovy
+    for (unsigned int i=0; i<keywordsLength; i++) {
+        if ( strcmp(keywords[i], str->value) == 0 )
+            return ERROR_CODE_TRUE;
+    }
+    return ERROR_CODE_FALSE;
+}
+
+char *stringToLowercase(string *str) {
+    char *strLower = str->value;
+    //strcpy(strLower, str->value);
+    //
+    //for (int i=0; i<str->length)
+    return strLower;
+}
+
 // FUNKCE PRO PRACI SE ZNAKY
 void charUndo(char c) {
     ungetc(c, stdin);
@@ -97,8 +120,8 @@ int charIsSpace(char c) {
         return ERROR_CODE_FALSE;
 }
 
-int charIsWhiteChar(char c) {
-    if ( c == ' ' || c == '\n' || c == '\t')
+int charIsTab(char c) {
+    if ( c == '\t' )
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;
