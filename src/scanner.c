@@ -94,9 +94,10 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sInteger;
                 }
-                else {// jakykoliv jiny znak je nepovoleny
-                    stringAddChar(&token.atr, c);
-                    state = sLexError;
+                else {// nacteni nepovoleneho znaku: lex error
+                    charUndo(c);
+                    token.type = sLexError;
+                    return token;
                 }
                 break;
             // STAV: <
@@ -198,11 +199,11 @@ tToken getNextToken(){
                 }
                 else if (c == '.') {
                     stringAddChar(&token.atr, c);
-                    state = sDouble;
+                    state = sDoublePoint;
                 }
                 else if (c == 'e' || c == 'E') {
                     stringAddChar(&token.atr, c);
-                    state = sDouble;
+                    state = sDoubleExponent;
                 }
                 else { // vrat token integer
                     charUndo(c);
@@ -211,27 +212,71 @@ tToken getNextToken(){
                 }
                 break;
 
-            // STAV: . nebo eE double
-            case sDouble:
+            case sDoublePoint:
                 if ( charIsDigit(c) ) { // cteni dalsich cislic
                     stringAddChar(&token.atr, c);
-                    state = sDouble;
+                    state = sDoublePointNumber;
                 }
-                else if ( (c == 'e' || c == 'E') && (!stringContainsChar(&token.atr, 'e') || !stringContainsChar(&token.atr, 'E')) && (stringGetLastChar(&token.atr) != '.') ) {
-                    // pokud je cteny znak exponent a token neobsahuje exponent a zaroven posledni znak neni tecka: zapise exponent
+                else { // nacteni nepovoleneho znaku: lex error
+                    charUndo(c);
+                    token.type = sLexError;
+                    return token;
+                }
+                break;
+
+            case sDoublePointNumber:
+                if ( charIsDigit(c) ) { // nacteni dalsiho cisla
+                    stringAddChar(&token.atr, c);
+                    state = sDoublePointNumber;
+                }
+                else if ( c == 'e' || c == 'E' ) {
+                    stringAddChar(&token.atr, c);
+                    state = sDoubleExponent;
+                }
+                else { // nepovoleny znak: vrat token double
+                    charUndo(c);
+                    token.type = sDouble;
+                    return token;
+                }
+                break;
+
+            case sDoubleExponent:
+                if ( charIsDigit(c) ) { // nacteni dalsiho cisla: presun do stavu sDouble
                     stringAddChar(&token.atr, c);
                     state = sDouble;
                 }
-                else { // vrat token double nebo lexx error
-                    if ( charIsDigit(stringGetLastChar(&token.atr)) ) { // pokud token konci cislem: vrat token double
-                        charUndo(c);
-                        token.type = sDouble;
-                        return token;
-                    }
-                    else { // jinak lex error
-                        charUndo(c);
-                        state = sLexError;
-                    }
+                else if ( c == '+' || c == '-') {
+                    stringAddChar(&token.atr, c);
+                    state = sDoubleExponentOperator;
+                }
+                else { // nepovoleny znak: lex error
+                    charUndo(c);
+                    token.type = sLexError;
+                    return token;
+                }
+                break;
+
+            case sDoubleExponentOperator:
+                if ( charIsDigit(c) ) { // nacteni dalsiho cisla
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
+                else { // nepovoleny znak: lex error
+                    charUndo(c);
+                    token.type = sLexError;
+                    return token;
+                }
+                break;
+
+            case sDouble:
+                if ( charIsDigit(c) ) { // nacteni dalsiho cisla
+                    stringAddChar(&token.atr, c);
+                    state = sDouble;
+                }
+                else { // pri nacteni nepovoleneho znaku: vrat token double
+                    charUndo(c);
+                    token.type = sDouble;
+                    return token;
                 }
                 break;
 
@@ -251,12 +296,10 @@ tToken getNextToken(){
                 charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
                 return token;
+                break;
 
-            // STAV: Lexikalni chyba
-            case sLexError:
-                //charUndo(c); // vrati zpet aktualne cteny znak
-                token.type = state; // naplni token typem nalezeneho lexemu
-                return token;
+            case sLexError: // pouze pro preklad
+                break;
         }
     }
 }

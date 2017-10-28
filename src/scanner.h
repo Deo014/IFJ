@@ -18,40 +18,43 @@
 
 // datkovy typ enum popisujici stavy automatu
 typedef enum {
-    sStart,             // s    pocatecni stav automatu
-    sIdentificator,     // F15  identifikator/klicove slovo             KONCOVY STAV
-    sIdentificatorOrKeyWord,
-    //sKeyWord,           //      klicove slovo                           KONCOVY STAV
+    sStart,                 //      POCATECNI STAV AUTOMATU
+    sIdentificator,         //      KONCOVY STAV
+    sIdentificatorOrKeyWord,//      mezistav
+    //sKeyWord,             //      KONCOVY STAV
 
     /* datove type */
-    sInteger,           // F12  0..9    1+krat                          KONCOVY STAV
-    sDouble,            // F13  double                                  KONCOVY STAV
-    //sDoublePoint,       // Q1   .    (desetinna tecka)
+    sInteger,               //      KONCOVY STAV
+    sDouble,                //      KONCOVY STAV
+    sDoublePoint,           //      mezistav
+    sDoublePointNumber,     //      mezistav
+    sDoubleExponent,        //      mezistav
+    sDoubleExponentOperator,//      mezistav
     //sTODO,                   // Q3   0..9, +, -
 
     /* operatory */
-    sPlus,              // F1   +
-    sMinus,             // F2   -
-    sDivideD,           // F3   /
-    sDivideDOrBlockComment,
-    sMultiply,          // F4   *
-    sDivideI,           // F5
-    sLess,              // F6   <
-    sNotEqual,          // F7   <>
-    sLessEqual,        // F8   <=
-    sMore,              // F9   >
-    sMoreEqueal,        // F10  >=
-    sAssignment,        // F11  =
+    sPlus,                  //      KONCOVY STAV    +
+    sMinus,                 //      KONCOVY STAV    -
+    sDivideD,               //      KONCOVY STAV    /
+    sDivideDOrBlockComment, //      mezistav
+    sMultiply,              //      KONCOVY STAV    *
+    sDivideI,               //      KONCOVY STAV    obracene lomitko
+    sLess,                  //      KONCOVY STAV    <
+    sNotEqual,              //      KONCOVY STAV    <>
+    sLessEqual,             //      KONCOVY STAV    <=
+    sMore,                  //      KONCOVY STAV    >
+    sMoreEqueal,            //      KONCOVY STAV    >=
+    sAssignment,            //      KONCOVY STAV    =
 
-    sLeftPar,           // F16  (
-    sRightPar,          // F17  )
-    sSemicolon,         // F20  ;
+    sLeftPar,               //      KONCOVY STAV    (
+    sRightPar,              //      KONCOVY STAV    )
+    sSemicolon,             //      KONCOVY STAV    ;
 
-    sLineComment,       // F18  `   zacatek jednoradkoveho komentare
-    sBlockComment,      // F19  /`  zacatek blokoveho komentare ( ceka na ukonceni `/ )
-    //sEndOfFile,         // END
-    sLexError = -1,
-    sEnd
+    sLineComment,           //      mezistav        '
+    sBlockComment,          //      mezistav /' ( ceka na ukonceni komentare: '/ )
+    //sEndOfFile,           //      KONEC VSTUPNIHO SOUBORU
+    sLexError = -1,         //      LEXIKALNI CHYBA
+    //sEnd
 
 } tState;
 
