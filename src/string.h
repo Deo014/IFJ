@@ -31,6 +31,7 @@ void stringToLowercase(string *);
 
 
 int stringIsKeyWord(string *);
+int stringIsResKeyWord(string *);
 char stringGetLastChar(string *);
 
 /* ----------------------------------------FUNKCE PRO PRACI SE ZNAKY--------------------------------------------------*/

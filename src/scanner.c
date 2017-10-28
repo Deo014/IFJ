@@ -165,7 +165,7 @@ tToken getNextToken(){
                     charUndo(c);
                     // zjisteni, jeslti je token keyword nebo identifikator
                     stringToLowercase(&token.atr); // prevod atributu tokenu na lowercase
-                    if ( stringIsKeyWord(&token.atr) ) {
+                    if ( stringIsKeyWord(&token.atr) || stringIsResKeyWord(&token.atr) ) {
                         token.type = sKeyWord;
                     }
                     else {
