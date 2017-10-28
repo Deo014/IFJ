@@ -182,6 +182,7 @@ tToken getNextToken(){
                 }
                 else { // vrat token identifikator
                     charUndo(c);
+                    stringToLowercase(&token.atr); // prevod atributu tokenu na lowercase
                     token.type = sIdentificator;
                     return token;
                 }
