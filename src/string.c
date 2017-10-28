@@ -40,6 +40,26 @@ int stringAddChar(string *str, char c) {
     return ERROR_CODE_OK;
 }
 
+int stringAddFirstChar(string * str, char c) {
+    // pokud neni misto pro dalsi znak
+    if (str->length+1 >= str->lengthAllocated) {
+        // realokace pameti: navyseni o INIT_ALLOC_SIZE
+        if ( (str->value = (char*)realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE)) == NULL )
+            return ERROR_CODE_INTERNAL;
+        str->lengthAllocated = str->lengthAllocated + INIT_ALLOC_SIZE;
+    }
+    // posunuti retezce o jeden znak: vytvoreni mista pro zapsani prvniho znaku
+    for (int i=str->length; i>=0; i--) {
+        str->value[i+1] = str->value[i];
+    }
+    // pridani znaku na zacatek retezce
+    str->value[0] = c;
+    str->length++;
+    // pokud vse probehlo v poradku
+    return ERROR_CODE_OK;
+}
+
+
 int stringClear(string *str) {
     // smaze znaky v retezci
     for (int i = 0; i < str->lengthAllocated; i++) {

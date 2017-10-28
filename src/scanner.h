@@ -36,8 +36,6 @@ typedef enum {
 
     sString,                //      KONCOVY STAV
     sStringStart,           //      mezistav
-    //sStringRead,            //      mezistav
-
 
     /* operatory */
     sPlus,                  //      KONCOVY STAV    +

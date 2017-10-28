@@ -12,7 +12,6 @@
 
 #include "error_code.h"
 #include "scanner.h"
-#include "string.h"
 
 tToken token; // token
 tState state;
@@ -95,7 +94,7 @@ tToken getNextToken(){
                     state = sInteger;
                 }
                 else if ( c == '!') { // pocatek retezce
-                    stringAddChar(&token.atr, c);
+                    //stringAddChar(&token.atr, c);
                     state = sStringStart;
                 }
                 else {// nacteni nepovoleneho znaku: lex error
@@ -286,10 +285,11 @@ tToken getNextToken(){
             /* ----------------------------------------START STRING-------------------------------------------------- */
             case sStringStart: // !
                 if ( c == '"' ) { // znak "
-                    stringAddChar(&token.atr, c);
+                    //stringAddChar(&token.atr, c);
                     state = sString;
                 }
                 else { // nepovoleneny znak: lex error
+                    stringAddChar(&token.atr, '!'); // pro lepsi porozumeni chybe: prida do tokenu !
                     stringAddChar(&token.atr, c);
                     token.type = sLexError;
                     return token;
@@ -298,7 +298,7 @@ tToken getNextToken(){
 
             case sString:
                 if ( c == '"' ) { // znak " ukonceni stringu: vrat token string
-                    stringAddChar(&token.atr, c);
+                    //stringAddChar(&token.atr, c);
                     token.type = sString;
                     return token;
                 }
@@ -308,6 +308,8 @@ tToken getNextToken(){
                 }
                 else { // nepovoleny znak: lex error
                     charUndo(c);
+                    stringAddFirstChar(&token.atr, '"'); // zapis !" do tokenu, aby bylo jasne, ze k chybe doslo ve stringu
+                    stringAddFirstChar(&token.atr, '!'); // zapis !" do tokenu, aby bylo jasne, ze k chybe doslo ve stringu
                     token.type = sLexError;
                     return token;
                 }
@@ -337,7 +339,7 @@ tToken getNextToken(){
 
             /* ----------------------------------------START OSTATNI POMOCNE STAVY------------------------------------*/
             case sDivideDOrBlockComment: // deleno / nebo blokovy komentar /'
-                if (c == '\'') {
+                if (c == '\'') { // start blokoveho komentare
                     stringClear(&token.atr); // smaze znak / z tokenu
                     state = sBlockComment;
                 }

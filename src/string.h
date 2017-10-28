@@ -24,6 +24,7 @@ typedef struct {
 
 int stringInit(string *);
 int stringAddChar(string *, char);
+int stringAddFirstChar(string *, char);
 int stringClear(string *);
 
 
