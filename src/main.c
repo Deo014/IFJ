@@ -33,9 +33,9 @@ int main(int argc, char **argv)
 
     while (1) {
         token = getNextToken();
-        printf("%d token:%s\n", token.type, token.atr.value);
-        printf("length:%d\n", token.atr.length);
-        printf("allocated:%d\n\n", token.atr.lengthAllocated);
+        printf("%2d %s\n", token.type, token.atr.value);
+        //printf("length:%d\n", token.atr.length);
+        //printf("allocated:%d\n\n", token.atr.lengthAllocated);
 
         if (token.type == 30 /* EOF */)
             break;

@@ -33,7 +33,7 @@ void stringToLowercase(string *);
 int stringIsKeyWord(string *);
 char stringGetLastChar(string *);
 
-// FUNKCE PRO PRACI SE ZNAKY
+/* ----------------------------------------FUNKCE PRO PRACI SE ZNAKY--------------------------------------------------*/
 void charUndo(char);
 int charIsSpace(char);
 int charIsTab(char);
