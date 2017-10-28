@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   string.c - lexikální analyzátor
+ * Soubor   :   string.c - pomocná knihovna pro lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -77,14 +77,6 @@ char stringGetLastChar(string *str) {
         return -1;
 }
 
-int stringContainsChar(string *str, char c) {
-    for (int i=0; i < str->length; i++) {
-        if (str->value[i] == c)
-            return ERROR_CODE_TRUE;
-    }
-    return ERROR_CODE_FALSE;
-}
-
 int stringIsKeyWord(string *str) {
     char *keywords[] = {
             "as\0" , "asc\0" , "declare\0" , "dim\0" , "do\0" , "double\0" , "else\0" , "end\0", "chr\0",
@@ -137,13 +129,6 @@ int charIsDigit(char c) {
 
 int charIsLetter(char c) {
     if ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
-        return ERROR_CODE_TRUE;
-    else
-        return ERROR_CODE_FALSE;
-}
-
-int charIsOperator(char c) {
-    if (c == '+' || c == '-' || c == '*' || c == '/' || c == '\\' || c == '=' || c == '<' || c == '>')
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;
