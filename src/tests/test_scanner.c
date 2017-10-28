@@ -303,10 +303,7 @@ int test6() {
         printf("\n");
         while (i < POCET_TOKENU_TEST_6) {
             tokenObdrzeny = getNextToken();
-            printf("%s\n", tokenObdrzeny.atr.value);
-            printf("%s\n", tokenyTestOcekavane[i].atr.value);
-            printf("%d\n", tokenObdrzeny.type);
-            printf("%d\n", tokenyTestOcekavane[i].type);
+
             if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) ||
                 (tokenObdrzeny.type != tokenyTestOcekavane[i].type))
                 testResult = 1;
