@@ -100,12 +100,13 @@ int stringIsKeyWord(string *str) {
     return ERROR_CODE_FALSE;
 }
 
-char *stringToLowercase(string *str) {
-    char *strLower = str->value;
-    //strcpy(strLower, str->value);
-    //
-    //for (int i=0; i<str->length)
-    return strLower;
+void stringToLowercase(string *str) {
+    // prevod na lowercase
+    for (int i=0; i<str->length; i++) {
+        if ( (str->value[i] >= 65) && (str->value[i] <= 90) ) {
+            str->value[i] = str->value[i] + 32;
+        }
+    }
 }
 
 // FUNKCE PRO PRACI SE ZNAKY

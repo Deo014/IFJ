@@ -161,9 +161,10 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sIdentificatorOrKeyWord;
                 }
-                else { // vrat token identifikator/klicove slovo
+                else { // vrat token identifikator / klicove slovo
                     charUndo(c);
                     // zjisteni, jeslti je token keyword nebo identifikator
+                    stringToLowercase(&token.atr); // prevod atributu tokenu na lowercase
                     if ( stringIsKeyWord(&token.atr) ) {
                         token.type = sKeyWord;
                     }

@@ -27,7 +27,7 @@ int stringAddChar(string *, char);
 int stringAddFirstChar(string *, char);
 int stringClear(string *);
 
-char * stringToLowercase(string *);
+void stringToLowercase(string *);
 
 
 int stringIsKeyWord(string *);
