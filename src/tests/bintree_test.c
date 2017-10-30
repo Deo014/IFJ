@@ -10,7 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 
-#include "bintree.c"
+#include "../bintree.c"
 
 int main(){
     // Deklarace struktury reprezentující tokeny
