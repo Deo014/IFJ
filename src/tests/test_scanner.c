@@ -23,9 +23,9 @@ int test1() {
         //Alokace ok, nastavime ocekavane hodnoty
         tokenyTestOcekavane[0].type = 1;
         tokenyTestOcekavane[0].atr.value = "int";
-        tokenyTestOcekavane[1].type = 2;
+        tokenyTestOcekavane[1].type = 3;
         tokenyTestOcekavane[1].atr.value = "integer";
-        tokenyTestOcekavane[2].type = 3;
+        tokenyTestOcekavane[2].type = 4;
         tokenyTestOcekavane[2].atr.value = "42";
         tokenyTestOcekavane[3].type = 1;
         tokenyTestOcekavane[3].atr.value = "_";
@@ -38,12 +38,12 @@ int test1() {
 
         while (i < POCET_TOKENU_TEST_1) {
             tokenObdrzeny = getNextToken();
-            /*
+/*
             printf("%s\n",tokenObdrzeny.atr.value);
             printf("%s\n",tokenyTestOcekavane[i].atr.value);
             printf("%d\n",tokenObdrzeny.type);
             printf("%d\n",tokenyTestOcekavane[i].type);
-             */
+*/
             if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) ||
                 (tokenObdrzeny.type != tokenyTestOcekavane[i].type))
                 testResult = 1;
@@ -167,11 +167,14 @@ int test4() {
             //Nastaveni atributu tokenu na ocekavane slovo
             tokenyTestOcekavane[k].atr.value = valueArray[k];
         }
+
 //Porovnani obdrzeneho a ocekavaneho
         tToken tokenObdrzeny;
         int i = 0;
         while (i < POCET_TOKENU_TEST_4) {
             tokenObdrzeny = getNextToken();
+
+
             if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) ||
                 (tokenObdrzeny.type != tokenyTestOcekavane[i].type))
                 testResult = 1;
@@ -196,7 +199,7 @@ int test5() {
         tokenyTestOcekavane[1].type = 5;
         tokenyTestOcekavane[1].atr.value = "10E2";
         tokenyTestOcekavane[2].type = 5;
-        tokenyTestOcekavane[2].atr.value = "0.25E0.5";
+        tokenyTestOcekavane[2].atr.value = "0.25E5";
         tokenyTestOcekavane[3].type = 29;
         tokenyTestOcekavane[3].atr.value = "EOL";
         tokenyTestOcekavane[4].type = 30;
@@ -297,7 +300,7 @@ int test6() {
 
         tToken tokenObdrzeny;
         int i = 0;
-
+        printf("\n");
         while (i < POCET_TOKENU_TEST_6) {
             tokenObdrzeny = getNextToken();
 
@@ -327,9 +330,9 @@ int main() {
     printf("Test 4 - Rozpoznani klicovych slov ");
     test4() == 0 ? printf(GRN"PROSEL \n"RST) : printf((RED"NEPROSEL\n"RST));
     freopen("test5.txt", "r", stdin);
-    printf("Test 5 se vstupem: \"2e-1 10E2 0.25E0.5\" ");
+    printf("Test 5 se vstupem: \"2e-1 10E2 0.25E5\" ");
     test5() == 0 ? printf(GRN"PROSEL \n"RST) : printf((RED"NEPROSEL\n"RST));
-    freopen("test5.txt", "r", stdin);
+    freopen("test6.txt", "r", stdin);
     printf("Test 6 - kratky kod ");
     test6() == 0 ? printf(GRN"PROSEL \n"RST) : printf((RED"NEPROSEL\n"RST));
     return 0;
