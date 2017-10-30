@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   string.h - lexikální analyzátor
+ * Soubor   :   string.h - pomocná knihovna pro lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -24,19 +24,21 @@ typedef struct {
 
 int stringInit(string *);
 int stringAddChar(string *, char);
+int stringAddFirstChar(string *, char);
 int stringClear(string *);
+
+void stringToLowercase(string *);
 
 
 int stringIsKeyWord(string *);
+int stringIsResKeyWord(string *);
 char stringGetLastChar(string *);
-int stringContainsChar(string *, char);
 
-// FUNKCE PRO PRACI SE ZNAKY
+/* ----------------------------------------FUNKCE PRO PRACI SE ZNAKY--------------------------------------------------*/
 void charUndo(char);
 int charIsSpace(char);
-int charIsWhiteChar(char);
+int charIsTab(char);
 int charIsDigit(char);
 int charIsLetter(char);
-int charIsOperator(char);
 
 #endif //IFJ_STRING_H
