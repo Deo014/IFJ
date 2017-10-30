@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   scanner.h - syntaktický a sémantický analyzátor
+ * Soubor   :   scanner.h - lexikální analyzátor
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -18,40 +18,54 @@
 
 // datkovy typ enum popisujici stavy automatu
 typedef enum {
-    sStart,             // s    pocatecni stav automatu
-    sIdentificator,     // F15  identifikator/klicove slovo             KONCOVY STAV
-    sIdentificatorOrKeyWord,
-    //sKeyWord,           //      klicove slovo                           KONCOVY STAV
+    sStart,                     //      POCATECNI STAV AUTOMATU
+
+    /* identifikator / klicove slovo */
+    sIdentificator,             //      KONCOVY STAV
+    sIdentificatorOrKeyWord,    //      mezistav
+    sKeyWord,                   //      KONCOVY STAV
 
     /* datove type */
-    sInteger,           // F12  0..9    1+krat                          KONCOVY STAV
-    sDouble,            // F13  double                                  KONCOVY STAV
-    //sDoublePoint,       // Q1   .    (desetinna tecka)
-    //sTODO,                   // Q3   0..9, +, -
+    sInteger,                   //      KONCOVY STAV
+
+    sDouble,                    //      KONCOVY STAV
+    sDoublePoint,               //      mezistav
+    sDoublePointNumber,         //      mezistav
+    sDoubleExponent,            //      mezistav
+    sDoubleExponentOperator,    //      mezistav
+
+    sString,                    //      KONCOVY STAV
+    sStringStart,               //      mezistav
 
     /* operatory */
-    sPlus,              // F1   +
-    sMinus,             // F2   -
-    sDivideD,           // F3   /
-    sDivideDOrBlockComment,
-    sMultiply,          // F4   *
-    sDivideI,           // F5
-    sLess,              // F6   <
-    sNotEqual,          // F7   <>
-    sLessEqual,        // F8   <=
-    sMore,              // F9   >
-    sMoreEqueal,        // F10  >=
-    sAssignment,        // F11  =
+    sPlus,                      //      KONCOVY STAV    +
+    sMinus,                     //      KONCOVY STAV    -
+    sDivideD,                   //      KONCOVY STAV    /
+    sDivideDOrBlockComment,     //      mezistav
+    sMultiply,                  //      KONCOVY STAV    *
+    sDivideI,                   //      KONCOVY STAV    obracene lomitko
+    sLess,                      //      KONCOVY STAV    <
+    sNotEqual,                  //      KONCOVY STAV    <>
+    sLessEqual,                 //      KONCOVY STAV    <=
+    sMore,                      //      KONCOVY STAV    >
+    sMoreEqueal,                //      KONCOVY STAV    >=
+    sAssignment,                //      KONCOVY STAV    =
 
-    sLeftPar,           // F16  (
-    sRightPar,          // F17  )
-    sSemicolon,         // F20  ;
+    sLeftPar,                   //      KONCOVY STAV    (
+    sRightPar,                  //      KONCOVY STAV    )
+    sSemicolon,                 //      KONCOVY STAV    ;
 
-    sLineComment,       // F18  `   zacatek jednoradkoveho komentare
-    sBlockComment,      // F19  /`  zacatek blokoveho komentare ( ceka na ukonceni `/ )
-    //sEndOfFile,         // END
-    sLexError = -1,
-    sEnd
+    /* komentare */
+    sLineComment,               //      mezistav        '
+    sBlockComment,              //      mezistav /' ( ceka na ukonceni komentare: '/ )
+
+    sEndOfLine,                 //      NOVY RADEK
+    sEndOfFile,                 //      KONEC VSTUPNIHO SOUBORU
+    //sEnd
+    /* chybovy stav */
+    sLexError = -1,             //      LEXIKALNI CHYBA
+
+
 
 } tState;
 
