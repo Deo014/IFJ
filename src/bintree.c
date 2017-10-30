@@ -88,7 +88,8 @@ ERROR_CODE BSTinsert(TreePointer *Tree, char *key,void *data) {
                         pom->right->key=key;
                     }
                 }
-                else /* list to nieje tak musim sa posunut dalej */
+                // není to list, je třeba se posunout ádl
+                else
                     pom=pom->right;
                 //******************************
             }
