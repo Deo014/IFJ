@@ -196,6 +196,7 @@ tToken getNextToken(){
             /* ----------------------------------------START KOMENTARE----------------------------------------------- */
             case sLineComment: // '
                 if (c == '\n' || c == EOF) {
+                    charUndo(c);
                     state = sStart;
                 }
                 // pokud precte jakykoliv jiny znak nez '\n' nebo EOF nic se nestane
