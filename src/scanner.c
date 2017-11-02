@@ -25,6 +25,7 @@ tToken getNextToken(){
 
     state = sStart; // inicializace automatu na pocatecni stav
     char c; // aktualne cteny znak ze vstupniho souboru
+    int escapeValue, escapeCounter; // pomocne promenne pro escape sekvenci u stringu
 
     while (1) {
         c = getchar(); // nacteni dalsiho znaku ze vstupu
@@ -311,6 +312,7 @@ tToken getNextToken(){
             case sStringStart: // !
                 if ( c == '"' ) { // znak "
                     //stringAddChar(&token.atr, c);
+                    token.type = sString; // predpokladany typ tokenu je sString
                     state = sString;
                 }
                 else { // nepovoleneny znak: lex error
@@ -325,10 +327,14 @@ tToken getNextToken(){
             case sString:
                 if ( c == '"' ) { // znak " ukonceni stringu: vrat token string
                     //stringAddChar(&token.atr, c);
-                    token.type = sString;
+                    //token.type = sString;
                     return token;
                 }
-                else if ( c > 31 ) {
+                else if ( c == '\\') { // zapis znaku pomoci escape sekvence
+                    //stringAddChar(&token.atr, c);
+                    state = sStringEscape;
+                }
+                else if ( c > 31 ) { // primy zapis znaku
                     stringAddChar(&token.atr, c);
                     state = sString;
                 }
@@ -338,6 +344,66 @@ tToken getNextToken(){
                     stringAddFirstChar(&token.atr, '!'); // zapis !" do tokenu, aby bylo jasne, ze k chybe doslo ve stringu
                     token.type = sLexError;
                     return token;
+                }
+                break;
+
+            case sStringEscape:
+                if ( c == '\\') {
+                    stringAddChar(&token.atr, c);
+                    state = sString;
+                }
+                else if ( c == 'n' ) {
+                    stringAddChar(&token.atr, '\n');
+                    state = sString;
+                }
+                else if ( c == 't' ) {
+                    stringAddChar(&token.atr, '\t');
+                    state = sString;
+                }
+                else if ( c == '"' ) {
+                    stringAddChar(&token.atr, '"');
+                    state = sString;
+                }
+                else if ( charIsDigit(c) ) {
+                    escapeCounter = 1;
+                    escapeValue = charToDec(c) * 100; // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, prvni cislice je v radu stovek
+                    state = sStringEscapeNumber;
+                }
+                else { // nepovoleny znak: lexx error
+                    token.type = sLexError;
+                    state = sString;
+                }
+                break;
+
+            case sStringEscapeNumber:
+                if ( charIsDigit(c) && (escapeCounter == 1) ) {
+                    escapeCounter = 2;
+                    escapeValue += charToDec(c) * 10; // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, druha cislice je v radu desitek
+                    state = sStringEscapeNumber;
+                }
+                else if ( charIsDigit(c) && (escapeCounter == 2) ) {
+                    escapeValue += charToDec(c); // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, treti cislice je v radu jednotek
+                    if ( (escapeValue >= 0) && (escapeValue <= 255) ) { // pokud je znak v rozsahu
+                        stringAddChar(&token.atr, escapeValue); // zapsani znaku do retezce
+                        state = sString;
+                    }
+                    else { // znak neni v rozsahu
+                        stringAddChar(&token.atr, '\\'); // aby bylo poznat, ze k chybe doslo pri escape sekvenci: zapsani znaku '\'
+
+                        // prevod cisla escapeValue zpet na char a zapis do tokenu
+                        stringAddChar(&token.atr, decToChar(escapeValue/100) );
+                        escapeValue -= (escapeValue/100) * 100; // odstraneni stovek
+                        stringAddChar(&token.atr, decToChar(escapeValue/10) );
+                        escapeValue -= (escapeValue/10) * 10; // odstraneni desitek
+                        stringAddChar(&token.atr, decToChar(escapeValue) );
+
+                        token.type = sLexError;
+                        state = sString;
+                    }
+                }
+                else { // nepovoleny znak: lexx error
+                    token.type = sLexError;
+                    state = sString;
                 }
                 break;
             /* ----------------------------------------END STRING---------------------------------------------------- */

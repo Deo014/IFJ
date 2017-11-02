@@ -37,8 +37,8 @@ int main(int argc, char **argv)
         //printf("length:%d\n", token.atr.length);
         //printf("allocated:%d\n\n", token.atr.lengthAllocated);
 
-        if (token.type == 30 /* EOF */)
-            break;
+        //if (token.type == 30 /* EOF */)
+        //    break;
     }
 
 

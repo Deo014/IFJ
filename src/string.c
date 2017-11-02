@@ -41,6 +41,12 @@ int stringAddChar(string *str, char c) {
     return ERROR_CODE_OK;
 }
 
+void stringUpdateLastChar(string *str, char c) {
+    if (str->length > 0) {
+        str->value[str->length-1] = c;
+    }
+}
+
 int stringAddFirstChar(string * str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
@@ -146,4 +152,12 @@ int charIsLetter(char c) {
         return ERROR_CODE_TRUE;
     else
         return ERROR_CODE_FALSE;
+}
+
+int charToDec(char c) {
+    return c-48;
+}
+
+char decToChar(int c) {
+    return c+48;
 }
