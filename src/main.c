@@ -14,13 +14,12 @@
 //#include <stdlib.h>
 #include "error_code.h"
 #include "init.h"
-#include "scanner.h"
 #include "string.h"
+#include "instList.h"
 
 int main(int argc, char **argv)
 {
     ERROR_CODE error_code = ERROR_CODE_OK;
-    tToken token; // promenna token
     //stringInit(&token.s); // inicializace tokenu
 
     // kontrola argumentů
@@ -31,35 +30,31 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
-    while (1) {
-        token = getNextToken();
-        printf("%2d %s\n", token.type, token.atr.value);
-        //printf("length:%d\n", token.atr.length);
-        //printf("allocated:%d\n\n", token.atr.lengthAllocated);
+    // otestovani vkladani instrukci do instrukcniho seznamu--SMAZAT
+    tDLList instList;
+    DLInitList(&instList);
 
-        if (token.type == 30 /* EOF */)
-            break;
+    tInstr instruction;
+
+    instruction.instType = 1;
+    DLInsertLast(&instList, instruction);
+
+    instruction.instType = 2;
+    DLInsertLast(&instList, instruction);
+
+    instruction.instType = 3;
+    DLInsertLast(&instList, instruction);
+
+    instruction.instType = 0;
+    DLInsertFirst(&instList, instruction);
+
+
+    DLFirst(&instList);
+    while ( DLActive(&instList) ) {
+        DLCopy(&instList, &instruction);
+        printf("%d\n", instruction.instType);
+        DLSucc(&instList);
     }
 
-
-
-    /*
-    // inicializace paměti
-    memInit();
-    // získání filename z stdin
-    getFilename();
-
-    // otevření souboru pro čtení
-    ERROR_CODE fileStatus = openFile(filename);
-    if(fileStatus == ERROR_CODE_INTERNAL)
-        return code_error = ERROR_CODE_INTERNAL;
-
-    // Tady se vyvolá funkce pro zpracování souboru
-
-    //code_error = nejakaFunkceZeScanneruNeboParseru();
-
-    // uvolnění paměti
-    memFree(filename);
-     */
     return error_code;
 }
