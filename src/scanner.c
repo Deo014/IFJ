@@ -13,18 +13,16 @@
 #include "error_code.h"
 #include "scanner.h"
 
-tToken token; // token
-tState state;
 
 tToken getNextToken(){
-    if (token.atr.value == NULL)
-        stringInit(&token.atr); // inicializace retezce tokenu
-    else
-        stringClear(&token.atr); // smazani obsahu retezce tokenu
-    token.type = sStart; // inicializace typu tokenu
+    tToken token;
+    tState state;
 
-    state = sStart; // inicializace automatu na pocatecni stav
-    char c; // aktualne cteny znak ze vstupniho souboru
+    stringInit(&token.atr); // inicializace attributu tokenu
+    token.type = sStart; // inicializace typu tokenu: pocatecni stav
+    state = sStart; // inicializace pocatecniho stavu automatu
+
+    char c; // aktualne cteny znak ze vstupniho souboru (stdin)
     int escapeValue, escapeCounter; // pomocne promenne pro escape sekvenci u stringu
 
     while (1) {
