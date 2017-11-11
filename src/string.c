@@ -47,6 +47,11 @@ void stringUpdateLastChar(string *str, char c) {
     }
 }
 
+void stringDeleteLastChar(string *str) {
+    str->value[str->length-1] = '\0';
+    str->length -= 1;
+}
+
 int stringAddFirstChar(string * str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {

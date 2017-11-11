@@ -31,6 +31,7 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
+
     while (1) {
         token = getNextToken();
         printf("%2d %s\n", token.type, token.atr.value);
