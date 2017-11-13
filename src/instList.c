@@ -275,10 +275,10 @@ void printInstructionList(tDLListInstruction *L) {
         DLCopy(L, &currentInst);
         // vypsani typu instrukce
         switch (currentInst.instType) {
-            case I_MOVE:            printf("MOVE");        break;
-            case I_CREATEFRAME:     printf("CREATEFRAME");  break;
-            case I_PUSHFRAME:       printf("PUSHFRAME");    break;
-            case I_POPFRAME:        printf("POPFRAME");     break;
+            case I_MOVE:            printf("MOVE");         break;
+            case I_CREATEFRAME:     printf("CREATEFRAME\n");  break;
+            case I_PUSHFRAME:       printf("PUSHFRAME\n");    break;
+            case I_POPFRAME:        printf("POPFRAME\n");     break;
             case I_DEFVAR:          printf("DEFVAR");       break;
             case I_CALL:            printf("CALL");         break;
             case I_RETURN:          printf("RETURN");       break;
@@ -343,8 +343,8 @@ void printInstructionList(tDLListInstruction *L) {
 
 
             // instrukce pro rizeni toku programu
-            case I_LABEL:           printf("LABEL");        break;
-            case I_JUMP:            printf("JUMP");         break;
+            case I_LABEL:           printf("LABEL %s\n", (char *)currentInst.addr1); break;
+            case I_JUMP:            printf("JUMP %s\n", (char *)currentInst.addr1);  break;
             case I_JUMPIFEQ:        printf("JUMPIFEQ");     break;
             case I_JUMPIFNEQ:       printf("JUMPIFNEQ");    break;
             // zasobnikove verze
@@ -357,7 +357,7 @@ void printInstructionList(tDLListInstruction *L) {
             case I_DPRINT:          printf("DPRINT");       break;
         }
         // vypsani operandu instrukce
-        printf(" %p %p %p\n", currentInst.addr1, currentInst.addr2, currentInst.addr3); // vypise operandy instrukce
+        //printf(" %p %p %p\n", currentInst.addr1, currentInst.addr2, currentInst.addr3); // vypise adresy operandu instrukce
 
         DLSucc(L);
     }

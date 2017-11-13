@@ -34,9 +34,9 @@ int main(int argc, char **argv)
     tDLListInstruction instList;
     DLInitList(&instList);
 
-    generateInstruction(&instList, 1, NULL, NULL, NULL);
-    generateInstruction(&instList, 2, NULL, NULL, NULL);
-    generateInstruction(&instList, 3, NULL, NULL, NULL);
+    generateInstruction(&instList, I_POPFRAME, NULL, NULL, NULL);
+    generateInstruction(&instList, I_CALL, NULL, NULL, NULL);
+    generateInstruction(&instList, I_BREAK, NULL, NULL, NULL);
 
     printInstructionList(&instList);
 
