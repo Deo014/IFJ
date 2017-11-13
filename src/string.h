@@ -15,6 +15,7 @@
 
 #define INIT_ALLOC_SIZE 10
 
+#include <stdbool.h>
 
 typedef struct {
     char *value; // retezec
@@ -26,6 +27,8 @@ int stringInit(string *);
 int stringAddChar(string *, char);
 int stringAddFirstChar(string *, char);
 int stringClear(string *);
+int stringLenght(string *);
+bool stringCompare(string *a, string *b);
 
 void stringToLowercase(string *);
 

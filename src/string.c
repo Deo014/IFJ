@@ -25,6 +25,25 @@ int stringInit(string *str) {
     return ERROR_CODE_OK;
 }
 
+int stringLenght(string *str){
+    char *retezec = str->value;
+    unsigned int i = 0;
+    while(retezec[i] != '\0')
+        i++;
+    return i;
+}
+
+bool stringCompare(string *str1, string *str2){
+    char *a = str1->value; char *b = str2->value;
+        int i = 0;
+        while(i < stringLenght(str1))
+            if(a[i] != b[i])
+                return false;
+            else
+                i++;
+        return true;
+}
+
 int stringAddChar(string *str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
