@@ -18,12 +18,12 @@
 
 typedef struct variable {
     char *name;
-    char data_type; // i: INT, d: DOUBLE, s: STRING
+    int data_type; // sInteger, sDouble, sString
 } tDataVariable;
 
 typedef struct function {
     char *name;
-    char return_data_type; // i: INT, d: DOUBLE, s: STRING
+    int return_data_type; // sInteger, sDouble, sString
     bool declared;
     bool defined;
     /* TODO seznam parametru */
@@ -35,10 +35,14 @@ typedef struct symtable {
 
 void symTableInit(tSymtable*);
 
-void symTableInsertVariable(tSymtable*, char, tDataVariable*);
-tDataVariable *createDataVariable(char*, char);
+void symTableInsertVariable(tSymtable*, char*, tDataVariable*);
+tDataVariable *createDataVariable(char*, int);
 
-tBSTNodePtr symTableSearch(tSymtable*, char);
+void symTableInsertFunction(tSymtable*, char*, tDataFunction*);
+tDataFunction *createDataFunction(char*, int, bool, bool);
 
+tBSTNodePtr symTableSearch(tSymtable*, char*);
 
+void symTableDispose(tSymtable*);
+void symTableDelete(tSymtable*, char*);
 #endif //IFJ_SYMTABLE_H

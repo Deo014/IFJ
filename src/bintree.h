@@ -19,7 +19,7 @@
 
 /* uzel stromu */
 typedef struct tBSTNode {
-    char Key;			                                                      /* klíč */
+    char* Key;			                                                      /* klíč */
     void* Data;                                            /* užitečný obsah uzlu */
     struct tBSTNode * LPtr;                                    /* levý podstrom */
     struct tBSTNode * RPtr;                                   /* pravý podstrom */
@@ -27,9 +27,9 @@ typedef struct tBSTNode {
 
 /* prototypy funkcí */
 void BSTInit   (tBSTNodePtr *);
-tBSTNodePtr BSTSearch (tBSTNodePtr, char);
-void BSTInsert (tBSTNodePtr *, char, void*);
-void BSTDelete (tBSTNodePtr *, char);
+tBSTNodePtr BSTSearch (tBSTNodePtr, char*);
+void BSTInsert (tBSTNodePtr *, char*, void*);
+void BSTDelete (tBSTNodePtr *, char*);
 void BSTDispose(tBSTNodePtr *);
 
 #endif //IFJ_BINTREE_H

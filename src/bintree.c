@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "stdbool.h"
 #include "symtable.h"
+#include <string.h>
 
 void BSTInit (tBSTNodePtr *RootPtr) {
 
@@ -22,15 +23,15 @@ void BSTInit (tBSTNodePtr *RootPtr) {
 
 }
 
-tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char K)	{
+tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char* K)	{
 
     if (RootPtr == NULL) {
         return NULL;
     }
     else {
-        if (K < RootPtr->Key) {
+        if ( strcmp(K, RootPtr->Key) < 0) {
             return BSTSearch(RootPtr->LPtr, K);
-        } else if (K > RootPtr->Key) {
+        } else if (strcmp(K, RootPtr->Key) > 0) {
             return BSTSearch(RootPtr->RPtr, K);
         }
         else {
@@ -41,13 +42,13 @@ tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char K)	{
 }
 
 
-void BSTInsert (tBSTNodePtr* RootPtr, char K, void *Data)	{
+void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data)	{
 
     if ( RootPtr != NULL && (*RootPtr) != NULL) {
-        if ( K != (*RootPtr)->Key ) { // vyhledavani pokracuje v levem nebo pravem podstrumu
-            if ( K < ((*RootPtr)->Key) ) {
+        if ( strcmp(K, (*RootPtr)->Key) != 0 ) { // vyhledavani pokracuje v levem nebo pravem podstrumu
+            if ( strcmp(K, ((*RootPtr)->Key)) < 0 ) {
                 BSTInsert( &((*RootPtr)->LPtr), K, Data);
-            } else if ( K > (*RootPtr)->Key ) {
+            } else if ( strcmp(K, (*RootPtr)->Key) > 0 ) {
                 BSTInsert( &((*RootPtr)->RPtr), K, Data);
             }
         }
@@ -86,7 +87,7 @@ void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
 
 }
 
-void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
+void BSTDelete (tBSTNodePtr *RootPtr, char* K) 		{
 /*   ---------
 ** Zruší uzel stromu, který obsahuje klíč K.
 **
@@ -100,10 +101,10 @@ void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
 **/
 
     if ( RootPtr && (*RootPtr) ) {
-        if ( K < (*RootPtr)->Key ) {
+        if ( strcmp(K, (*RootPtr)->Key) < 0 ) {
             BSTDelete( &((*RootPtr)->LPtr), K);
         }
-        else if ( K > (*RootPtr)->Key ) {
+        else if ( strcmp(K, (*RootPtr)->Key) > 0 ) {
             BSTDelete( &((*RootPtr)->RPtr), K);
         }
         else { // pokud byl nalezen uzel s danym klicem
@@ -128,13 +129,6 @@ void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
 }
 
 void BSTDispose (tBSTNodePtr *RootPtr) {
-/*   ----------
-** Zruší celý binární vyhledávací strom a korektně uvolní paměť.
-**
-** Po zrušení se bude BVS nacházet ve stejném stavu, jako se nacházel po
-** inicializaci. Tuto funkci implementujte rekurzivně bez deklarování pomocné
-** funkce.
-**/
 
     if ( (*RootPtr) != NULL ) {
         BSTDelete(RootPtr, (*RootPtr)->Key);

@@ -33,12 +33,13 @@ int main(int argc, char **argv)
     tSymtable table;
     symTableInit(&table);
 
-    symTableInsertVariable(&table, 'a', createDataVariable("acko", sInteger) );
-    symTableInsertVariable(&table, 'b', createDataVariable("becko", sInteger) );
-    symTableInsertVariable(&table, 'c', createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic1", createDataVariable("acko", sInteger) );
+    symTableInsertVariable(&table, "klic2", createDataVariable("becko", sString) );
+    symTableInsertVariable(&table, "klic3", createDataVariable("ccko", sInteger) );
 
-    tBSTNodePtr node;
-    node = symTableSearch(&table, 'c');
+    symTableDelete(&table, "klic2");
+
+    tBSTNodePtr node = symTableSearch(&table, "klic2");
 
     printf("%s %d\n", ((tDataVariable*)node->Data)->name, ((tDataVariable*)node->Data)->data_type);
 
