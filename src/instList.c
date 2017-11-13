@@ -275,86 +275,91 @@ void printInstructionList(tDLListInstruction *L) {
         DLCopy(L, &currentInst);
         // vypsani typu instrukce
         switch (currentInst.instType) {
-            case I_MOVE:            printf("MOVE");         break;
-            case I_CREATEFRAME:     printf("CREATEFRAME\n");  break;
-            case I_PUSHFRAME:       printf("PUSHFRAME\n");    break;
-            case I_POPFRAME:        printf("POPFRAME\n");     break;
-            case I_DEFVAR:          printf("DEFVAR");       break;
-            case I_CALL:            printf("CALL");         break;
-            case I_RETURN:          printf("RETURN");       break;
+            case I_MOVE:            printf("MOVE %s %s\n",         (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_CREATEFRAME:     printf("CREATEFRAME\n");       break;
+            case I_PUSHFRAME:       printf("PUSHFRAME\n");         break;
+            case I_POPFRAME:        printf("POPFRAME\n");          break;
+            case I_DEFVAR:          printf("DEFVAR %s\n",          (char *)currentInst.addr1);       break;
+            case I_CALL:            printf("CALL %s\n",            (char *)currentInst.addr1);       break;
+            case I_RETURN:          printf("RETURN\n");            break;
 
 
             // prace s datovym zasobnikem
-            case I_PUSHS:           printf("PUSHS");        break;
-            case I_POPS:            printf("POPS");         break;
-            case I_CLEARS:          printf("CLEARS");       break;
+            case I_PUSHS:           printf("PUSHS %s\n",           (char *)currentInst.addr1);       break;
+            case I_POPS:            printf("POPS %s\n",            (char *)currentInst.addr1);       break;
+            case I_CLEARS:          printf("CLEARS\n");            break;
 
 
             // aritmeticke, relacni, booleovske a konverzni instrukce
-            case I_ADD:             printf("ADD");          break;
-            case I_SUB:             printf("SUB");          break;
-            case I_MUL:             printf("MUL");          break;
-            case I_DIV:             printf("DIV");          break;
+            case I_ADD:             printf("ADD %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_SUB:             printf("SUB %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_MUL:             printf("MUL %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_DIV:             printf("DIV %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            // zásobníkové verze
+            case I_ADDS:             printf("ADDS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_SUBS:             printf("SUBS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_MULS:             printf("MULS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_DIVS:             printf("DIVS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
 
-            case I_LT:              printf("LT");           break;
-            case I_GT:              printf("GT");           break;
-            case I_EQ:              printf("EQ");           break;
-            case I_LTS:             printf("LTS");          break;
-            case I_GTS:             printf("GTS");          break;
-            case I_EQS:             printf("EQS");          break;
+            case I_LT:              printf("LT %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_GT:              printf("GT %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_EQ:              printf("EQ %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_LTS:             printf("LTS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_GTS:             printf("GTS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_EQS:             printf("EQS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
 
-            case I_AND:             printf("AND");          break;
-            case I_OR:              printf("OR");           break;
-            case I_NOT:             printf("NOT");          break;
+            case I_AND:             printf("AND %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_OR:              printf("OR %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_NOT:             printf("NOT %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             // zasobnikove verze
-            case I_ANDS:            printf("ANDS");         break;
-            case I_ORS:             printf("ORS");          break;
-            case I_NOTS:            printf("NOTS");         break;
+            case I_ANDS:            printf("ANDS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_ORS:             printf("ORS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_NOTS:            printf("NOTS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
 
-            case I_INT2FLOAT:       printf("INT2FLOAT");    break;
-            case I_FLOAT2INT:       printf("FLOAT2INT");    break;
-            case I_FLOAT2R2EINT:    printf("FLOAT2R2EINT"); break;
-            case I_FLOAT2R2OINT:    printf("FLOAT2R2OINT"); break;
-            case I_INT2CHAR:        printf("INT2CHAR");     break;
-            case I_STRI2INT:        printf("STRI2INT");     break;
+            case I_INT2FLOAT:       printf("INT2FLOAT %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_FLOAT2INT:       printf("FLOAT2INT %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_FLOAT2R2EINT:    printf("FLOAT2R2EINT %s %s\n",(char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_FLOAT2R2OINT:    printf("FLOAT2R2OINT %s %s\n",(char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_INT2CHAR:        printf("INT2CHAR %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
+            case I_STRI2INT:        printf("STRI2INT %s %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             // zasobnikove verze
-            case I_INT2FLOATS:      printf("INT2FLOATS");   break;
-            case I_FLOAT2INTS:      printf("FLOAT2INTS");   break;
-            case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS");break;
-            case I_FLOAT2R2OINTS:   printf("FLOAT2R2OINTS");break;
-            case I_INT2CHARS:       printf("INT2CHARS");    break;
-            case I_STRI2INTS:       printf("STRI2INTS");    break;
+            case I_INT2FLOATS:      printf("INT2FLOATS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_FLOAT2INTS:      printf("FLOAT2INTS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_FLOAT2R2OINTS:   printf("FLOAT2R2OINTS %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_INT2CHARS:       printf("INT2CHARS %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_STRI2INTS:       printf("STRI2INTS %s %s %s\n",  (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
 
 
             // vstupne-vystupni instrukce
-            case I_READ:            printf("READ");         break;
-            case I_WRITE:           printf("WRITE");        break;
+            case I_READ:            printf("READ %s %s\n",          (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_WRITE:           printf("WRITE %s\n",            (char *)currentInst.addr1);                                 break;
 
 
             // prace s retezci
-            case I_CONCAT:          printf("CONCAT");       break;
-            case I_STRLEN:          printf("STRLEN");       break;
-            case I_GETCHAR:         printf("GETCHAR");      break;
-            case I_SETCHAR:         printf("SETCHAR");      break;
+            case I_CONCAT:          printf("CONCAT %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
+            case I_STRLEN:          printf("STRLEN %s %s\n",        (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
+            case I_GETCHAR:         printf("GETCHAR %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
+            case I_SETCHAR:         printf("SETCHAR %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
 
 
             // prace s type
-            case I_TYPE:            printf("TYPE");         break;
+            case I_TYPE:            printf("TYPE %s %s\n",          (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
 
 
             // instrukce pro rizeni toku programu
-            case I_LABEL:           printf("LABEL %s\n", (char *)currentInst.addr1); break;
-            case I_JUMP:            printf("JUMP %s\n", (char *)currentInst.addr1);  break;
-            case I_JUMPIFEQ:        printf("JUMPIFEQ");     break;
-            case I_JUMPIFNEQ:       printf("JUMPIFNEQ");    break;
+            case I_LABEL:           printf("LABEL %s\n",            (char *)currentInst.addr1);         break;
+            case I_JUMP:            printf("JUMP %s\n",             (char *)currentInst.addr1);         break;
+            case I_JUMPIFEQ:        printf("JUMPIFEQ %s %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
+            case I_JUMPIFNEQ:       printf("JUMPIFNEQ %s %s %s\n",  (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
             // zasobnikove verze
-            case I_JUMPIFEQS:       printf("JUMPIFEQS");    break;
-            case I_JUMPIFNEQS:      printf("JUMPIFNEQS");   break;
+            case I_JUMPIFEQS:       printf("JUMPIFEQS %s\n",        (char *)currentInst.addr1);         break;
+            case I_JUMPIFNEQS:      printf("JUMPIFNEQS %s\n",       (char *)currentInst.addr1);         break;
 
 
             // ladici instrukce
-            case I_BREAK:           printf("BREAK");        break;
-            case I_DPRINT:          printf("DPRINT");       break;
+            case I_BREAK:           printf("BREAK\n");                                      break;
+            case I_DPRINT:          printf("DPRINT %s\n", (char *)currentInst.addr1);       break;
         }
         // vypsani operandu instrukce
         //printf(" %p %p %p\n", currentInst.addr1, currentInst.addr2, currentInst.addr3); // vypise adresy operandu instrukce

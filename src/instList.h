@@ -35,6 +35,11 @@ typedef enum {
     I_SUB,              //  <var> <symb1> <symb2>
     I_MUL,              //  <var> <symb1> <symb2>
     I_DIV,              //  <var> <symb1> <symb2>
+    // zásobníkové verze
+    I_ADDS,              //  <var> <symb1> <symb2>
+    I_SUBS,              //  <var> <symb1> <symb2>
+    I_MULS,              //  <var> <symb1> <symb2>
+    I_DIVS,              //  <var> <symb1> <symb2>
 
     I_LT,               //  <var> <symb1> <symb2>
     I_GT,               //  <var> <symb1> <symb2>
