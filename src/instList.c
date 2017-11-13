@@ -14,15 +14,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void DLInitList (tDLList *L) {
+void DLInitList (tDLListInstruction *L) {
     // pocatecni ukazatele jsou NULL
     L->First = NULL;
     L->Last = NULL;
     L->Act = NULL;
 }
 
-void DLDisposeList (tDLList *L) {
-    tDLElemPtr elemToDelete;
+void DLDisposeList (tDLListInstruction *L) {
+    tDLElemPtrInstruction elemToDelete;
     // dokud neni seznam prazdny: mazani posledniho prvku
     while ( (elemToDelete = L->Last) != NULL) {
         L->Last = elemToDelete->lptr; // poslednim prvkem se stane predposledni prvek
@@ -32,9 +32,9 @@ void DLDisposeList (tDLList *L) {
     L->Last = L->First = L->Act = NULL;
 }
 
-int DLInsertFirst (tDLList *L, tInstr instruction) {
+int DLInsertFirst (tDLListInstruction *L, tInstr instruction) {
     // vytvoreni noveho prku + alokovani pameti pro novy prvek
-    tDLElemPtr newElem;
+    tDLElemPtrInstruction newElem;
     if( (newElem = (struct tDLElem*)malloc(sizeof(struct tDLElem))) == NULL ) {
         return 0;
     }
@@ -48,7 +48,7 @@ int DLInsertFirst (tDLList *L, tInstr instruction) {
         newElem->rptr = NULL;
     }
     else {
-        tDLElemPtr elemToJoin = L->First; // prvek pred ktery vlozime novy prvek
+        tDLElemPtrInstruction elemToJoin = L->First; // prvek pred ktery vlozime novy prvek
         L->First = newElem;
         newElem->lptr = NULL;
         newElem->rptr = elemToJoin;
@@ -57,9 +57,9 @@ int DLInsertFirst (tDLList *L, tInstr instruction) {
     return 1;
 }
 
-int DLInsertLast(tDLList *L, tInstr instruction) {
+int DLInsertLast(tDLListInstruction *L, tInstr instruction) {
     // vytvoreni noveho prku + alokovani pameti pro novy prvek
-    tDLElemPtr newElem;
+    tDLElemPtrInstruction newElem;
     if( (newElem = (struct tDLElem*)malloc(sizeof(struct tDLElem))) == NULL ) {
         return 0;
     }
@@ -81,15 +81,15 @@ int DLInsertLast(tDLList *L, tInstr instruction) {
     return 1;
 }
 
-void DLFirst (tDLList *L) {
+void DLFirst (tDLListInstruction *L) {
     L->Act = L->First;
 }
 
-void DLLast (tDLList *L) {
+void DLLast (tDLListInstruction *L) {
     L->Act = L->Last;
 }
 
-void DLCopyFirst (tDLList *L, tInstr *instruction) {
+void DLCopyFirst (tDLListInstruction *L, tInstr *instruction) {
     // pokud je seznam prazdny: chyba
     if (L->First == NULL) {
         return;
@@ -98,7 +98,7 @@ void DLCopyFirst (tDLList *L, tInstr *instruction) {
     *instruction = L->First->instruction;
 }
 
-void DLCopyLast (tDLList *L, tInstr *instruction) {
+void DLCopyLast (tDLListInstruction *L, tInstr *instruction) {
     // pokud je seznam prazdny: chyba
     if (L->Last == NULL) {
         return;
@@ -107,7 +107,7 @@ void DLCopyLast (tDLList *L, tInstr *instruction) {
     *instruction = L->Last->instruction;
 }
 
-void DLDeleteFirst (tDLList *L) {
+void DLDeleteFirst (tDLListInstruction *L) {
     if (L->First) {
         // pokud je prvni prvek aktivni: zruseni aktivity
         if (L->Act == L->First)
@@ -119,7 +119,7 @@ void DLDeleteFirst (tDLList *L) {
     }
 }
 
-void DLDeleteLast (tDLList *L) {
+void DLDeleteLast (tDLListInstruction *L) {
     if (L->Last) {
         // pokud je posledni prvek aktivni: zruseni aktivity
         if (L->Act == L->Last)
@@ -131,10 +131,10 @@ void DLDeleteLast (tDLList *L) {
     }
 }
 
-void DLPostDelete (tDLList *L) {
+void DLPostDelete (tDLListInstruction *L) {
     if (L->Act && L->Act != L->Last) {
-        tDLElemPtr elemToDelete = L->Act->rptr;
-        tDLElemPtr elemToJoin = elemToDelete->rptr;
+        tDLElemPtrInstruction elemToDelete = L->Act->rptr;
+        tDLElemPtrInstruction elemToJoin = elemToDelete->rptr;
         // pokud neni prvek pred aktivnim prvkem poslednim prvkem seznamu
         if (elemToJoin) {
             elemToJoin->lptr = L->Act;
@@ -148,10 +148,10 @@ void DLPostDelete (tDLList *L) {
     }
 }
 
-void DLPreDelete (tDLList *L) {
+void DLPreDelete (tDLListInstruction *L) {
     if (L->Act && L->Act != L->First) {
-        tDLElemPtr elemToDelete = L->Act->lptr;
-        tDLElemPtr elemToJoin = elemToDelete->lptr;
+        tDLElemPtrInstruction elemToDelete = L->Act->lptr;
+        tDLElemPtrInstruction elemToJoin = elemToDelete->lptr;
         // pokud neni prvek za aktivnim prvkem prvnim prvkem seznamu
         if (elemToJoin) {
             elemToJoin->rptr = L->Act;
@@ -164,16 +164,16 @@ void DLPreDelete (tDLList *L) {
         free(elemToDelete);
     }
 }
-int DLPostInsert (tDLList *L, tInstr instruction) {
+int DLPostInsert (tDLListInstruction *L, tInstr instruction) {
     if (L->Act) {
         // vytvoreni noveho prku + alokovani pameti pro novy prvek
-        tDLElemPtr newElem;
+        tDLElemPtrInstruction newElem;
         if( (newElem = (struct tDLElem*)malloc(sizeof(struct tDLElem))) == NULL ) {
             return 0;
         }
         newElem->instruction = instruction;
 
-        tDLElemPtr elemToJoin = L->Act->rptr;
+        tDLElemPtrInstruction elemToJoin = L->Act->rptr;
         // vlozeni do seznamu
         // pokud je aktivni prvek poslednim prvkem seznamu: vlozeni prvku na konec
         if (elemToJoin == NULL) {
@@ -192,16 +192,16 @@ int DLPostInsert (tDLList *L, tInstr instruction) {
     return 1;
 }
 
-int DLPreInsert (tDLList *L, tInstr instruction) {
+int DLPreInsert (tDLListInstruction *L, tInstr instruction) {
     if (L->Act) {
         // vytvoreni noveho prku + alokovani pameti pro novy prvek
-        tDLElemPtr newElem;
+        tDLElemPtrInstruction newElem;
         if( (newElem = (struct tDLElem*)malloc(sizeof(struct tDLElem))) == NULL ) {
             return 0;
         }
         newElem->instruction = instruction;
 
-        tDLElemPtr elemToJoin = L->Act->lptr;
+        tDLElemPtrInstruction elemToJoin = L->Act->lptr;
         // vlozeni do seznamu
         // pokud je aktivni prvek prvnim prvkem seznamu: vlozeni prvku na zacatek
         if (elemToJoin == NULL) {
@@ -220,7 +220,7 @@ int DLPreInsert (tDLList *L, tInstr instruction) {
     return 1;
 }
 
-int DLCopy (tDLList *L, tInstr *instruction) {
+int DLCopy (tDLListInstruction *L, tInstr *instruction) {
     //pokud je seznam prazdny: chyba
     if (L->Act == NULL) {
         return 0;
@@ -230,7 +230,7 @@ int DLCopy (tDLList *L, tInstr *instruction) {
     return 1;
 }
 
-void DLActualize (tDLList *L, tInstr instruction) {
+void DLActualize (tDLListInstruction *L, tInstr instruction) {
     // pokud je seznam aktivni
     if (L->Act) {
         // aktualizuj data
@@ -238,20 +238,127 @@ void DLActualize (tDLList *L, tInstr instruction) {
     }
 }
 
-void DLSucc (tDLList *L) {
+void DLSucc (tDLListInstruction *L) {
     // pokud je seznam aktivni, posune aktivitu na nasledujici prvek
     if (L->Act) {
         L->Act = L->Act->rptr;
     }
 }
 
-void DLPred (tDLList *L) {
+void DLPred (tDLListInstruction *L) {
     // pokud je seznam aktivni
     if (L->Act) {
         // posune aktivitu na dalsi prvek
         L->Act = L->Act->lptr;
     }
 }
-int DLActive (tDLList *L) {
+
+int DLActive (tDLListInstruction *L) {
     return(L->Act != NULL);
+}
+
+void generateInstruction(tDLListInstruction *L, int instType, void *addr1, void *addr2, void *addr3) {
+    // vytvoreni nove instrukce
+    tInstr instruction;
+    instruction.instType = instType;
+    instruction.addr1 = addr1;
+    instruction.addr2 = addr2;
+    instruction.addr3 = addr3;
+    // generovani instrukce
+    DLInsertLast(L,instruction);
+}
+
+void printInstructionList(tDLListInstruction *L) {
+    tInstr currentInst; // docasne ulozeni instrukce
+    DLFirst(L); // aktivita je na prvni instruci
+    while ( DLActive(L) ) {
+        DLCopy(L, &currentInst);
+        // vypsani typu instrukce
+        switch (currentInst.instType) {
+            case I_MOVE:            printf("MOVE");        break;
+            case I_CREATEFRAME:     printf("CREATEFRAME");  break;
+            case I_PUSHFRAME:       printf("PUSHFRAME");    break;
+            case I_POPFRAME:        printf("POPFRAME");     break;
+            case I_DEFVAR:          printf("DEFVAR");       break;
+            case I_CALL:            printf("CALL");         break;
+            case I_RETURN:          printf("RETURN");       break;
+
+
+            // prace s datovym zasobnikem
+            case I_PUSHS:           printf("PUSHS");        break;
+            case I_POPS:            printf("POPS");         break;
+            case I_CLEARS:          printf("CLEARS");       break;
+
+
+            // aritmeticke, relacni, booleovske a konverzni instrukce
+            case I_ADD:             printf("ADD");          break;
+            case I_SUB:             printf("SUB");          break;
+            case I_MUL:             printf("MUL");          break;
+            case I_DIV:             printf("DIV");          break;
+
+            case I_LT:              printf("LT");           break;
+            case I_GT:              printf("GT");           break;
+            case I_EQ:              printf("EQ");           break;
+            case I_LTS:             printf("LTS");          break;
+            case I_GTS:             printf("GTS");          break;
+            case I_EQS:             printf("EQS");          break;
+
+            case I_AND:             printf("AND");          break;
+            case I_OR:              printf("OR");           break;
+            case I_NOT:             printf("NOT");          break;
+            // zasobnikove verze
+            case I_ANDS:            printf("ANDS");         break;
+            case I_ORS:             printf("ORS");          break;
+            case I_NOTS:            printf("NOTS");         break;
+
+            case I_INT2FLOAT:       printf("INT2FLOAT");    break;
+            case I_FLOAT2INT:       printf("FLOAT2INT");    break;
+            case I_FLOAT2R2EINT:    printf("FLOAT2R2EINT"); break;
+            case I_FLOAT2R2OINT:    printf("FLOAT2R2OINT"); break;
+            case I_INT2CHAR:        printf("INT2CHAR");     break;
+            case I_STRI2INT:        printf("STRI2INT");     break;
+            // zasobnikove verze
+            case I_INT2FLOATS:      printf("INT2FLOATS");   break;
+            case I_FLOAT2INTS:      printf("FLOAT2INTS");   break;
+            case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS");break;
+            case I_FLOAT2R2OINTS:   printf("FLOAT2R2OINTS");break;
+            case I_INT2CHARS:       printf("INT2CHARS");    break;
+            case I_STRI2INTS:       printf("STRI2INTS");    break;
+
+
+            // vstupne-vystupni instrukce
+            case I_READ:            printf("READ");         break;
+            case I_WRITE:           printf("WRITE");        break;
+
+
+            // prace s retezci
+            case I_CONCAT:          printf("CONCAT");       break;
+            case I_STRLEN:          printf("STRLEN");       break;
+            case I_GETCHAR:         printf("GETCHAR");      break;
+            case I_SETCHAR:         printf("SETCHAR");      break;
+
+
+            // prace s type
+            case I_TYPE:            printf("TYPE");         break;
+
+
+            // instrukce pro rizeni toku programu
+            case I_LABEL:           printf("LABEL");        break;
+            case I_JUMP:            printf("JUMP");         break;
+            case I_JUMPIFEQ:        printf("JUMPIFEQ");     break;
+            case I_JUMPIFNEQ:       printf("JUMPIFNEQ");    break;
+            // zasobnikove verze
+            case I_JUMPIFEQS:       printf("JUMPIFEQS");    break;
+            case I_JUMPIFNEQS:      printf("JUMPIFNEQS");   break;
+
+
+            // ladici instrukce
+            case I_BREAK:           printf("BREAK");        break;
+            case I_DPRINT:          printf("DPRINT");       break;
+        }
+        // vypsani operandu instrukce
+        printf(" %p %p %p\n", currentInst.addr1, currentInst.addr2, currentInst.addr3); // vypise operandy instrukce
+
+        DLSucc(L);
+    }
 }

@@ -31,30 +31,14 @@ int main(int argc, char **argv)
 
 
     // otestovani vkladani instrukci do instrukcniho seznamu--SMAZAT
-    tDLList instList;
+    tDLListInstruction instList;
     DLInitList(&instList);
 
-    tInstr instruction;
+    generateInstruction(&instList, 1, NULL, NULL, NULL);
+    generateInstruction(&instList, 2, NULL, NULL, NULL);
+    generateInstruction(&instList, 3, NULL, NULL, NULL);
 
-    instruction.instType = 1;
-    DLInsertLast(&instList, instruction);
-
-    instruction.instType = 2;
-    DLInsertLast(&instList, instruction);
-
-    instruction.instType = 3;
-    DLInsertLast(&instList, instruction);
-
-    instruction.instType = 0;
-    DLInsertFirst(&instList, instruction);
-
-
-    DLFirst(&instList);
-    while ( DLActive(&instList) ) {
-        DLCopy(&instList, &instruction);
-        printf("%d\n", instruction.instType);
-        DLSucc(&instList);
-    }
+    printInstructionList(&instList);
 
     return error_code;
 }
