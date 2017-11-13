@@ -95,6 +95,10 @@ tToken getNextToken(){
                     stringAddChar(&token.atr, c);
                     state = sIdentificator;
                 }
+                else if (c == ',') {
+                    stringAddChar(&token.atr, c);
+                    state = sComma;
+                }
                 else if( charIsLetter(c) ) {
                     stringAddChar(&token.atr, c);
                     state = sIdentificatorOrKeyWord;
@@ -139,7 +143,7 @@ tToken getNextToken(){
             case sMore: // >
                 if (c == '=') { // vrat token >=
                     stringAddChar(&token.atr, c);
-                    state = sMoreEqueal;
+                    state = sMoreEqual;
                 }
                 else { // vrat token >
                     charUndo(c);
@@ -416,9 +420,10 @@ tToken getNextToken(){
             case sLeftPar:
             case sRightPar:
             case sSemicolon:
+            case sComma:
             case sAssignment:
             case sLessEqual:
-            case sMoreEqueal:
+            case sMoreEqual:
             case sNotEqual:
                 charUndo(c); // vrati zpet aktualne cteny znak
                 token.type = state; // naplni token typem nalezeneho lexemu
