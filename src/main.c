@@ -16,12 +16,11 @@
 #include "init.h"
 #include "scanner.h"
 #include "string.h"
+#include "symtable.h"
 
 int main(int argc, char **argv)
 {
     ERROR_CODE error_code = ERROR_CODE_OK;
-    tToken token; // promenna token
-    //stringInit(&token.s); // inicializace tokenu
 
     // kontrola argumentů
     ERROR_CODE helpStatus = checkArgs(argc, argv);
@@ -31,35 +30,18 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
-    while (1) {
-        token = getNextToken();
-        printf("%2d %s\n", token.type, token.atr.value);
-        //printf("length:%d\n", token.atr.length);
-        //printf("allocated:%d\n\n", token.atr.lengthAllocated);
+    tSymtable table;
+    symTableInit(&table);
 
-        if (token.type == 30 /* EOF */)
-            break;
-    }
+    symTableInsertVariable(&table, 'a', createDataVariable("acko", sInteger) );
+    symTableInsertVariable(&table, 'b', createDataVariable("becko", sInteger) );
+    symTableInsertVariable(&table, 'c', createDataVariable("ccko", sInteger) );
+
+    tBSTNodePtr node;
+    node = symTableSearch(&table, 'c');
+
+    printf("%s %d\n", ((tDataVariable*)node->Data)->name, ((tDataVariable*)node->Data)->data_type);
 
 
-
-    /*
-    // inicializace paměti
-    memInit();
-    // získání filename z stdin
-    getFilename();
-
-    // otevření souboru pro čtení
-    ERROR_CODE fileStatus = openFile(filename);
-    if(fileStatus == ERROR_CODE_INTERNAL)
-        return code_error = ERROR_CODE_INTERNAL;
-
-    // Tady se vyvolá funkce pro zpracování souboru
-
-    //code_error = nejakaFunkceZeScanneruNeboParseru();
-
-    // uvolnění paměti
-    memFree(filename);
-     */
     return error_code;
 }

@@ -4,126 +4,142 @@
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
- * Autoři   : xhribe02, David Hříbek
+ * Autoři   : xhribe02, David Hříbek (projekt IAL2 c401)
  *            xkoval14, Marek Kovalčík
  *            xvalus02, Ondřej Valušek
  *            xrutad00, Dominik Ruta
  */
 
 #include "bintree.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "stdbool.h"
+#include "symtable.h"
 
-// Funkce inicialializuje nový binární strom s ukazatelem Tree
-void BSTinit(TreePointer *Tree) {
-    checkTreeInit = false;
-    Tree->root=NULL;
-    checkTreeInit = true;
-    return;
+void BSTInit (tBSTNodePtr *RootPtr) {
+
+    (*RootPtr) = NULL;
+
 }
 
-// Funkce odstraní strom Tree a uvolní všechny jeho prvky
-void BSTdispose(TreePointer *Tree) {
-    checkTreeDispose = false;
-    if(Tree->root == NULL)
-        return;
-    else if(Tree->root != NULL){
-        BSTdelete(Tree->root);
-        Tree->root = NULL;
-        checkTreeDispose = true;
-        return;
-    }
-}
-// Funkce na najde a vrátí prvek v binárního stromu Tree podle klíče key, vlevo jsou menší hodnoty, vpravo větší
-TreeStructure BSTsearch(TreePointer *Tree, char *key) {
-    checkTreeSearch = false;
-    if(Tree == NULL)
+tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char K)	{
+
+    if (RootPtr == NULL) {
         return NULL;
-    else if(key == NULL)
-        return NULL;
-    else{
-        TreeStructure foundedNode = treeNodesSearch(Tree->root, key);
-        checkTreeSearch = true;
-        return foundedNode;
     }
-}
-// Funkce uloží do binárního stromu Tree prvek s klíčem key a jeho daty
-ERROR_CODE BSTinsert(TreePointer *Tree, char *key,void *data) {
-    int checkStrcmp = 0; checkTreeInsert = false;
-    //kořen stromu je prázdný -> inicializují se jeho atributy na NULL
-    if(Tree->root == NULL){
-        Tree->root = malloc(sizeof(struct tree_structure));
-        if(Tree->root!=NULL){
-            Tree->root->left=NULL;
-            Tree->root->right=NULL;
-            Tree->root->data=data;
-            Tree->root->key=key;
+    else {
+        if (K < RootPtr->Key) {
+            return BSTSearch(RootPtr->LPtr, K);
+        } else if (K > RootPtr->Key) {
+            return BSTSearch(RootPtr->RPtr, K);
         }
-    // kořen stromu není prázdný, provede se vložení
-    }else if(Tree->root != NULL){
-        for(TreeStructure pom=Tree->root; pom != NULL; /*další ukazatel se nastaví podle checkStrcmp*/){
-            if((checkStrcmp = strcmp(pom->key,key)) == 0){
-                pom->data = data;
-                checkTreeInsert = true;
-                return ERROR_CODE_OK;
-            }else if(checkStrcmp < 0){
-                //***************************
-                if(pom->left==NULL){
-                    pom->left=malloc(sizeof(struct tree_structure));
-                    if(pom->left!=NULL){
-                        pom->left->left=NULL;
-                        pom->left->right=NULL;
-                        pom->left->data=data;
-                        pom->left->key=key;
-                    }
-                }
-                else // posunutí na levého potomka
-                    pom=pom->left;
-            }else if(checkStrcmp > 0){
-                //**********************
-                if(pom->right==NULL){
-                    pom->right=malloc(sizeof(struct tree_structure));
-                    if(pom->right!=NULL){
-                        pom->right->left=NULL;
-                        pom->right->right=NULL;
-                        pom->right->data=data;
-                        pom->right->key=key;
-                    }
-                }
-                // není to list, je třeba se posunout ádl
-                else
-                    pom=pom->right;
-                //******************************
+        else {
+            return RootPtr;
+        }
+    }
+
+}
+
+
+void BSTInsert (tBSTNodePtr* RootPtr, char K, void *Data)	{
+
+    if ( RootPtr != NULL && (*RootPtr) != NULL) {
+        if ( K != (*RootPtr)->Key ) { // vyhledavani pokracuje v levem nebo pravem podstrumu
+            if ( K < ((*RootPtr)->Key) ) {
+                BSTInsert( &((*RootPtr)->LPtr), K, Data);
+            } else if ( K > (*RootPtr)->Key ) {
+                BSTInsert( &((*RootPtr)->RPtr), K, Data);
+            }
+        }
+        else { // aktualizace dat pri nalezeni stejneho klice
+            (*RootPtr)->Data = Data;
+        }
+    }
+    else {
+        // alokace pameti pro novy uzel
+        struct tBSTNode *newitem;
+        if ( (newitem = (struct tBSTNode*)malloc(sizeof(struct tBSTNode))) == NULL ) {
+            return;
+        }
+        // inicializace dat noveho uzlu
+        newitem->Key = K;
+        newitem->Data = Data;
+        newitem->LPtr = newitem->RPtr = NULL;
+
+        (*RootPtr) = newitem;
+    }
+
+}
+
+void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
+
+    if ( (*RootPtr)->RPtr == NULL ) {
+        // prekopirovani hodnot uzlu
+        PtrReplaced->Data = (*RootPtr)->Data;
+        PtrReplaced->Key = (*RootPtr)->Key;
+        // uvolneni uzlu
+        BSTDelete(RootPtr, (*RootPtr)->Key);
+    }
+    else {
+        ReplaceByRightmost(PtrReplaced, &((*RootPtr)->RPtr));
+    }
+
+}
+
+void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
+/*   ---------
+** Zruší uzel stromu, který obsahuje klíč K.
+**
+** Pokud uzel se zadaným klíčem neexistuje, nedělá funkce nic.
+** Pokud má rušený uzel jen jeden podstrom, pak jej zdědí otec rušeného uzlu.
+** Pokud má rušený uzel oba podstromy, pak je rušený uzel nahrazen nejpravějším
+** uzlem levého podstromu. Pozor! Nejpravější uzel nemusí být listem.
+**
+** Tuto funkci implementujte rekurzivně s využitím dříve deklarované
+** pomocné funkce ReplaceByRightmost.
+**/
+
+    if ( RootPtr && (*RootPtr) ) {
+        if ( K < (*RootPtr)->Key ) {
+            BSTDelete( &((*RootPtr)->LPtr), K);
+        }
+        else if ( K > (*RootPtr)->Key ) {
+            BSTDelete( &((*RootPtr)->RPtr), K);
+        }
+        else { // pokud byl nalezen uzel s danym klicem
+            if ( ((*RootPtr)->LPtr == NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud se jedna o listovy uzel
+                free(*RootPtr);
+                *RootPtr = NULL;
+            }
+            else if ( ((*RootPtr)->LPtr != NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud ma uzel jen levy podstrom
+                free(*RootPtr);
+                *RootPtr = (*RootPtr)->LPtr;
+            }
+            else if ( ((*RootPtr)->RPtr != NULL) && ((*RootPtr)->LPtr == NULL) ) { // pokud ma uzel jen pravy podstrom
+                free(*RootPtr);
+                *RootPtr = (*RootPtr)->RPtr;
+            }
+            else { // pokud ma ruseny uzel oba podstromy
+                ReplaceByRightmost((*RootPtr), &((*RootPtr)->LPtr));
             }
         }
     }
-    checkTreeInsert = true;
-    return  ERROR_CODE_OK;
-}
-// Vrací ukazatel na hledanou položku node hledanou podle klíče key
-TreeStructure treeNodesSearch(TreeStructure node, char *key) {
-    int checkStrcmp = 0; checkTreeNodesSearch = false;
-    if(node==NULL)
-        return NULL;
-    else
-        if((checkStrcmp = strcmp(node->key, key)) == 0) {
-            checkTreeNodesSearch = true;
-            return node;
-        }
-        else if(checkStrcmp < 0)
-            return treeNodesSearch(node->left,key);
-        else if(checkStrcmp > 0)
-            return treeNodesSearch(node->right,key);
+
 }
 
-// Funkce rekurzivně odstraní podstromy uzlu node
-void BSTdelete(TreeStructure node) {
-    checkTreeNodesDelete = false;
-    if(node->left!=NULL)
-        BSTdelete(node->left);
-    if(node->right!=NULL)
-        BSTdelete(node->right);
-    free(node);
-    checkTreeNodesDelete = true;
-    return;
-}
+void BSTDispose (tBSTNodePtr *RootPtr) {
+/*   ----------
+** Zruší celý binární vyhledávací strom a korektně uvolní paměť.
+**
+** Po zrušení se bude BVS nacházet ve stejném stavu, jako se nacházel po
+** inicializaci. Tuto funkci implementujte rekurzivně bez deklarování pomocné
+** funkce.
+**/
 
+    if ( (*RootPtr) != NULL ) {
+        BSTDelete(RootPtr, (*RootPtr)->Key);
+        BSTDispose(RootPtr);
+    }
+
+}
 
