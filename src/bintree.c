@@ -88,17 +88,6 @@ void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
 }
 
 void BSTDelete (tBSTNodePtr *RootPtr, char* K) 		{
-/*   ---------
-** Zruší uzel stromu, který obsahuje klíč K.
-**
-** Pokud uzel se zadaným klíčem neexistuje, nedělá funkce nic.
-** Pokud má rušený uzel jen jeden podstrom, pak jej zdědí otec rušeného uzlu.
-** Pokud má rušený uzel oba podstromy, pak je rušený uzel nahrazen nejpravějším
-** uzlem levého podstromu. Pozor! Nejpravější uzel nemusí být listem.
-**
-** Tuto funkci implementujte rekurzivně s využitím dříve deklarované
-** pomocné funkce ReplaceByRightmost.
-**/
 
     if ( RootPtr && (*RootPtr) ) {
         if ( strcmp(K, (*RootPtr)->Key) < 0 ) {
