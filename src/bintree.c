@@ -4,126 +4,162 @@
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
- * Autoři   : xhribe02, David Hříbek
+ * Autoři   : xhribe02, David Hříbek (projekt IAL2 c401)
  *            xkoval14, Marek Kovalčík
  *            xvalus02, Ondřej Valušek
  *            xrutad00, Dominik Ruta
  */
 
 #include "bintree.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "stdbool.h"
+#include "symtable.h"
+#include <string.h>
 
-// Funkce inicialializuje nový binární strom s ukazatelem Tree
-void BSTinit(TreePointer *Tree) {
-    checkTreeInit = false;
-    Tree->root=NULL;
-    checkTreeInit = true;
-    return;
+/* ----------funkce binarniho vyhledavaciho stromu----------*/
+void BSTInit (tBSTNodePtr *RootPtr) {
+
+    (*RootPtr) = NULL;
+
 }
 
-// Funkce odstraní strom Tree a uvolní všechny jeho prvky
-void BSTdispose(TreePointer *Tree) {
-    checkTreeDispose = false;
-    if(Tree->root == NULL)
-        return;
-    else if(Tree->root != NULL){
-        BSTdelete(Tree->root);
-        Tree->root = NULL;
-        checkTreeDispose = true;
-        return;
-    }
-}
-// Funkce na najde a vrátí prvek v binárního stromu Tree podle klíče key, vlevo jsou menší hodnoty, vpravo větší
-TreeStructure BSTsearch(TreePointer *Tree, char *key) {
-    checkTreeSearch = false;
-    if(Tree == NULL)
+tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char* K)	{
+
+    if (RootPtr == NULL) {
         return NULL;
-    else if(key == NULL)
-        return NULL;
-    else{
-        TreeStructure foundedNode = treeNodesSearch(Tree->root, key);
-        checkTreeSearch = true;
-        return foundedNode;
     }
-}
-// Funkce uloží do binárního stromu Tree prvek s klíčem key a jeho daty
-ERROR_CODE BSTinsert(TreePointer *Tree, char *key,void *data) {
-    int checkStrcmp = 0; checkTreeInsert = false;
-    //kořen stromu je prázdný -> inicializují se jeho atributy na NULL
-    if(Tree->root == NULL){
-        Tree->root = malloc(sizeof(struct tree_structure));
-        if(Tree->root!=NULL){
-            Tree->root->left=NULL;
-            Tree->root->right=NULL;
-            Tree->root->data=data;
-            Tree->root->key=key;
+    else {
+        if ( strcmp(K, RootPtr->Key) < 0) {
+            return BSTSearch(RootPtr->LPtr, K);
+        } else if (strcmp(K, RootPtr->Key) > 0) {
+            return BSTSearch(RootPtr->RPtr, K);
         }
-    // kořen stromu není prázdný, provede se vložení
-    }else if(Tree->root != NULL){
-        for(TreeStructure pom=Tree->root; pom != NULL; /*další ukazatel se nastaví podle checkStrcmp*/){
-            if((checkStrcmp = strcmp(pom->key,key)) == 0){
-                pom->data = data;
-                checkTreeInsert = true;
-                return ERROR_CODE_OK;
-            }else if(checkStrcmp < 0){
-                //***************************
-                if(pom->left==NULL){
-                    pom->left=malloc(sizeof(struct tree_structure));
-                    if(pom->left!=NULL){
-                        pom->left->left=NULL;
-                        pom->left->right=NULL;
-                        pom->left->data=data;
-                        pom->left->key=key;
-                    }
-                }
-                else // posunutí na levého potomka
-                    pom=pom->left;
-            }else if(checkStrcmp > 0){
-                //**********************
-                if(pom->right==NULL){
-                    pom->right=malloc(sizeof(struct tree_structure));
-                    if(pom->right!=NULL){
-                        pom->right->left=NULL;
-                        pom->right->right=NULL;
-                        pom->right->data=data;
-                        pom->right->key=key;
-                    }
-                }
-                // není to list, je třeba se posunout ádl
-                else
-                    pom=pom->right;
-                //******************************
+        else {
+            return RootPtr;
+        }
+    }
+
+}
+
+void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data)	{
+
+    if ( RootPtr != NULL && (*RootPtr) != NULL) {
+        if ( strcmp(K, (*RootPtr)->Key) != 0 ) { // vyhledavani pokracuje v levem nebo pravem podstrumu
+            if ( strcmp(K, ((*RootPtr)->Key)) < 0 ) {
+                BSTInsert( &((*RootPtr)->LPtr), K, Data);
+            } else if ( strcmp(K, (*RootPtr)->Key) > 0 ) {
+                BSTInsert( &((*RootPtr)->RPtr), K, Data);
+            }
+        }
+        else { // aktualizace dat pri nalezeni stejneho klice
+            (*RootPtr)->Data = Data;
+        }
+    }
+    else {
+        // alokace pameti pro novy uzel
+        struct tBSTNode *newitem;
+        if ( (newitem = (struct tBSTNode*)malloc(sizeof(struct tBSTNode))) == NULL ) {
+            return;
+        }
+        // inicializace dat noveho uzlu
+        newitem->Key = K;
+        newitem->Data = Data;
+        newitem->LPtr = newitem->RPtr = NULL;
+
+        (*RootPtr) = newitem;
+    }
+
+}
+
+void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
+
+    if ( (*RootPtr)->RPtr == NULL ) {
+        // prekopirovani hodnot uzlu
+        PtrReplaced->Data = (*RootPtr)->Data;
+        PtrReplaced->Key = (*RootPtr)->Key;
+        // uvolneni uzlu
+        BSTDelete(RootPtr, (*RootPtr)->Key);
+    }
+    else {
+        ReplaceByRightmost(PtrReplaced, &((*RootPtr)->RPtr));
+    }
+
+}
+
+void BSTDelete (tBSTNodePtr *RootPtr, char* K) 		{
+
+    if ( RootPtr && (*RootPtr) ) {
+        if ( strcmp(K, (*RootPtr)->Key) < 0 ) {
+            BSTDelete( &((*RootPtr)->LPtr), K);
+        }
+        else if ( strcmp(K, (*RootPtr)->Key) > 0 ) {
+            BSTDelete( &((*RootPtr)->RPtr), K);
+        }
+        else { // pokud byl nalezen uzel s danym klicem
+            if ( ((*RootPtr)->LPtr == NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud se jedna o listovy uzel
+                free(*RootPtr);
+                *RootPtr = NULL;
+            }
+            else if ( ((*RootPtr)->LPtr != NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud ma uzel jen levy podstrom
+                free(*RootPtr);
+                *RootPtr = (*RootPtr)->LPtr;
+            }
+            else if ( ((*RootPtr)->RPtr != NULL) && ((*RootPtr)->LPtr == NULL) ) { // pokud ma uzel jen pravy podstrom
+                free(*RootPtr);
+                *RootPtr = (*RootPtr)->RPtr;
+            }
+            else { // pokud ma ruseny uzel oba podstromy
+                ReplaceByRightmost((*RootPtr), &((*RootPtr)->LPtr));
             }
         }
     }
-    checkTreeInsert = true;
-    return  ERROR_CODE_OK;
+
 }
-// Vrací ukazatel na hledanou položku node hledanou podle klíče key
-TreeStructure treeNodesSearch(TreeStructure node, char *key) {
-    int checkStrcmp = 0; checkTreeNodesSearch = false;
-    if(node==NULL)
-        return NULL;
-    else
-        if((checkStrcmp = strcmp(node->key, key)) == 0) {
-            checkTreeNodesSearch = true;
-            return node;
+
+void BSTDispose (tBSTNodePtr *RootPtr) {
+
+    if ( (*RootPtr) != NULL ) {
+        BSTDelete(RootPtr, (*RootPtr)->Key);
+        BSTDispose(RootPtr);
+    }
+
+}
+
+/* ----------funkce pro ladeni (z projektu IAL)---------- */
+void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir) { /* vykresli sktrukturu binarniho stromu */
+    if (TempTree != NULL)
+    {
+        char* suf2 = (char*) malloc(strlen(sufix) + 4);
+        strcpy(suf2, sufix);
+        if (fromdir == 'L')
+        {
+            suf2 = strcat(suf2, "  |");
+            printf("%s\n", suf2);
         }
-        else if(checkStrcmp < 0)
-            return treeNodesSearch(node->left,key);
-        else if(checkStrcmp > 0)
-            return treeNodesSearch(node->right,key);
+        else
+            suf2 = strcat(suf2, "   ");
+        Print_tree2(TempTree->RPtr, suf2, 'R');
+        printf("%s  +-[%s,%s, %d]\n", sufix, TempTree->Key, ((tDataVariable*)TempTree->Data)->name, ((tDataVariable*)TempTree->Data)->data_type);
+        strcpy(suf2, sufix);
+        if (fromdir == 'R')
+            suf2 = strcat(suf2, "  |");
+        else
+            suf2 = strcat(suf2, "   ");
+        Print_tree2(TempTree->LPtr, suf2, 'L');
+        if (fromdir == 'R') printf("%s\n", suf2);
+        free(suf2);
+    }
 }
 
-// Funkce rekurzivně odstraní podstromy uzlu node
-void BSTdelete(TreeStructure node) {
-    checkTreeNodesDelete = false;
-    if(node->left!=NULL)
-        BSTdelete(node->left);
-    if(node->right!=NULL)
-        BSTdelete(node->right);
-    free(node);
-    checkTreeNodesDelete = true;
-    return;
+void Print_tree(tBSTNodePtr TempTree) {
+    printf("Struktura binarniho stromu:\n");
+    printf("\n");
+    if (TempTree != NULL)
+        Print_tree2(TempTree, "", 'X');
+    else
+        printf("strom je prazdny\n");
+    printf("\n");
+    printf("=================================================\n");
 }
-
 
