@@ -19,6 +19,7 @@
 #include "bintree.h"
 #include "expression.h"
 
+
 tSymtable glSymTable; // globalni tabulka symbolu
 tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
 
@@ -59,11 +60,8 @@ int main(int argc, char **argv)
     //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
     //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
+
     /* testovaci kod konec*/
-
-
-
-
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
@@ -76,6 +74,7 @@ int main(int argc, char **argv)
     /*----------uvolneni alokovane pameti----------*/
     symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
+
 
     return result_code;
 }

@@ -10,12 +10,12 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
-#include "scanner.h"
-#include "stack.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
 int operation;
+extern tSymtable glSymTable;
+int operation_type_global;
 
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    $
@@ -37,17 +37,16 @@ const char precedenceTable[PT_SIZE][PT_SIZE] = {
 };
 
 //Funkce volaná parserem
-ERROR_CODE expression(){
-
+ERROR_CODE expression(int operation_type){
     ptrStack expression_stack;
+    operation_type_global = operation_type;
     ERROR_CODE result = expressionAnalysis(&expression_stack);
     SDispose(&expression_stack);
     return result;
-
 }
 
 //Hlavní funkce analyzující výraz
-ERROR_CODE expressionAnalysis( ptrStack *expression_stack){
+ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
 
     ERROR_CODE error_type = ERROR_CODE_OK;
         //Inicializace stacku
@@ -61,7 +60,7 @@ ERROR_CODE expressionAnalysis( ptrStack *expression_stack){
         while (1){
 
             if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-                printf("\nOK");
+                //printf("\nOK");
                 break;
             }
 
@@ -72,7 +71,7 @@ ERROR_CODE expressionAnalysis( ptrStack *expression_stack){
                 SPush(expression_stack,newElementToStack(next_exp_token.atr,convertTokenToIndex(next_exp_token.type),next_exp_token.type));
 
                 if((error_type = reducePars(expression_stack)) != ERROR_CODE_OK) {
-                    printf("\nSpatne");
+                    //printf("\nSpatne");
                     return error_type;
                 }
                 printf("%d,",operation);
@@ -81,7 +80,7 @@ ERROR_CODE expressionAnalysis( ptrStack *expression_stack){
             else if (sign == '<') {     //Pushujeme na zábosobník
 
                 if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
-                    printf("\nSpatne");
+                    //printf("\nSpatne");
                     return error_type;
                 }
                 else
@@ -90,13 +89,13 @@ ERROR_CODE expressionAnalysis( ptrStack *expression_stack){
             else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
                 if((error_type = useRule(expression_stack)) != ERROR_CODE_OK){
-                    printf("\nSpatne");
+                    //printf("\nSpatne");
                     return error_type;
                 }
                 printf("%d,",operation);
             }
             else {      //Pokud nastane nepovolený stav
-                printf("\nSpatne");
+                //printf("\nSpatne");
                 return ERROR_CODE_SYN;
             }
 
@@ -163,6 +162,8 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
             //Řeší redukci pro ID (operand)
             case eOperand:
+                //if(changeOperandType(stack_item,operation_type_global) != ERROR_CODE_OK)
+                 //   return ERROR_CODE_SEM_COMP;
                 ((Exp_element *) (stack_item->value))->terminal = false;
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
@@ -172,7 +173,6 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 //Řeší redukci násobení
             case eMultiply:
-
                 if((error_type = reduceBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
 
@@ -228,14 +228,14 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 //Řeší redukci menšítka
             case eLess:
-                if((error_type = reduceBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
+                if((error_type = reduceBinary(expression_stack, eLess)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eLess;
                 break;
 
                 //Řeší redukci většítka
             case eMore:
-                if((error_type = reduceBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
+                if((error_type = reduceBinary(expression_stack, eMore)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eMore;
                 break;
@@ -267,42 +267,22 @@ ERROR_CODE reduceBinary(ptrStack *expression_stack,int operator){
     if(expression_stack != NULL) {
 
         tStack *stack_item = (expression_stack->top_of_stack);
-        int count = 0;
-        //int operand_type_l;
-        //int operand_type_r;
 
-        //Kontrola syntaxe, zda binární operátor má své dva neterminály
-        while (((Exp_element *) (stack_item->value))->handle != true) {
+        Exp_element *l_operator = ((Exp_element *) (stack_item->value));
+        Exp_element *r_operator = ((Exp_element *) (stack_item->left->left->value));
 
-            //Pokud není čtvrtý znak v pořadí handle, je to chyba
-            if (count > 3) {
-                return ERROR_CODE_SYN;
-            }
 
-            switch (count) {
-                case 0:
-                    //První prvek musí být neterminál
-                    if (((Exp_element *) (stack_item->value))->terminal != false)
-                        return ERROR_CODE_SYN;
-                    //operand_type_r = ((Exp_element *) (stack_item->value))->token_type;
-                    break;
-                case 1:
-                    //Druhý operátor, tudíž i temrinal
-                    if (((Exp_element *) (stack_item->value))->terminal != true &&
-                        ((Exp_element *) (stack_item->value))->pt_index != operator)
-                        return ERROR_CODE_SYN;
-                    break;
-                case 2:
+        //Pokud není splněná podmínka: OPERAND OPERATOR OPERAND, jedná se o syntaktickou chybu
+        if((((Exp_element *) (stack_item->value))->terminal != false || eOperand != convertTokenToIndex(((Exp_element *) (stack_item->value))->token_type)) ||
+          (((Exp_element *) (stack_item->left->value))->terminal != true || ((Exp_element *) (stack_item->left->value))->pt_index != operator) ||
+          (((Exp_element *) (stack_item->left->left->value))->terminal != false || eOperand != convertTokenToIndex(((Exp_element *) (stack_item->left->left->value))->token_type)))
+            return ERROR_CODE_SYN;
 
-                    //Třetí musí být neterminál
-                    if (((Exp_element *) (stack_item->value))->terminal != false)
-                        return ERROR_CODE_SYN;
-                    //operand_type_l = ((Exp_element *) (stack_item->value))->token_type;
-                    break;
-            }
-            count++;
-            stack_item = stack_item->left;
-        }
+
+        if(checkSemAConv(l_operator, operator,r_operator)  != ERROR_CODE_OK)
+            return ERROR_CODE_SEM_COMP;
+
+
 
         //Pokud je binární operace správně, popne pravý neterminál a operátor ze stacku
         SPop(expression_stack);
@@ -356,36 +336,54 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
     else
         return ERROR_CODE_SYN;
 }
-/*
-//Funkce kontroluje sémantiku
-ERROR_CODE checkSemantic( int operand_type_l,int operator, int operand_type_r){
-    if((operator == eMultiply) || (operator == eDivideD) || (operator == eMinus)){
-        if(operand_type_l == sString || operand_type_r == sString)
-            return ERROR_CODE_SEM;
-    }
-    else if(operator == eDivideI){
-        if (operand_type_l == sDouble || operand_type_r == sDouble)
-            return ERROR_CODE_SEM;
-    }
-    else if(operator == ePlus){
-        if((operand_type_l == sString && operand_type_r != sString) ||
-           (operand_type_r == sString && operand_type_l != sString) ){
-            return ERROR_CODE_SEM;
+
+//Funkce kontroluje sémantiku a případně konvertuje typ operatoru
+ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element *operand_type_r){
+
+    //Jestli se provadi operace '\'
+    if(operator == eDivideI){
+        //Pokud není ani jeden z operandů string, oba se přetypují na int
+        if (operand_type_l->token_type != sString && operand_type_r->token_type != sString){
+            operand_type_l->token_type = sInteger;
+            operand_type_r->token_type = sInteger;
         }
+        else
+            return ERROR_CODE_SEM_COMP;
     }
-    else if((operator == sAssignment) || (operator == sNotEqual) || (operator == sLess) ||
-            (operator == sLessEqual) ||(operator == sMore) || (operator == sMoreEqueal)){
-        if((operand_type_l == sString && operand_type_r != sString) ||
-           (operand_type_r == sString && operand_type_l != sString) ){
-            return ERROR_CODE_SEM;
+        //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s binárním operatorem
+    else if(operator == ePlus || (operator > eMinus && operator < eMoreEqual)){
+        //Pokud je jeden z operandů string a druhý nikoliv, je to sem. chyba
+        if ((operand_type_l->token_type == sString && operand_type_r->token_type != sString) ||
+            (operand_type_l->token_type != sString && operand_type_r->token_type == sString)){
+            return ERROR_CODE_SEM_COMP;
         }
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
+            operand_type_l->token_type = sDouble;
+            operand_type_r->token_type = sDouble;
+        }
+        //Jinak máme v operaci dva stringy...
     }
+        //Jestli se provádí operace *,/,-
+    else if(operator == eMultiply || operator == eMinus || operator == eDivideD){
+        //Jestli je jeden z operandů string, je to sem. chyba
+        if (operand_type_l->token_type == sString && operand_type_r->token_type == sString) {
+            return ERROR_CODE_SEM_COMP;
+        }
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
+            operand_type_l->token_type = sDouble;
+            operand_type_r->token_type = sDouble;
+        }
+        //Jinak necháváme původní typ...
+    }
+    else{
+        return ERROR_CODE_SEM_COMP;
+    }
+
     return ERROR_CODE_OK;
 }
 
-int changeOperandType(ptrStack *expression_stack, int op_to){
-
-}*/
 
 //Funkce vytvaří nový element pro vložení na stack
 Exp_element *newElementToStack(string value, int pt_index, int token_type){
