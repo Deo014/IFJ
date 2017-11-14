@@ -24,6 +24,7 @@ typedef enum {
     sIdentificator,             //      KONCOVY STAV
     sIdentificatorOrKeyWord,    //      mezistav
     sKeyWord,                   //      KONCOVY STAV
+    //sResKeyWord,                //      KONCOVY STAV
 
     /* datove type */
     sInteger,                   //      KONCOVY STAV
@@ -36,6 +37,8 @@ typedef enum {
 
     sString,                    //      KONCOVY STAV
     sStringStart,               //      mezistav
+    sStringEscape,              //      mezistav
+    sStringEscapeNumber,        //      mezistav
 
     /* operatory */
     sPlus,                      //      KONCOVY STAV    +
@@ -48,12 +51,13 @@ typedef enum {
     sNotEqual,                  //      KONCOVY STAV    <>
     sLessEqual,                 //      KONCOVY STAV    <=
     sMore,                      //      KONCOVY STAV    >
-    sMoreEqueal,                //      KONCOVY STAV    >=
+    sMoreEqual,                 //      KONCOVY STAV    >=
     sAssignment,                //      KONCOVY STAV    =
 
     sLeftPar,                   //      KONCOVY STAV    (
     sRightPar,                  //      KONCOVY STAV    )
     sSemicolon,                 //      KONCOVY STAV    ;
+    sComma,                     //      KONCOVY STAV    ,
 
     /* komentare */
     sLineComment,               //      mezistav        '

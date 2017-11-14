@@ -31,14 +31,15 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
+
     while (1) {
         token = getNextToken();
         printf("%2d %s\n", token.type, token.atr.value);
         //printf("length:%d\n", token.atr.length);
         //printf("allocated:%d\n\n", token.atr.lengthAllocated);
 
-        if (token.type == 30 /* EOF */)
-            break;
+        //if (token.type == 30 /* EOF */)
+        //    break;
     }
 
 
