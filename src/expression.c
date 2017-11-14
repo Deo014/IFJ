@@ -467,7 +467,7 @@ int convertTokenToIndex(int token_num){
         case sMore:
             return eMore;
 
-        case sMoreEqueal:
+        case sMoreEqual:
             return eMoreEqual;
 
         case sLeftPar:
