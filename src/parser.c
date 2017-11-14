@@ -383,3 +383,28 @@ int Deklarace_promenne() {
 
     return result;
 }
+
+int Deklarace_prom_a_prikazy() {
+    int result;
+    switch (aktualni_token.type) {
+        case sPrint:
+        case sInput:
+        case sIf:
+        case sDo:
+        case sIdentificator:
+        case sReturn:
+            result = Prikazy();
+            if (result != SYNTAX_OK) return result;
+            result = Deklarace_prom_a_prikazy();
+            if (result != SYNTAX_OK) return result;
+            return SYNTAX_OK;
+        case sDim:
+            result = Deklarace_promennych();
+            if (result != SYNTAX_OK) return result;
+            result = Deklarace_prom_a_prikazy();
+            if (result != SYNTAX_OK) return result;
+            return SYNTAX_OK;
+
+    }
+    return SYNTAX_ERROR;
+}
