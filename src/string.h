@@ -24,6 +24,8 @@ typedef struct {
 
 int stringInit(string *);
 int stringAddChar(string *, char);
+void stringUpdateLastChar(string *, char);
+void stringDeleteLastChar(string *);
 int stringAddFirstChar(string *, char);
 int stringClear(string *);
 
@@ -40,5 +42,7 @@ int charIsSpace(char);
 int charIsTab(char);
 int charIsDigit(char);
 int charIsLetter(char);
+int charToDec(char);
+char decToChar(int);
 
 #endif //IFJ_STRING_H

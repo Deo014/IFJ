@@ -31,6 +31,7 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
+
     tSymtable table;
     symTableInit(&table);
 //    tToken token;
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
 
     symTableDelete(&table, "klic7");
     symTableDelete(&table, "klic5");
+
 
     tBSTNodePtr node = symTableSearch(&table, "klic3");
 
