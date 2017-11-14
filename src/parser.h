@@ -18,5 +18,10 @@
 #define LEX_ERROR     1
 #define SYNTAX_ERROR 2
 
+typedef enum {
+    sEnd = 100,
+    sScope, sDeclare, sFuntion, sAs, sDim, sPrint, sInput, sIf, sThen, sElse, sDo, sWhile, sLoop, sReturn
+} keyword_type;
+
 
 #endif //IFJ_PARSER_H

@@ -6,8 +6,7 @@ set(CMAKE_C_FLAGS "$(CMAKE_C_FLAGS) -std=gnu99 -Wall -Wextra -Werror -pedantic -
 
 set(CMAKE_C_FLAGS "-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread")
 
-set(SOURCE_FILES src/main.c src/init.h src/init.c src/scanner.h src/scanner.c src/parser.h src/parser.c src/symtable.c src/symtable.h src/error_code.h src/string.h src/string.c src/instList.h src/instList.c)
+set(SOURCE_FILES src/instList.c src/instList.h src/main.c src/init.h src/init.c src/scanner.h src/scanner.c src/parser.h src/parser.c src/symtable.c src/symtable.h src/error_code.h src/string.h src/string.c src/instList.h src/instList.c)
 
-//set(SOURCE_FILES src/main.c src/init.h src/init.c src/scanner.h src/scanner.c src/parser.h src/parser.c src/symtable.c src/symtable.h src/error_code.h src/string.h src/string.c src/bintree.c src/bintree.h src/expression.h src/expression.c src/stack.h src/stack.c)
 
 add_executable(IFJ ${SOURCE_FILES})
