@@ -126,7 +126,7 @@ void BSTDispose (tBSTNodePtr *RootPtr) {
 
 }
 
-/* ----------funkce pro ladeni (z projektu IAL)---------- */
+/* --------------------funkce pro ladeni (z projektu IAL)-------------------- */
 void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir) { /* vykresli sktrukturu binarniho stromu */
     if (TempTree != NULL)
     {

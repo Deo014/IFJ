@@ -16,6 +16,7 @@
 #include "instList.h"
 #include "symtable.h"
 #include "string.h"
+#include "bintree.h"
 #include "expression.h"
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -35,32 +36,36 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-/*
+
+
+
+
+
+    /* testovaci kod zacatek*/
+
     tToken token;
-    while ( (token = getNextToken()).type != sEndOfFile ) {
+    while ( (token = getNextToken()).type != sLexError ) {
         if (token.type == sIdentificator) {
-            symTableInsertVariable(&table, token.atr.value, createDataVariable(token.atr.value, sInteger) );
-            Print_tree(table.root);
+            symTableInsertVariable(&glSymTable, token.atr, createDataVariable(token.atr, sInteger) );
+            Print_tree(glSymTable.root);
         }
     }
 
-    symTableInsertVariable(&table, "klic5", createDataVariable("acko", sInteger) );
-    symTableInsertFunction(&table, "klic3", createDataFunction("becko",sDouble, false, false));
-    symTableInsertVariable(&table, "klic4", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic7", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic6", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic8", createDataVariable("ccko", sInteger) );
+//    symTableInsertFunction(&glSymTable, "klic1", createDataFunction("becko",sDouble, false, false));
+//    symTableInsertVariable(&glSymTable, "klic2", createDataVariable("ccko", sInteger) );
+//    symtableInsert(&glSymTable, "klic3", createDataVariable("ccko", sInteger));
 
-    symTableDelete(&table, "klic7");
-    symTableDelete(&table, "klic5");
+    //Print_tree(glSymTable.root);
+    //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
+    //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
+
+    /* testovaci kod konec*/
 
 
-    tBSTNodePtr node = symTableSearch(&table, "klic3");
 
-    printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
-    Print_tree(table.root);
-*/
+
+
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
 
