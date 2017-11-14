@@ -53,7 +53,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
         initExpressionStack(expression_stack);
 
 
-        //bool do_analysis = true;
         char sign;
         next_exp_token = getNextToken();
         //Analýza výrazu
@@ -138,6 +137,25 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
         Exp_element* new_element = newElementToStack(next_exp_token.atr, convertTokenToIndex(next_exp_token.type), next_exp_token.type);
 
         if(new_element != NULL) {
+            //Jestli je vkládaný prvek proměnná, zjistíme, jakou má v tabulce symbolů typ
+            if(sIdentificator == new_element->token_type){
+                tBSTNodePtr element_id = symTableSearch(&glSymTable,new_element->value);
+                if(element_id != NULL) {
+                    //A podle toho nastavíme typ prvku vkládanému na stack
+                    switch (((tDataVariable *) element_id->Data)->data_type) {
+                        case sInteger:
+                            new_element->token_type = sInteger;
+                        case sDouble:
+                            new_element->token_type = sDouble;
+                        case sString:
+                            new_element->token_type = sString;
+                    }
+                }
+                else
+                    return ERROR_CODE_SYN;
+
+            }
+
             SPush(expression_stack,new_element);
             first_terminal = expression_stack->top_of_stack;
             return ERROR_CODE_OK;
@@ -162,8 +180,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
             //Řeší redukci pro ID (operand)
             case eOperand:
-                //if(changeOperandType(stack_item,operation_type_global) != ERROR_CODE_OK)
-                 //   return ERROR_CODE_SEM_COMP;
+
                 ((Exp_element *) (stack_item->value))->terminal = false;
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
