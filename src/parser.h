@@ -14,4 +14,9 @@
 #ifndef IFJ_PARSER_H
 #define IFJ_PARSER_H
 
+#define SYNTAX_OK 0
+#define LEX_ERROR     1
+#define SYNTAX_ERROR 2
+
+
 #endif //IFJ_PARSER_H
