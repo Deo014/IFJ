@@ -34,16 +34,26 @@ typedef struct symtable {
     tBSTNodePtr root;
 } tSymtable;
 
+/* --------------------inicialiace symtable-------------------- */
 void symTableInit(tSymtable*);
 
-void symTableInsertVariable(tSymtable*, char*, tDataVariable*);
-tDataVariable *createDataVariable(char*, int);
 
-void symTableInsertFunction(tSymtable*, char*, tDataFunction*);
-tDataFunction *createDataFunction(char*, int, bool, bool);
+void symtableInsert(tSymtable* Table, string Key, void* dataPtr);
 
-tBSTNodePtr symTableSearch(tSymtable*, char*);
+/* --------------------vlozeni dat o funkci do symtable--------------------*/
+void symTableInsertFunction(tSymtable*, string, tDataFunction*);
+tDataFunction *createDataFunction(string, int, bool, bool);
 
+/* --------------------vlozeni dat o promenne do symtable--------------------*/
+void symTableInsertVariable(tSymtable*, string, tDataVariable*);
+tDataVariable *createDataVariable(string, int);
+
+/* --------------------vyhledani prvku v symtable--------------------*/
+tBSTNodePtr symTableSearch(tSymtable*, string);
+
+/* --------------------smazani prvku v symtable--------------------*/
+void symTableDelete(tSymtable*, string);
+
+/* --------------------smazani cele symtable--------------------*/
 void symTableDispose(tSymtable*);
-void symTableDelete(tSymtable*, char*);
 #endif //IFJ_SYMTABLE_H

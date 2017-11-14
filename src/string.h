@@ -34,7 +34,7 @@ bool stringCompare(string *a, string *b);
 
 void stringToLowercase(string *);
 
-
+/* ----------------------------------------POMOCNE FUNKCE PRO SCANNER-------------------------------------------------*/
 int stringIsKeyWord(string *);
 int stringIsResKeyWord(string *);
 char stringGetLastChar(string *);
