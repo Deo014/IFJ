@@ -17,6 +17,7 @@
 #include "scanner.h"
 #include "string.h"
 #include "symtable.h"
+#include "bintree.h"
 
 int main(int argc, char **argv)
 {
@@ -32,17 +33,29 @@ int main(int argc, char **argv)
 
     tSymtable table;
     symTableInit(&table);
+//    tToken token;
+//    while ( (token = getNextToken()).type != sEndOfFile ) {
+//        if (token.type == sIdentificator) {
+//            symTableInsertVariable(&table, token.atr.value, createDataVariable(token.atr.value, sInteger) );
+//            Print_tree(table.root);
+//        }
+//    }
+//
+    symTableInsertVariable(&table, "klic5", createDataVariable("acko", sInteger) );
+    symTableInsertFunction(&table, "klic3", createDataFunction("becko",sDouble, false, false));
+    symTableInsertVariable(&table, "klic4", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic7", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic6", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic8", createDataVariable("ccko", sInteger) );
 
-    symTableInsertVariable(&table, "klic1", createDataVariable("acko", sInteger) );
-    symTableInsertVariable(&table, "klic2", createDataVariable("becko", sString) );
-    symTableInsertVariable(&table, "klic3", createDataVariable("ccko", sInteger) );
+    symTableDelete(&table, "klic7");
+    symTableDelete(&table, "klic5");
 
-    symTableDelete(&table, "klic2");
+    tBSTNodePtr node = symTableSearch(&table, "klic3");
 
-    tBSTNodePtr node = symTableSearch(&table, "klic2");
+    printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
-    printf("%s %d\n", ((tDataVariable*)node->Data)->name, ((tDataVariable*)node->Data)->data_type);
-
+    Print_tree(table.root);
 
     return error_code;
 }

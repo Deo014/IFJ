@@ -17,19 +17,22 @@
 
 
 
-/* uzel stromu */
+/* ----------uzel stromu---------- */
 typedef struct tBSTNode {
-    char* Key;			                                                      /* klíč */
-    void* Data;                                            /* užitečný obsah uzlu */
-    struct tBSTNode * LPtr;                                    /* levý podstrom */
-    struct tBSTNode * RPtr;                                   /* pravý podstrom */
+    char* Key;			                             /* klíč */
+    void* Data;                                      /* užitečný obsah uzlu */
+    struct tBSTNode * LPtr;                          /* levý podstrom */
+    struct tBSTNode * RPtr;                          /* pravý podstrom */
 } *tBSTNodePtr;
 
-/* prototypy funkcí */
+/* ----------prototypy funkcí---------- */
 void BSTInit   (tBSTNodePtr *);
 tBSTNodePtr BSTSearch (tBSTNodePtr, char*);
 void BSTInsert (tBSTNodePtr *, char*, void*);
 void BSTDelete (tBSTNodePtr *, char*);
 void BSTDispose(tBSTNodePtr *);
 
+/* ----------funkce pro ladeni---------- */
+void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir); /* pomocna funkce pro vykresleni sktruktury binarniho stromu */
+void Print_tree(tBSTNodePtr TempTree); /* volana funkce pro vykresleni funkce binarniho stromu */
 #endif //IFJ_BINTREE_H

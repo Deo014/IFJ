@@ -17,6 +17,7 @@
 #include "symtable.h"
 #include <string.h>
 
+/* ----------funkce binarniho vyhledavaciho stromu----------*/
 void BSTInit (tBSTNodePtr *RootPtr) {
 
     (*RootPtr) = NULL;
@@ -40,7 +41,6 @@ tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char* K)	{
     }
 
 }
-
 
 void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data)	{
 
@@ -124,5 +124,42 @@ void BSTDispose (tBSTNodePtr *RootPtr) {
         BSTDispose(RootPtr);
     }
 
+}
+
+/* ----------funkce pro ladeni (z projektu IAL)---------- */
+void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir) { /* vykresli sktrukturu binarniho stromu */
+    if (TempTree != NULL)
+    {
+        char* suf2 = (char*) malloc(strlen(sufix) + 4);
+        strcpy(suf2, sufix);
+        if (fromdir == 'L')
+        {
+            suf2 = strcat(suf2, "  |");
+            printf("%s\n", suf2);
+        }
+        else
+            suf2 = strcat(suf2, "   ");
+        Print_tree2(TempTree->RPtr, suf2, 'R');
+        printf("%s  +-[%s,%s, %d]\n", sufix, TempTree->Key, ((tDataVariable*)TempTree->Data)->name, ((tDataVariable*)TempTree->Data)->data_type);
+        strcpy(suf2, sufix);
+        if (fromdir == 'R')
+            suf2 = strcat(suf2, "  |");
+        else
+            suf2 = strcat(suf2, "   ");
+        Print_tree2(TempTree->LPtr, suf2, 'L');
+        if (fromdir == 'R') printf("%s\n", suf2);
+        free(suf2);
+    }
+}
+
+void Print_tree(tBSTNodePtr TempTree) {
+    printf("Struktura binarniho stromu:\n");
+    printf("\n");
+    if (TempTree != NULL)
+        Print_tree2(TempTree, "", 'X');
+    else
+        printf("strom je prazdny\n");
+    printf("\n");
+    printf("=================================================\n");
 }
 

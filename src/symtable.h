@@ -12,6 +12,7 @@
 
 #include "bintree.h"
 #include <stdbool.h>
+#include "string.h"
 
 #ifndef IFJ_SYMTABLE_H
 #define IFJ_SYMTABLE_H
