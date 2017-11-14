@@ -18,6 +18,7 @@
 #include "string.h"
 #include "symtable.h"
 #include "bintree.h"
+#include "expression.h"
 
 int main(int argc, char **argv)
 {
@@ -58,6 +59,8 @@ int main(int argc, char **argv)
     printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
     Print_tree(table.root);
+
+    expression();
 
     return error_code;
 }
