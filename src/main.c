@@ -16,12 +16,12 @@
 #include "init.h"
 #include "scanner.h"
 #include "string.h"
+#include "symtable.h"
+#include "bintree.h"
 
 int main(int argc, char **argv)
 {
     ERROR_CODE error_code = ERROR_CODE_OK;
-    tToken token; // promenna token
-    //stringInit(&token.s); // inicializace tokenu
 
     // kontrola argumentů
     ERROR_CODE helpStatus = checkArgs(argc, argv);
@@ -31,35 +31,33 @@ int main(int argc, char **argv)
         return error_code = ERROR_CODE_INTERNAL;
 
 
-    while (1) {
-        token = getNextToken();
-        printf("%2d %s\n", token.type, token.atr.value);
-        //printf("length:%d\n", token.atr.length);
-        //printf("allocated:%d\n\n", token.atr.lengthAllocated);
 
-        if (token.type == 30 /* EOF */)
-            break;
-    }
+    tSymtable table;
+    symTableInit(&table);
+//    tToken token;
+//    while ( (token = getNextToken()).type != sEndOfFile ) {
+//        if (token.type == sIdentificator) {
+//            symTableInsertVariable(&table, token.atr.value, createDataVariable(token.atr.value, sInteger) );
+//            Print_tree(table.root);
+//        }
+//    }
+//
+    symTableInsertVariable(&table, "klic5", createDataVariable("acko", sInteger) );
+    symTableInsertFunction(&table, "klic3", createDataFunction("becko",sDouble, false, false));
+    symTableInsertVariable(&table, "klic4", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic7", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic6", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&table, "klic8", createDataVariable("ccko", sInteger) );
+
+    symTableDelete(&table, "klic7");
+    symTableDelete(&table, "klic5");
 
 
+    tBSTNodePtr node = symTableSearch(&table, "klic3");
 
-    /*
-    // inicializace paměti
-    memInit();
-    // získání filename z stdin
-    getFilename();
+    printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
-    // otevření souboru pro čtení
-    ERROR_CODE fileStatus = openFile(filename);
-    if(fileStatus == ERROR_CODE_INTERNAL)
-        return code_error = ERROR_CODE_INTERNAL;
+    Print_tree(table.root);
 
-    // Tady se vyvolá funkce pro zpracování souboru
-
-    //code_error = nejakaFunkceZeScanneruNeboParseru();
-
-    // uvolnění paměti
-    memFree(filename);
-     */
     return error_code;
 }
