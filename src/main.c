@@ -20,6 +20,9 @@
 #include "bintree.h"
 #include "expression.h"
 
+tSymtable glSymTable;
+
+
 int main(int argc, char **argv)
 {
     ERROR_CODE error_code = ERROR_CODE_OK;
@@ -31,10 +34,9 @@ int main(int argc, char **argv)
     else if(helpStatus == ERROR_CODE_INTERNAL)
         return error_code = ERROR_CODE_INTERNAL;
 
+    symTableInit(&glSymTable);
 
 
-    tSymtable table;
-    symTableInit(&table);
 //    tToken token;
 //    while ( (token = getNextToken()).type != sEndOfFile ) {
 //        if (token.type == sIdentificator) {
@@ -43,24 +45,36 @@ int main(int argc, char **argv)
 //        }
 //    }
 //
-    symTableInsertVariable(&table, "klic5", createDataVariable("acko", sInteger) );
-    symTableInsertFunction(&table, "klic3", createDataFunction("becko",sDouble, false, false));
-    symTableInsertVariable(&table, "klic4", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic7", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic6", createDataVariable("ccko", sInteger) );
-    symTableInsertVariable(&table, "klic8", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&glSymTable, "klic5", createDataVariable("acko", sInteger) );
+    symTableInsertFunction(&glSymTable, "klic3", createDataFunction("becko",sDouble, false, false));
+    symTableInsertVariable(&glSymTable, "klic4", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&glSymTable, "klic7", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&glSymTable, "klic6", createDataVariable("ccko", sInteger) );
+    symTableInsertVariable(&glSymTable, "klic8", createDataVariable("ccko", sInteger) );
 
-    symTableDelete(&table, "klic7");
-    symTableDelete(&table, "klic5");
+    symTableDelete(&glSymTable, "klic7");
+    symTableDelete(&glSymTable, "klic5");
 
 
-    tBSTNodePtr node = symTableSearch(&table, "klic3");
+    tBSTNodePtr node = symTableSearch(&glSymTable, "klic3");
 
     printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
-    Print_tree(table.root);
+    Print_tree(glSymTable.root);
 
-    expression();
+    int er = expression(sInteger);
+
+    switch (er){
+        case ERROR_CODE_SEM_COMP:
+            printf("\nSemanticka chyba");
+            break;
+        case ERROR_CODE_SYN:
+            printf("\nSyntakticka chyba");
+            break;
+        case ERROR_CODE_OK:
+            printf("\nVše OK");
+            break;
+    }
 
     return error_code;
 }
