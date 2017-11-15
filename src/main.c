@@ -19,6 +19,7 @@
 #include "bintree.h"
 #include "expression.h"
 
+
 tSymtable glSymTable; // globalni tabulka symbolu
 tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
 
@@ -36,13 +37,19 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
+    string str;
+    stringInit(&str);
+    stringAddChar(&str, 's');
 
+    string inte;
+    stringInit(&inte);
+    stringAddChar(&inte, 'i');
 
-
-
-
+    string dou;
+    stringInit(&dou);
+    stringAddChar(&dou, 'd');
     /* testovaci kod zacatek*/
-
+/*
     tToken token;
     while ( (token = getNextToken()).type != sLexError ) {
         if (token.type == sIdentificator) {
@@ -52,22 +59,46 @@ int main(int argc, char **argv)
     }
 
 //    symTableInsertFunction(&glSymTable, "klic1", createDataFunction("becko",sDouble, false, false));
-//    symTableInsertVariable(&glSymTable, "klic2", createDataVariable("ccko", sInteger) );
+
 //    symtableInsert(&glSymTable, "klic3", createDataVariable("ccko", sInteger));
 
     //Print_tree(glSymTable.root);
     //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
     //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
 
+*/
     /* testovaci kod konec*/
 
+    symTableInsertVariable(&glSymTable, str, createDataVariable(str, sString) );
+    symTableInsertVariable(&glSymTable, inte, createDataVariable(inte, sInteger) );
+    symTableInsertVariable(&glSymTable, dou, createDataVariable(dou, sDouble) );
+    int er;
+    /*
+    bool kont = true;
 
+    while (kont) {*/
+         er = expression(sString);
 
-
-
+        switch (er) {
+            case ERROR_CODE_OK:
+                printf("OK\n");
+                break;
+            case ERROR_CODE_SYN:
+                printf("Syntaxe\n");
+                break;
+            case ERROR_CODE_SEM_COMP:
+                printf("Semantika\n");
+                break;
+            case ERROR_CODE_LEX:
+                printf("Lexikalní error");
+                //kont = false;
+                break;
+        }
+    //}
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
+
 
     /*----------vypsani instrukcni pasky na stdout----------*/
     if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
@@ -76,6 +107,7 @@ int main(int argc, char **argv)
     /*----------uvolneni alokovane pameti----------*/
     symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
+
 
     return result_code;
 }
