@@ -81,16 +81,19 @@ int main(int argc, char **argv)
 
         switch (er) {
             case ERROR_CODE_OK:
-                printf("OK\n");
+                printf("\nOK");
                 break;
             case ERROR_CODE_SYN:
-                printf("Syntaxe\n");
+                printf("\nSyntaxe");
+                break;
+            case ERROR_CODE_SEM:
+                printf("\nSemantika");
                 break;
             case ERROR_CODE_SEM_COMP:
-                printf("Semantika\n");
+                printf("\nSemantika - kompozice");
                 break;
             case ERROR_CODE_LEX:
-                printf("Lexikalní error");
+                printf("\nLexikalní error");
                 //kont = false;
                 break;
         }

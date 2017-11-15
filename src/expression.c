@@ -158,7 +158,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     }
                 }
                 else
-                    return ERROR_CODE_SYN;
+                    return ERROR_CODE_SEM;
 
             }
 
@@ -187,7 +187,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
             //Řeší redukci pro ID (operand)
             case eOperand:
-
+                //Aktuální el. nastavíme jako neterminál a u dalšího prvku, který je nejbližší terminál, zrušíme zarážku
                 ((Exp_element *) (stack_item->value))->terminal = false;
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
@@ -369,6 +369,10 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
 //Funkce kontroluje sémantiku a případně konvertuje typ operatoru
 ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element *operand_type_r){
+
+    //Pokud má být výsledek string a jeden z operátorů není string, chyba
+    if((operand_type_l->token_type != sString || operand_type_r->token_type != sString) && operation_type_global == sString)
+        return ERROR_CODE_SEM_COMP;
 
     //Jestli se provadi operace '\'
     if(operator == eDivideI){
