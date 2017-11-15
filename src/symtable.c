@@ -11,60 +11,62 @@
  */
 
 #include "symtable.h"
+#include "string.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-// inicialiace symtable
-void symTableInit(tSymtable* table) {
-    BSTInit(&(table->root));
+/* --------------------inicialiace symtable-------------------- */
+void symTableInit(tSymtable* Table) {
+    BSTInit(&(Table->root));
 }
 
-
-// vlozi do symtable zaznam s klicem Key a data dataPtr
-void symTableInsertFunction(tSymtable* Table, char* Key, tDataFunction* dataPtr) {
-    BSTInsert(&(Table->root), Key, dataPtr);
+void symtableInsert(tSymtable* Table, string Key, void* dataPtr) {
+    BSTInsert(&(Table->root), Key.value, dataPtr);
 }
-// alokuje novou datovou polozku pro data funkce a vrati ukazatel
-tDataFunction *createDataFunction(char* name, int return_data_type, bool declared, bool defined) {
+
+/* --------------------vlozeni dat o funkci do symtable--------------------*/
+void symTableInsertFunction(tSymtable* Table, string Key, tDataFunction* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
+    BSTInsert(&(Table->root), Key.value, dataPtr);
+}
+
+tDataFunction *createDataFunction(string name, int return_data_type, bool declared, bool defined) { // alokuje novou datovou polozku pro data funkce a vrati ukazatel
     tDataFunction * newitem;
     if ( (newitem = (tDataFunction*)malloc(sizeof(tDataFunction))) == NULL ) {
         return NULL;
     }
-    newitem->name = name;
+    newitem->name = name.value;
     newitem->return_data_type = return_data_type;
     newitem->declared = declared;
     newitem->defined = defined;
     return newitem;
 }
 
-
-// vlozi do symtable zaznam s klicem Key a data dataPtr
-void symTableInsertVariable(tSymtable* Table, char* Key, tDataVariable* dataPtr) {
-    BSTInsert(&(Table->root), Key, dataPtr);
+/* --------------------vlozeni dat o promenne do symtable--------------------*/
+void symTableInsertVariable(tSymtable* Table, string Key, tDataVariable* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
+    BSTInsert(&(Table->root), Key.value, dataPtr);
 }
-// alokuje novou datovou polozku pro data promenne a vrati ukazatel
-tDataVariable *createDataVariable(char* name, int data_type) {
+
+tDataVariable *createDataVariable(string name, int data_type) { // alokuje novou datovou polozku pro data promenne a vrati ukazatel
     tDataVariable * newitem;
     if ( (newitem = (tDataVariable*)malloc(sizeof(tDataVariable))) == NULL ) {
         return NULL;
     }
-    newitem->name = name;
+    newitem->name = name.value;
     newitem->data_type = data_type;
     return newitem;
 }
 
-
-// vraci ukazatel na hledany uzel, pokud nenajde vraci NULL
-tBSTNodePtr symTableSearch(tSymtable* Table, char* Key) {
-    return BSTSearch(Table->root, Key);
+/* --------------------vyhledani prvku v symtable--------------------*/
+tBSTNodePtr symTableSearch(tSymtable* Table, string Key) { // vraci ukazatel na hledany uzel, pokud nenajde vraci NULL
+    return BSTSearch(Table->root, Key.value);
 }
 
+/* --------------------smazani prvku v symtable--------------------*/
+void symTableDelete(tSymtable* Table, string Key) {
+    BSTDelete(&(Table->root), Key.value);
+}
 
+/* --------------------smazani cele symtable--------------------*/
 void symTableDispose(tSymtable* Table) {
     BSTDispose(&(Table->root));
 }
-
-void symTableDelete(tSymtable* Table, char* Key) {
-    BSTDelete(&(Table->root), Key);
-}
-

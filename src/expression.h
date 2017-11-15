@@ -19,6 +19,7 @@
 #include "stack.h"
 #include "error_code.h"
 #include "string.h"
+#include "symtable.h"
 
 /*Datový typ enum, popisující všechny možné znaky ve výrazu*/
 typedef enum {
@@ -34,7 +35,6 @@ typedef enum {
     eLess,
     eLessEqual,
     eMore,
-
     eMoreEqual,
 
     eLeftPar,
@@ -56,17 +56,17 @@ typedef struct exp_element{
 }Exp_element;
 
 
-ERROR_CODE expression();
+ERROR_CODE expression(int);
 ERROR_CODE expressionAnalysis(ptrStack*);
 ERROR_CODE initExpressionStack(ptrStack*);
 ERROR_CODE shiftToStack(ptrStack*);
 ERROR_CODE useRule(ptrStack*);
 ERROR_CODE reduceBinary(ptrStack*,int);
 ERROR_CODE reducePars(ptrStack*);
-ERROR_CODE checkSemantic(int, int, int);
+ERROR_CODE checkSemAConv(Exp_element*, int, Exp_element*);
 Exp_element *newElementToStack(string, int, int);
 char getSignFromTable();
 int convertTokenToIndex(int);
-int changeOperandType(ptrStack*,int);
+ERROR_CODE changeOperandType(tStack*,int);
 
 #endif //IFJ_EXPRESSION_H
