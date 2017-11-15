@@ -59,14 +59,17 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
         //Analýza výrazu
         while (1){
 
+            //Jestli je na vstupu token s lex. errorem, končím
             if(next_exp_token.type == sLexError){
                 return ERROR_CODE_LEX;
             }
 
+            //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
             if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
                 return ERROR_CODE_OK;
             }
 
+            //Zjistíme se známénko z tabulky
             sign = getSignFromTable();
 
 
@@ -74,7 +77,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
                 SPush(expression_stack,newElementToStack(next_exp_token.atr,convertTokenToIndex(next_exp_token.type),next_exp_token.type));
 
                 if((error_type = reducePars(expression_stack)) != ERROR_CODE_OK) {
-                    //printf("\nSpatne");
                     return error_type;
                 }
                 printf("%d,",operation);
@@ -83,7 +85,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
             else if (sign == '<') {     //Pushujeme na zábosobník
 
                 if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
-                    //printf("\nSpatne");
                     return error_type;
                 }
                 else
@@ -92,13 +93,11 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
             else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
                 if((error_type = useRule(expression_stack)) != ERROR_CODE_OK){
-                    //printf("\nSpatne");
                     return error_type;
                 }
                 printf("%d,",operation);
             }
             else {      //Pokud nastane nepovolený stav
-                //printf("\nSpatne");
                 return ERROR_CODE_SYN;
             }
 
@@ -135,6 +134,7 @@ ERROR_CODE initExpressionStack(ptrStack *expression_stack){
 
 //Funkce shiftuje na stack tokeny ze vstupu
 ERROR_CODE shiftToStack(ptrStack *expression_stack){
+
     if (expression_stack != NULL) {
         ((Exp_element*) (first_terminal->value))->handle = true;
         Exp_element* new_element = newElementToStack(next_exp_token.atr, convertTokenToIndex(next_exp_token.type), next_exp_token.type);
@@ -162,6 +162,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
 
             }
 
+            //Pushne se znak na vrchol stacku, který je zároveň nejvyšší terminál
             SPush(expression_stack,new_element);
             first_terminal = expression_stack->top_of_stack;
             return ERROR_CODE_OK;
@@ -178,10 +179,10 @@ ERROR_CODE useRule(ptrStack *expression_stack){
     ERROR_CODE error_type = ERROR_CODE_OK;
 
     if(expression_stack != NULL) {
-        //int first_terminal = getRule(expression_stack);
         tStack *stack_item = expression_stack->top_of_stack;
         operation = 0;
 
+        //Zjistí se, které pravidlo se uplatní pro redukci
         switch (((Exp_element *) (first_terminal->value))->pt_index) {
 
             //Řeší redukci pro ID (operand)
@@ -291,17 +292,22 @@ ERROR_CODE reduceBinary(ptrStack *expression_stack,int operator){
 
         tStack *stack_item = (expression_stack->top_of_stack);
 
-        Exp_element *l_operator = ((Exp_element *) (stack_item->value));
-        Exp_element *r_operator = ((Exp_element *) (stack_item->left->left->value));
+        //Uložíme si levý a pravý operátor operace pro kontrolu sémantiky
+        Exp_element *r_operator = ((Exp_element *) (stack_item->value));
 
-
-        //Pokud není splněná podmínka: OPERAND OPERATOR OPERAND, jedná se o syntaktickou chybu
-        if((((Exp_element *) (stack_item->value))->terminal != false || eOperand != convertTokenToIndex(((Exp_element *) (stack_item->value))->token_type)) ||
-          (((Exp_element *) (stack_item->left->value))->terminal != true || ((Exp_element *) (stack_item->left->value))->pt_index != operator) ||
-          (((Exp_element *) (stack_item->left->left->value))->terminal != false || eOperand != convertTokenToIndex(((Exp_element *) (stack_item->left->left->value))->token_type)))
+        //Případ, kdy jsou na vstupu dva operatory po sobě
+        if(r_operator->pt_index != eOperand)
             return ERROR_CODE_SYN;
 
+        Exp_element *l_operator = ((Exp_element *) (stack_item->left->left->value));
 
+        //Pokud není splněná podmínka: OPERAND OPERATOR OPERAND, jedná se o syntaktickou chybu
+        if((r_operator->terminal != false || eOperand != convertTokenToIndex(r_operator->token_type)) ||
+          (((Exp_element *) (stack_item->left->value))->terminal != true || ((Exp_element *) (stack_item->left->value))->pt_index != operator) ||
+          (l_operator->terminal != false || eOperand != convertTokenToIndex(l_operator->token_type)))
+            return ERROR_CODE_SYN;
+
+        //Zkontroluje se sémantika operace
         if(checkSemAConv(l_operator, operator,r_operator)  != ERROR_CODE_OK)
             return ERROR_CODE_SEM_COMP;
 
@@ -344,6 +350,7 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
             //Přenastavení prvního terminálu na následující znak na zásobníku a deaktivování handlu
             if(((Exp_element*)(expression_stack->top_of_stack->left->value))->terminal == true) {
+
                 first_terminal = expression_stack->top_of_stack->left;
                 ((Exp_element*) (first_terminal->value))->handle = false;
                 operation = eRightPar;
@@ -373,27 +380,31 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
         else
             return ERROR_CODE_SEM_COMP;
     }
-        //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s binárním operatorem
+
+    //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s log. operatorem
     else if(operator == ePlus || (operator > eMinus && operator < eMoreEqual)){
+
         //Pokud je jeden z operandů string a druhý nikoliv, je to sem. chyba
         if ((operand_type_l->token_type == sString && operand_type_r->token_type != sString) ||
             (operand_type_l->token_type != sString && operand_type_r->token_type == sString)){
             return ERROR_CODE_SEM_COMP;
         }
-            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        //Jestli je jeden z operandů double, druhý se přetypuje na double
         else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
             operand_type_l->token_type = sDouble;
             operand_type_r->token_type = sDouble;
         }
         //Jinak máme v operaci dva stringy...
     }
-        //Jestli se provádí operace *,/,-
+
+    //Jestli se provádí operace *,/,-
     else if(operator == eMultiply || operator == eMinus || operator == eDivideD){
+
         //Jestli je jeden z operandů string, je to sem. chyba
         if (operand_type_l->token_type == sString || operand_type_r->token_type == sString){
             return ERROR_CODE_SEM_COMP;
         }
-            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        //Jestli je jeden z operandů double, druhý se přetypuje na double
         else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
             operand_type_l->token_type = sDouble;
             operand_type_r->token_type = sDouble;
@@ -433,8 +444,8 @@ char getSignFromTable(){
     int table_input_index = convertTokenToIndex(next_exp_token.type);
     int table_stack_index = ((Exp_element*)(first_terminal->value))->pt_index;
 
-
-    if(table_input_index != eOther) { //Pokud naleži index jednomu ze znaků
+    //Pokud naleži index jednomu z povolených znaků
+    if(table_input_index != eOther) {
         return precedenceTable[table_stack_index][table_input_index];
 
     }

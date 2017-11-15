@@ -72,9 +72,11 @@ int main(int argc, char **argv)
     symTableInsertVariable(&glSymTable, str, createDataVariable(str, sString) );
     symTableInsertVariable(&glSymTable, inte, createDataVariable(inte, sInteger) );
     symTableInsertVariable(&glSymTable, dou, createDataVariable(dou, sDouble) );
-    bool kont = true;
     int er;
-    while (kont) {
+    /*
+    bool kont = true;
+
+    while (kont) {*/
          er = expression(sString);
 
         switch (er) {
@@ -89,10 +91,10 @@ int main(int argc, char **argv)
                 break;
             case ERROR_CODE_LEX:
                 printf("Lexikalní error");
-                kont = false;
+                //kont = false;
                 break;
         }
-    }
+    //}
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
