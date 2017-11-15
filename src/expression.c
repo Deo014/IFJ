@@ -10,6 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
+#include "scanner.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
@@ -58,9 +59,12 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
         //Analýza výrazu
         while (1){
 
+            if(next_exp_token.type == sLexError){
+                return ERROR_CODE_LEX;
+            }
+
             if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-                //printf("\nOK");
-                break;
+                return ERROR_CODE_OK;
             }
 
             sign = getSignFromTable();
@@ -99,7 +103,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack){
             }
 
         }
-    return error_type;
 }
 
 //Inicializace stacku vlozi jako prvni znak dollar
@@ -145,10 +148,13 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     switch (((tDataVariable *) element_id->Data)->data_type) {
                         case sInteger:
                             new_element->token_type = sInteger;
+                            break;
                         case sDouble:
                             new_element->token_type = sDouble;
+                            break;
                         case sString:
                             new_element->token_type = sString;
+                            break;
                     }
                 }
                 else
@@ -384,7 +390,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
         //Jestli se provádí operace *,/,-
     else if(operator == eMultiply || operator == eMinus || operator == eDivideD){
         //Jestli je jeden z operandů string, je to sem. chyba
-        if (operand_type_l->token_type == sString && operand_type_r->token_type == sString) {
+        if (operand_type_l->token_type == sString || operand_type_r->token_type == sString){
             return ERROR_CODE_SEM_COMP;
         }
             //Jestli je jeden z operandů double, druhý se přetypuje na double
@@ -490,6 +496,9 @@ int convertTokenToIndex(int token_num){
 
         case sRightPar:
             return eRightPar;
+
+        case sKeyWord:
+            return eDollar;
 
         case sEndOfLine:
             return eDollar;
