@@ -14,12 +14,16 @@
 #ifndef IFJ_BINTREE_H
 #define IFJ_BINTREE_H
 
-
+typedef enum {
+    tVariable,
+    tFunction
+}identificatorType;
 
 
 /* ----------uzel stromu---------- */
 typedef struct tBSTNode {
-    char* Key;			                             /* klíč */
+    char* Key;	                                     /* klíč */
+    int Type;                                        /* typ identifikatoru (proměnná/funkce) */
     void* Data;                                      /* užitečný obsah uzlu */
     struct tBSTNode * LPtr;                          /* levý podstrom */
     struct tBSTNode * RPtr;                          /* pravý podstrom */
