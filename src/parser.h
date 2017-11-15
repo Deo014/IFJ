@@ -74,4 +74,8 @@ int Deklarace_promenne();
 int Prirazeni_hodnoty();
 
 int Deklarace_fci_definice_fci();
+
+int Prikaz();
+
+void dalsiToken();
 #endif //IFJ_PARSER_H
