@@ -25,45 +25,6 @@ tToken aktualni_token;
 string attr;
 int tokenType;
 
-int Program();
-
-int Telo_programu();
-
-int Nekolik_deklaraci_fce();
-
-int Nekolik_definici_fce();
-
-int Deklarace_fce();
-
-int Definice_fce();
-
-int Deklarace_prom_a_prikazy();
-
-int Hlavicka_fce();
-
-int Telo_funkce();
-
-int Parametry();
-
-int Typ();
-
-int Dalsi_parametry();
-
-int Deklarace_promennych();
-
-int Prikazy();
-
-int Deklarace_promenne();
-
-int Prirazeni_hodnoty();
-
-int Deklarace_fci_definice_fci();
-
-int Prikaz();
-
-int Dalsi_vyrazy();
-
-
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
     if (tok.type == 3) {
@@ -107,9 +68,13 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
-void dalsiToken() {
+int dalsiToken() {
     aktualni_token = getNextToken();
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    if (aktualni_token.type != sLexError) {
+        aktualni_token.type = adjustTokenType(aktualni_token);
+        return ERROR_CODE_OK;
+    } else
+        return ERROR_CODE_LEX;
 }
 
 int parse(tSymtable *symtable, tDLListInstruction *instrList) {
@@ -117,7 +82,7 @@ int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     table = symtable;
     symTableInit(symtable);
     list = instrList;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //pokud hned prvni token je chybny
     if (aktualni_token.type == sLexError)
         result = ERROR_CODE_LEX;
@@ -137,8 +102,8 @@ int Program() {
             if (result != ERROR_CODE_OK) return result;
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken(); //posledni eol
-            dalsiToken(); //eof
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //posledni eol
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //eof
             // POZOR! Nezapomenout testovat, zda nasleduje konec souboru.
             // Pri oponenuti teto veci by zde mohly pokracovat nejake nesmysly, ktere by se
             // v ramci syntakticke analyzy jiz nezpracovavaly a program by se tvaril, ze je OK
@@ -148,7 +113,6 @@ int Program() {
             //generateInstruction(list,)
 
             return ERROR_CODE_OK;
-            break;
     }
     return ERROR_CODE_SYN;
 }
@@ -187,7 +151,7 @@ int Nekolik_deklaraci_fce() {
             // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_deklaraci_fce
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Nekolik_deklaraci_fce();
         case sFuntion:
             result = Nekolik_definici_fce();
@@ -227,14 +191,16 @@ int Telo_programu() {
         //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sScope:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             // nejprve zavolame funkci Definice_fce
             result = Deklarace_prom_a_prikazy();
             // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
 
             return ERROR_CODE_OK;
@@ -249,13 +215,13 @@ int Deklarace_fce() {
         // pravidlo <declrList> -> "ID" ";" <declrList>
         case sDeclare:
 
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
             result = Hlavicka_fce();
             // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             return ERROR_CODE_OK;
     }
@@ -270,16 +236,16 @@ int Definice_fce() {
         case sFuntion:
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Telo_funkce();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
     }
     // pokud aktualni token je jiny nez vyse uvedene, jedna se o syntaktickou chybu
@@ -288,19 +254,19 @@ int Definice_fce() {
 
 int Hlavicka_fce() {
     int result;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sLeftPar) return ERROR_CODE_SYN;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Parametry();
     if (result != ERROR_CODE_OK) return result;
 
     if (aktualni_token.type != sRightPar) return ERROR_CODE_SYN;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
 
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK) return result;
     return ERROR_CODE_OK;
@@ -319,13 +285,13 @@ int Parametry() {
     switch (aktualni_token.type) {
 
         case sIdentificator:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
 
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
@@ -340,7 +306,7 @@ int Dalsi_parametry() {
     int result;
     switch (aktualni_token.type) {
         case sComma:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Parametry();
             if (result != ERROR_CODE_OK) return result;
             return Dalsi_parametry();
@@ -352,7 +318,7 @@ int Dalsi_parametry() {
 
 int Telo_funkce() {
     int result;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     // nejprve zavolame funkci Definice_fce
     result = Deklarace_prom_a_prikazy();
     // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
@@ -415,75 +381,75 @@ int Prikaz() {
     int result = 0;
     switch (aktualni_token.type) {
         case sPrint:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Tady se ocekava vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sInput:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sIf:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sDo:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sIdentificator:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sReturn:
             //Semantikou vyresit aby nemohl byt v hlavnim tele
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
     }
     return result;
@@ -498,15 +464,15 @@ int Deklarace_promenne() {
     {
         case sDim:
             // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
 
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             switch (aktualni_token.type)
                 //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
@@ -518,7 +484,7 @@ int Deklarace_promenne() {
                     if (result != ERROR_CODE_OK) return result;
                     break;
                 case sEndOfLine:
-                    dalsiToken();
+                    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             }
             return ERROR_CODE_OK;
@@ -526,8 +492,6 @@ int Deklarace_promenne() {
     }
 
     return ERROR_CODE_SYN;
-
-    return result;
 }
 
 int Deklarace_prom_a_prikazy() {
@@ -563,11 +527,11 @@ int Prirazeni_hodnoty() {
     switch (aktualni_token.type) {
         case sAssignment:
             result = Vyraz();
-            dalsiToken();
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return result;
         case sEndOfLine:
-            dalsiToken();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
 
     }
@@ -577,7 +541,7 @@ int Prirazeni_hodnoty() {
 
 int Dalsi_vyrazy() {
     int result;
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     switch (aktualni_token.type) {
         case sIdentificator:
         case sInteger:
@@ -600,7 +564,7 @@ int Dalsi_vyrazy() {
 int Vyraz() {
     //simulace vyrazu hodnota
     //Zaridit aby se nebralo klicove slovo jako id
-    dalsiToken();
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //Pozer eol
 
     int result = 0;

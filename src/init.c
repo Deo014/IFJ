@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "init.h"
+#include "error_code.h"
 
 FILE *pFile;
 char filename[1024];

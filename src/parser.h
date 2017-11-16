@@ -77,7 +77,7 @@ int Deklarace_fci_definice_fci();
 
 int Prikaz();
 
-void dalsiToken();
+int dalsiToken();
 
 int Dalsi_vyrazy();
 
