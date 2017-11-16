@@ -72,12 +72,19 @@ int main(int argc, char **argv)
     symTableInsertVariable(&glSymTable, str, createDataVariable(str, sString) );
     symTableInsertVariable(&glSymTable, inte, createDataVariable(inte, sInteger) );
     symTableInsertVariable(&glSymTable, dou, createDataVariable(dou, sDouble) );
+
+
+
+    tBSTNodePtr element_id = symTableSearch(&glSymTable,dou);
+    element_id->Type= tFunction;
+
     int er;
+    tToken token = getNextToken();
     /*
     bool kont = true;
 
     while (kont) {*/
-         er = expression(sString);
+         er = expression(token,sInteger);
 
         switch (er) {
             case ERROR_CODE_OK:
