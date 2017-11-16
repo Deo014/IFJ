@@ -78,4 +78,8 @@ int Deklarace_fci_definice_fci();
 int Prikaz();
 
 void dalsiToken();
+
+int Dalsi_vyrazy();
+
+int Vyraz();
 #endif //IFJ_PARSER_H

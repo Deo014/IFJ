@@ -61,6 +61,8 @@ int Deklarace_fci_definice_fci();
 
 int Prikaz();
 
+int Dalsi_vyrazy();
+
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -225,12 +227,12 @@ int Telo_programu() {
         //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sScope:
+            dalsiToken();
             // nejprve zavolame funkci Definice_fce
             result = Deklarace_prom_a_prikazy();
             // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
-            dalsiToken();
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
@@ -349,26 +351,13 @@ int Dalsi_parametry() {
 }
 
 int Telo_funkce() {
-
     int result;
     dalsiToken();
-
-    switch (aktualni_token.type) {
-        case sDim:
-        case sPrint:
-        case sInput:
-        case sIf:
-        case sDo:
-        case sIdentificator:
-        case sReturn:
-            result = Deklarace_promennych();
-            if (result != ERROR_CODE_OK) return result;
-            result = Prikazy();
+    // nejprve zavolame funkci Definice_fce
+    result = Deklarace_prom_a_prikazy();
+    // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
-
-    }
-    return ERROR_CODE_SYN;
 }
 
 int Deklarace_promennych() {
@@ -385,6 +374,8 @@ int Deklarace_promennych() {
             return Deklarace_promennych();
         case sScope:
         case sEnd:
+        case sIdentificator:
+        case sEndOfLine:
             return ERROR_CODE_OK;
     }
 
@@ -396,7 +387,7 @@ int Prikazy() {
     switch (aktualni_token.type)
         //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
-        case sDim:
+
         case sPrint:
         case sInput:
         case sIf:
@@ -412,6 +403,8 @@ int Prikazy() {
         case sElse:
         case sLoop:
         case sEnd:
+        case sDim:
+        case sScope:
             return ERROR_CODE_OK;
     }
 
@@ -424,78 +417,74 @@ int Prikaz() {
         case sPrint:
             dalsiToken();
             //Tady se ocekava vyraz
-
-            dalsiToken();
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             dalsiToken();
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             break;
         case sInput:
-            dalsiToken();
-            if (aktualni_token.type != sInput) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            dalsiToken();
             break;
         case sIf:
             dalsiToken();
-            if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
-            dalsiToken();
-            //Vyraz
-            dalsiToken();
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             dalsiToken();
             result = Prikazy();
-            dalsiToken();
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             dalsiToken();
             result = Prikazy();
-            dalsiToken();
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            dalsiToken();
             break;
         case sDo:
-            dalsiToken();
-            if (aktualni_token.type != sDo) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             dalsiToken();
             //Vyraz
-            dalsiToken();
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             dalsiToken();
             result = Prikazy();
-            dalsiToken();
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-        case sIdentificator:
             dalsiToken();
-            if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            break;
+        case sIdentificator:
             dalsiToken();
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
             dalsiToken();
             //Vyraz
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             dalsiToken();
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            break;
         case sReturn:
+            //Semantikou vyresit aby nemohl byt v hlavnim tele
             dalsiToken();
-            if (aktualni_token.type != sReturn) return ERROR_CODE_SYN;
-            dalsiToken();
-            //Vyraz
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             dalsiToken();
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            return result;
+            dalsiToken();
+            break;
     }
     return result;
 
@@ -570,6 +559,50 @@ int Deklarace_prom_a_prikazy() {
 }
 
 int Prirazeni_hodnoty() {
+    int result;
+    switch (aktualni_token.type) {
+        case sAssignment:
+            result = Vyraz();
+            dalsiToken();
+            dalsiToken();
+            return result;
+        case sEndOfLine:
+            dalsiToken();
+            return ERROR_CODE_OK;
+
+    }
+    return ERROR_CODE_SYN;
+}
+
+
+int Dalsi_vyrazy() {
+    int result;
+    dalsiToken();
+    switch (aktualni_token.type) {
+        case sIdentificator:
+        case sInteger:
+        case sDouble:
+        case sString:
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+
+            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
+
+            result = Dalsi_vyrazy();
+            if (result != ERROR_CODE_OK) return result;
+        case sEndOfLine:
+        case sEnd:
+            return ERROR_CODE_OK;
+    }
+    return ERROR_CODE_SYN;
+}
+
+int Vyraz() {
+    //simulace vyrazu hodnota
+    //Zaridit aby se nebralo klicove slovo jako id
+    dalsiToken();
+    //Pozer eol
+
     int result = 0;
     return result;
 }
