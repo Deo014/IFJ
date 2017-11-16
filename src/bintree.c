@@ -42,14 +42,14 @@ tBSTNodePtr BSTSearch (tBSTNodePtr RootPtr, char* K)	{
 
 }
 
-void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data)	{
+void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data, tNodeDataType nodeDataType)	{
 
     if ( RootPtr != NULL && (*RootPtr) != NULL) {
         if ( strcmp(K, (*RootPtr)->Key) != 0 ) { // vyhledavani pokracuje v levem nebo pravem podstrumu
             if ( strcmp(K, ((*RootPtr)->Key)) < 0 ) {
-                BSTInsert( &((*RootPtr)->LPtr), K, Data);
+                BSTInsert( &((*RootPtr)->LPtr), K, Data, nodeDataType);
             } else if ( strcmp(K, (*RootPtr)->Key) > 0 ) {
-                BSTInsert( &((*RootPtr)->RPtr), K, Data);
+                BSTInsert( &((*RootPtr)->RPtr), K, Data, nodeDataType);
             }
         }
         else { // aktualizace dat pri nalezeni stejneho klice
@@ -65,6 +65,7 @@ void BSTInsert (tBSTNodePtr* RootPtr, char* K, void* Data)	{
         // inicializace dat noveho uzlu
         newitem->Key = K;
         newitem->Data = Data;
+        newitem->nodeDataType = nodeDataType;
         newitem->LPtr = newitem->RPtr = NULL;
 
         (*RootPtr) = newitem;
@@ -98,14 +99,17 @@ void BSTDelete (tBSTNodePtr *RootPtr, char* K) 		{
         }
         else { // pokud byl nalezen uzel s danym klicem
             if ( ((*RootPtr)->LPtr == NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud se jedna o listovy uzel
+                free((*RootPtr)->Data); // uvolneni pameti dat
                 free(*RootPtr);
                 *RootPtr = NULL;
             }
             else if ( ((*RootPtr)->LPtr != NULL) && ((*RootPtr)->RPtr == NULL) ) { // pokud ma uzel jen levy podstrom
+                free((*RootPtr)->Data); // uvolneni pameti dat
                 free(*RootPtr);
                 *RootPtr = (*RootPtr)->LPtr;
             }
             else if ( ((*RootPtr)->RPtr != NULL) && ((*RootPtr)->LPtr == NULL) ) { // pokud ma uzel jen pravy podstrom
+                free((*RootPtr)->Data); // uvolneni pameti dat
                 free(*RootPtr);
                 *RootPtr = (*RootPtr)->RPtr;
             }
@@ -140,7 +144,10 @@ void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir) { /* vykresli 
         else
             suf2 = strcat(suf2, "   ");
         Print_tree2(TempTree->RPtr, suf2, 'R');
-        printf("%s  +-[%s,%s, %d]\n", sufix, TempTree->Key, ((tDataVariable*)TempTree->Data)->name, ((tDataVariable*)TempTree->Data)->data_type);
+        if (TempTree->nodeDataType == ndtFunction)
+            printf("%s  +-[FCE => %s, RV:%d, DC:%d DF:%d, ARG:%s]\n", sufix, TempTree->Key, ((tDataFunction*)TempTree->Data)->returnDataType, ((tDataFunction*)TempTree->Data)->declared, ((tDataFunction*)TempTree->Data)->defined, ((tDataFunction*)TempTree->Data)->parameters);
+        else
+            printf("%s  +-[VAR => %s, DT:%d]\n", sufix, TempTree->Key, ((tDataVariable*)TempTree->Data)->dataType);
         strcpy(suf2, sufix);
         if (fromdir == 'R')
             suf2 = strcat(suf2, "  |");
