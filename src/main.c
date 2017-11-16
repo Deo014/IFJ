@@ -18,6 +18,7 @@
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
+#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -37,19 +38,14 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-    string str;
-    stringInit(&str);
-    stringAddChar(&str, 's');
 
-    string inte;
-    stringInit(&inte);
-    stringAddChar(&inte, 'i');
-
-    string dou;
-    stringInit(&dou);
-    stringAddChar(&dou, 'd');
     /* testovaci kod zacatek*/
-/*
+    tToken token;
+    while((token = getNextToken()).type != sEndOfFile) {
+        printf("%d %s\n", token.type, token.atr.value);
+    }
+    printf("%d %s\n", token.type, token.atr.value);
+    /*
     tToken token;
     while ( (token = getNextToken()).type != sLexError ) {
         if (token.type == sIdentificator) {
@@ -69,32 +65,6 @@ int main(int argc, char **argv)
 */
     /* testovaci kod konec*/
 
-    symTableInsertVariable(&glSymTable, str, createDataVariable(str, sString) );
-    symTableInsertVariable(&glSymTable, inte, createDataVariable(inte, sInteger) );
-    symTableInsertVariable(&glSymTable, dou, createDataVariable(dou, sDouble) );
-    int er;
-    /*
-    bool kont = true;
-
-    while (kont) {*/
-         er = expression(sString);
-
-        switch (er) {
-            case ERROR_CODE_OK:
-                printf("OK\n");
-                break;
-            case ERROR_CODE_SYN:
-                printf("Syntaxe\n");
-                break;
-            case ERROR_CODE_SEM_COMP:
-                printf("Semantika\n");
-                break;
-            case ERROR_CODE_LEX:
-                printf("Lexikalní error");
-                //kont = false;
-                break;
-        }
-    //}
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
