@@ -59,18 +59,17 @@ typedef struct exp_element{
 
 
 ERROR_CODE expression(tToken,int);
-ERROR_CODE checkFunction(tToken);
 ERROR_CODE expressionAnalysis(ptrStack*,tToken);
 ERROR_CODE initExpressionStack(ptrStack*);
 ERROR_CODE shiftToStack(ptrStack*);
 ERROR_CODE useRule(ptrStack*);
-ERROR_CODE reduceBinary(ptrStack*,int);
+ERROR_CODE checkBinary(ptrStack*,int);
 ERROR_CODE reducePars(ptrStack*);
 ERROR_CODE reduceFunction(ptrStack*);
 ERROR_CODE checkSemAConv(Exp_element*, int, Exp_element*);
+ERROR_CODE checkParams(tDataVariable*);
 Exp_element *newElementToStack(string, int, int);
 char getSignFromTable();
 int convertTokenToIndex(int);
-ERROR_CODE changeOperandType(tStack*,int);
 
 #endif //IFJ_EXPRESSION_H

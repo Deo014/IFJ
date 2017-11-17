@@ -15,10 +15,16 @@
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
-int operation;
+
+
 extern tSymtable glSymTable;
-int operation_type_global;
-bool function;
+
+int operation;
+int operation_type_global;  //Typ výsledné proměnné
+bool exp_function;          //Pokud se řeší funkce je true
+int parameter_index = 0;    //Index kontrolovaného parametru
+char *params;               //Typy parametrů kontrolované funkce
+int param_length = 0;       //Počet parametrů kontr. funkce
 
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    F     ,     $
@@ -49,23 +55,8 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     result = expressionAnalysis(&expression_stack,first_token);
     SDispose(&expression_stack);
     return result;
-}
-
-//Funkce kontrolující správnost funkce
-ERROR_CODE checkFunction(tToken first_token){
-    ERROR_CODE error_type = ERROR_CODE_OK;
-    next_exp_token = first_token;
-    tBSTNodePtr function_id = symTableSearch(&glSymTable,first_token.atr);
-
-    if(function_id == NULL){
-        printf("Funkce neexistuje");
-        return ERROR_CODE_SEM;
     }
-    else
-        printf("Funkce existuje");
 
-    return error_type;
-}
 
 //Hlavní funkce analyzující výraz
 ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
@@ -98,7 +89,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                 SPush(expression_stack, newElementToStack(next_exp_token.atr, convertTokenToIndex(next_exp_token.type),
                                                           next_exp_token.type));
 
-                if (function == true) {
+                if (exp_function == true) {
                     if ((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK) {
                         return error_type;
                     }
@@ -164,6 +155,7 @@ ERROR_CODE initExpressionStack(ptrStack *expression_stack){
 
 //Funkce shiftuje na stack tokeny ze vstupu
 ERROR_CODE shiftToStack(ptrStack *expression_stack){
+    ERROR_CODE error_type;
 
     if (expression_stack != NULL) {
         ((Exp_element*) (first_terminal->value))->handle = true;
@@ -177,38 +169,55 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
 
                 if(element_id != NULL) {
                     //Pokud se jedná o proměnnou nebo pevnou hodnotu
-                    if (element_id->Type == tVariable) {
+                    if (element_id->nodeDataType == ndtVariable) {
                         tDataVariable *variable = ((tDataVariable *) (element_id->Data));
-                        //A podle toho nastavíme typ prvku vkládanému na stack
-                        switch (variable->data_type) {
-                            case sInteger:
-                                new_element->token_type = sInteger;
-                                break;
-                            case sDouble:
-                                new_element->token_type = sDouble;
-                                break;
-                            case sString:
-                                new_element->token_type = sString;
-                                break;
+                        if(!exp_function) {
+                            //A podle toho nastavíme typ prvku vkládanému na stack
+                            switch (variable->dataType) {
+                                case sInteger:
+                                    new_element->token_type = sInteger;
+                                    break;
+                                case sDouble:
+                                    new_element->token_type = sDouble;
+                                    break;
+                                case sString:
+                                    new_element->token_type = sString;
+                                    break;
+                            }
+                        }
+                        else{
+                            if((error_type = checkParams(variable)) != ERROR_CODE_OK)
+                                return error_type;
                         }
                     }
                         //Pokud se jedná o funkci
-                    else if(element_id->Type == tFunction) {
-                        tDataFunction *variable = ((tDataFunction*) (element_id->Data));
-                        //A podle toho nastavíme typ prvku vkládanému na stack
-                        switch (variable->return_data_type) {
-                            case sInteger:
-                                new_element->token_type = sInteger;
-                                break;
-                            case sDouble:
-                                new_element->token_type = sDouble;
-                                break;
-                            case sString:
-                                new_element->token_type = sString;
-                                break;
+                    else if(element_id->nodeDataType == ndtFunction) {
+                        tDataFunction *function = ((tDataFunction*) (element_id->Data));
+                        if(function->returnDataType != operation_type_global)
+                            return ERROR_CODE_SEM_COMP;
+                        else {
+                            //A podle toho nastavíme typ prvku vkládanému na stack
+                            switch (function->returnDataType) {
+                                case sInteger:
+                                    new_element->token_type = sInteger;
+                                    break;
+                                case sDouble:
+                                    new_element->token_type = sDouble;
+                                    break;
+                                case sString:
+                                    new_element->token_type = sString;
+                                    break;
+                            }
+                            new_element->pt_index = eFunction;
+                            exp_function = true;
+                            params = function->parameters;
+
+                            while (params[param_length] != '\0') {
+                                param_length++;
+                            }
                         }
-                        new_element->pt_index = eFunction;
-                        function = true;
+
+
                     }
                 }
                 else
@@ -247,11 +256,11 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 ((Exp_element *) (stack_item->left->value))->handle = false;
                 first_terminal = (stack_item->left);
                 operation = eOperand;
-                break;
+                return ERROR_CODE_OK;
 
                 //Řeší redukci násobení
             case eMultiply:
-                if((error_type = reduceBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
 
                 operation = eMultiply;
@@ -259,7 +268,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //Řeší redukci dělení
             case eDivideD:
 
-                if((error_type = reduceBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
                     return error_type;
 
                 operation = eDivideD;
@@ -268,7 +277,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //Řeší redukci celočíselného dělení
             case eDivideI:
 
-                if((error_type = reduceBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
                         return error_type;
                 operation = eDivideI;
                 break;
@@ -276,7 +285,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //Řeší redukci sčítání
             case ePlus:
 
-                if((error_type = reduceBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
                 operation = ePlus;
                 break;
@@ -284,7 +293,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //Řeší redukci odčítání
             case eMinus:
 
-                if((error_type = reduceBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eMinus;
                 break;
@@ -292,42 +301,42 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //Řeší redukci rovnosti
             case eEqual:
 
-                if((error_type = reduceBinary(expression_stack, eEqual)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eEqual)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eEqual;
                 break;
 
                 //Řeší redukci nerovnosti
             case eNotEqual:
-                if((error_type = reduceBinary(expression_stack, eNotEqual)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eNotEqual)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eNotEqual;
                 break;
 
                 //Řeší redukci menšítka
             case eLess:
-                if((error_type = reduceBinary(expression_stack, eLess)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eLess)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eLess;
                 break;
 
                 //Řeší redukci většítka
             case eMore:
-                if((error_type = reduceBinary(expression_stack, eMore)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eMore)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eMore;
                 break;
 
                 //Řeší redukci menší nebo rovno
             case eLessEqual:
-                if((error_type = reduceBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eLessEqual;
                 break;
 
                 //Řeší redukci větší nebo rovno
             case eMoreEqual:
-                if((error_type = reduceBinary(expression_stack, eMoreEqual)) != ERROR_CODE_OK)
+                if((error_type = checkBinary(expression_stack, eMoreEqual)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eMoreEqual;
                 break;
@@ -336,9 +345,17 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK)
                     return error_type;
                 operation = eFunction;
-                break;
+                return ERROR_CODE_OK;
 
         }
+
+        //Pokud je binární operace správně, popne pravý neterminál a operátor ze stacku
+        SPop(expression_stack);
+        SPop(expression_stack);
+
+        //Další první terminál je operátor před neterminálem
+        first_terminal = expression_stack->top_of_stack->left;
+        ((Exp_element *) (first_terminal->value))->handle = false;
         return error_type;
     }
     else
@@ -346,10 +363,10 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 }
 
 
-//Funkce pro redukci binárních operátorů
-ERROR_CODE reduceBinary(ptrStack *expression_stack,int operator){
+//Funkce pro kontrolu binárních operátorů
+ERROR_CODE checkBinary(ptrStack *expression_stack, int operator){
     if(expression_stack != NULL) {
-        if (!function) {
+        if (!exp_function) {
             tStack *stack_item = (expression_stack->top_of_stack);
 
             //Uložíme si levý a pravý operátor operace pro kontrolu sémantiky
@@ -371,16 +388,6 @@ ERROR_CODE reduceBinary(ptrStack *expression_stack,int operator){
             //Zkontroluje se sémantika operace
             if (checkSemAConv(l_operator, operator, r_operator) != ERROR_CODE_OK)
                 return ERROR_CODE_SEM_COMP;
-
-
-
-            //Pokud je binární operace správně, popne pravý neterminál a operátor ze stacku
-            SPop(expression_stack);
-            SPop(expression_stack);
-
-            //Další první terminál je operátor před neterminálem
-            first_terminal = expression_stack->top_of_stack->left;
-            ((Exp_element *) (first_terminal->value))->handle = false;
 
             return ERROR_CODE_OK;
         }
@@ -433,20 +440,54 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
 //Redukce funkce
 ERROR_CODE reduceFunction(ptrStack *expression_stack){
+    //Pokud nesedí počet parametrů je to chyba
+    if(param_length != parameter_index)
+        return ERROR_CODE_SYN;
+    else {
+        Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
 
-    Exp_element *del_element = ((Exp_element*) (expression_stack->top_of_stack->value));
+        //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
+        while (del_element->pt_index != eDollar) {
 
-    //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
-    while(del_element->pt_index != eDollar){
-
-        SPop(expression_stack);
-        del_element = ((Exp_element*) (expression_stack->top_of_stack->value));
+            SPop(expression_stack);
+            del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
+        }
+        operation = eFunction;
+        first_terminal = expression_stack->top_of_stack;
+        return ERROR_CODE_OK;
     }
-    operation=eFunction;
-    first_terminal= expression_stack->top_of_stack;
+
+}
+
+//Funkce kontroluj parametry funkce
+ERROR_CODE checkParams(tDataVariable *variable){
+
+    //Jestli má ještě stále co kontrolovat
+    if(params[parameter_index] != '\0') {
+        switch (params[parameter_index]) {
+            case 'i':
+                if (variable->dataType != sInteger)
+                    return ERROR_CODE_SEM_COMP;
+                break;
+            case 'd':
+                if (variable->dataType != sDouble)
+                    return ERROR_CODE_SEM_COMP;
+                break;
+            case 's':
+                if (variable->dataType != sString)
+                    return ERROR_CODE_SEM_COMP;
+                break;
+        }
+        //Zvedne se index pro kontrolu dalšího parametru
+        parameter_index++;
+    }
+    else
+        return ERROR_CODE_SYN;
+
     return ERROR_CODE_OK;
 
 }
+
 
 //Funkce kontroluje sémantiku a případně konvertuje typ operatoru
 ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element *operand_type_r){

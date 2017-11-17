@@ -48,6 +48,10 @@ int main(int argc, char **argv)
     string dou;
     stringInit(&dou);
     stringAddChar(&dou, 'd');
+    createDataFunction(sInteger,false,true,"iid");
+    string fun;
+    stringInit(&fun);
+    stringAddChar(&fun, 'f');
     /* testovaci kod zacatek*/
 /*
     tToken token;
@@ -69,14 +73,10 @@ int main(int argc, char **argv)
 */
     /* testovaci kod konec*/
 
-    symTableInsertVariable(&glSymTable, str, createDataVariable(str, sString) );
-    symTableInsertVariable(&glSymTable, inte, createDataVariable(inte, sInteger) );
-    symTableInsertVariable(&glSymTable, dou, createDataVariable(dou, sDouble) );
-
-
-
-    tBSTNodePtr element_id = symTableSearch(&glSymTable,dou);
-    element_id->Type= tFunction;
+    symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
+    symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
+    symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
+    symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
 
     int er;
     tToken token = getNextToken();
@@ -89,18 +89,23 @@ int main(int argc, char **argv)
         switch (er) {
             case ERROR_CODE_OK:
                 printf("\nOK");
+                return ERROR_CODE_OK;
                 break;
             case ERROR_CODE_SYN:
                 printf("\nSyntaxe");
+                return ERROR_CODE_SYN;
                 break;
             case ERROR_CODE_SEM:
                 printf("\nSemantika");
+                return ERROR_CODE_SEM;
                 break;
             case ERROR_CODE_SEM_COMP:
                 printf("\nSemantika - kompozice");
+                return ERROR_CODE_SEM_COMP;
                 break;
             case ERROR_CODE_LEX:
                 printf("\nLexikalní error");
+                return ERROR_CODE_LEX;
                 //kont = false;
                 break;
         }
