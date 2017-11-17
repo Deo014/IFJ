@@ -14,9 +14,72 @@
 #ifndef IFJ_PARSER_H
 #define IFJ_PARSER_H
 
-#define SYNTAX_OK 0
-#define LEX_ERROR     1
-#define SYNTAX_ERROR 2
+#include "error_code.h"
+#include"symtable.h"
+#include "instList.h"
 
+typedef enum {
+    sEnd = 100,
+    sScope,
+    sDeclare,
+    sFuntion,
+    sAs,
+    sDim,
+    sPrint,
+    sInput,
+    sIf,
+    sThen,
+    sElse,
+    sDo,
+    sWhile,
+    sLoop,
+    sReturn,
+    tInteger,
+    tDouble,
+    tString
+} keyword_type;
 
+int parse(tSymtable *, tDLListInstruction *);
+
+int Program();
+
+int Telo_programu();
+
+int Nekolik_deklaraci_fce();
+
+int Nekolik_definici_fce();
+
+int Deklarace_fce();
+
+int Definice_fce();
+
+int Deklarace_prom_a_prikazy();
+
+int Hlavicka_fce();
+
+int Telo_funkce();
+
+int Parametry();
+
+int Typ();
+
+int Dalsi_parametry();
+
+int Deklarace_promennych();
+
+int Prikazy();
+
+int Deklarace_promenne();
+
+int Prirazeni_hodnoty();
+
+int Deklarace_fci_definice_fci();
+
+int Prikaz();
+
+int dalsiToken();
+
+int Dalsi_vyrazy();
+
+int Vyraz();
 #endif //IFJ_PARSER_H

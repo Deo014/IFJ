@@ -20,39 +20,39 @@ void symTableInit(tSymtable* Table) {
     BSTInit(&(Table->root));
 }
 
-void symtableInsert(tSymtable* Table, string Key, void* dataPtr) {
-    BSTInsert(&(Table->root), Key.value, dataPtr);
-}
+//void symtableInsert(tSymtable* Table, string Key, void* dataPtr) {
+//    BSTInsert(&(Table->root), Key.value, dataPtr);
+//}
 
 /* --------------------vlozeni dat o funkci do symtable--------------------*/
 void symTableInsertFunction(tSymtable* Table, string Key, tDataFunction* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
-    BSTInsert(&(Table->root), Key.value, dataPtr);
+    BSTInsert(&(Table->root), Key.value, dataPtr, ndtFunction);
 }
 
-tDataFunction *createDataFunction(string name, int return_data_type, bool declared, bool defined) { // alokuje novou datovou polozku pro data funkce a vrati ukazatel
+tDataFunction *createDataFunction(int returnDataType, bool declared, bool defined, char* parameters) { // alokuje novou datovou polozku pro data funkce a vrati ukazatel
     tDataFunction * newitem;
     if ( (newitem = (tDataFunction*)malloc(sizeof(tDataFunction))) == NULL ) {
         return NULL;
     }
-    newitem->name = name.value;
-    newitem->return_data_type = return_data_type;
+    // inicializace dat
+    newitem->returnDataType = returnDataType;
     newitem->declared = declared;
     newitem->defined = defined;
+    newitem->parameters = parameters;
     return newitem;
 }
 
 /* --------------------vlozeni dat o promenne do symtable--------------------*/
 void symTableInsertVariable(tSymtable* Table, string Key, tDataVariable* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
-    BSTInsert(&(Table->root), Key.value, dataPtr);
+    BSTInsert(&(Table->root), Key.value, dataPtr, ndtVariable);
 }
 
-tDataVariable *createDataVariable(string name, int data_type) { // alokuje novou datovou polozku pro data promenne a vrati ukazatel
+tDataVariable *createDataVariable(int dataType) { // alokuje novou datovou polozku pro data promenne a vrati ukazatel
     tDataVariable * newitem;
     if ( (newitem = (tDataVariable*)malloc(sizeof(tDataVariable))) == NULL ) {
         return NULL;
     }
-    newitem->name = name.value;
-    newitem->data_type = data_type;
+    newitem->dataType = dataType;
     return newitem;
 }
 
