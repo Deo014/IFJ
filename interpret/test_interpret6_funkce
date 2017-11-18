@@ -1,0 +1,44 @@
+#/' Program 6: Funkce pro scitani '/
+#Function secti (a As Integer, b As Integer, c As Integer) As Integer
+#Dim result As Integer
+#result = a + b + c
+#Return result
+#End Function
+#
+#Scope 'Hlavni telo programu
+#Dim vysl AS Integer
+#vysl = secti(4, 5, 6)
+#Print !"Vysledek = "; vysl; !"\n";
+#End Scope
+
+.IFJcode17
+JUMP $$scope
+
+#secti(a, b, c)
+LABEL $secti
+PUSHFRAME
+DEFVAR LF@%retval
+DEFVAR LF@result
+ADD LF@result LF@a LF@b
+ADD LF@result LF@result LF@c
+MOVE LF@%retval LF@result
+POPFRAME
+RETURN
+
+LABEL $$scope
+#vysl = secti(4, 5, 6)
+DEFVAR GF@vysl
+CREATEFRAME
+DEFVAR TF@a
+DEFVAR TF@b
+DEFVAR TF@c
+MOVE TF@a int@4
+MOVE TF@b int@5
+MOVE TF@c int@6
+CALL $secti
+MOVE GF@vysl TF@%retval
+
+WRITE string@vysledek\032=\032
+WRITE GF@vysl
+WRITE string@\010
+LABEL $$endscope
