@@ -11,18 +11,19 @@
  */
 #include <stdio.h>
 #include "parser.h"
-#include "symtable.h"
 #include "string.h"
 #include "instList.h"
 #include "scanner.h"
 #include <string.h> //doplnit funkce k nam
 #include "error_code.h"
 
-tSymtable *table;
+tSymtable table;
 tDLListInstruction *list;
 tToken aktualni_token;
-string attr;
-int tokenType;
+tDataVariable var;
+tDataFunction funct;
+//Pomocna promenna pro semantickou analyzu
+int comingFromDefinition;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -80,8 +81,7 @@ int dalsiToken() {
 int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     //inicializace tabulky symbolů a instrukčního listu
     int result;
-    table = symtable;
-    symTableInit(symtable);
+    table = *symtable;
     list = instrList;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //pokud hned prvni token je chybny
@@ -235,6 +235,10 @@ int Hlavicka_fce() {
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+    if (comingFromDefinition == 1) {
+        //Funkce jiz byla definovana
+        if ((symTableSearch(&table, aktualni_token.atr) != NULL)) return ERROR_CODE_SEM;
+    }
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sLeftPar) return ERROR_CODE_SYN;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -451,6 +455,12 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
+            if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+            var.dataType = sInteger;
+            //Nebyla, vlozime ju
+            symTableInsertVariable(&table, aktualni_token.atr, &var);
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
