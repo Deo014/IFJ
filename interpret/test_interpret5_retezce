@@ -1,0 +1,68 @@
+#/' Program 3: Prace s retezci a vestavenymi funkcemi '/
+#Scope 'Hlavni telo programu
+#Dim s1 As String
+#Dim s2 As String
+#Dim s1len As Integer
+#s1 = !"Toto je nejaky text"
+#s2 = s1 + !", ktery jeste trochu obohatime"
+#Print s1; !"\n"; s2; !"\n";
+#s1len = Length(s1)
+#s1len = s1len - 4 + 1
+#s1 = SubStr(s2, s1len, 4)
+#Print !"4 znaky od "; s1len; !". znaku v \""; s2; !"\":"; s1; #!"\n";
+#Print !"Zadejte serazenou posloupnost vsech malych pismen #a-h, ";
+#Print !"pricemz se pismena nesmeji v posloupnosti opakovat";
+#Input s1
+#Do While (s1 <> !"abcdefgh")
+#Print !"\nSpatne zadana posloupnost, zkuste znovu";
+#Input s1
+#Loop
+#End Scope
+
+.IFJcode17
+LABEL $$scope
+DEFVAR GF@end
+DEFVAR GF@s1
+DEFVAR GF@s2
+DEFVAR GF@s1len
+MOVE GF@s1 string@Toto\032je\032nejaky\032text
+CONCAT GF@s2 GF@s1 string@,\032jeste\032obohatime
+WRITE GF@s1
+WRITE string@\010
+WRITE GF@s2
+WRITE string@\010
+STRLEN GF@s1len GF@s1
+ADD GF@s1len GF@s1len int@3
+DEFVAR GF@s3
+MOVE GF@s3 string@\00
+DEFVAR GF@char_on_index
+DEFVAR GF@index
+MOVE GF@index GF@s1len
+DEFVAR GF@shift_index
+MOVE GF@shift_index int@4
+LABEL $substr
+GETCHAR GF@char_on_index GF@s2 GF@index
+ADD GF@index GF@index int@1
+CONCAT GF@s3 GF@s3 GF@char_on_index
+SUB GF@shift_index GF@shift_index int@1
+JUMPIFNEQ $substr GF@shift_index int@0
+LABEL $endsubstr
+WRITE string@4\032znaky\032od
+WRITE GF@s1len
+WRITE string@\046\032znaku\032v\032"
+WRITE GF@s2
+WRITE string@":
+WRITE GF@s3
+WRITE string@\010
+WRITE string@Zadejte\032serazenou\032posloupnost\032vsech\032malych\032pismen\032a-h,
+WRITE string@pricemz\032se\032pisemna\032nesmeji\032v\032posloupnosti\032opakovat:
+READ GF@s1 string
+JUMPIFEQ $endwhile GF@s1 string@abcdefgh
+#Do While (s1 <> !"abcdefgh")
+LABEL $while
+WRITE string@\032Spatne\032zadana\032posloupnost,\032zkuste\032znovu:
+READ GF@s1 string
+JUMPIFEQ $endwhile GF@s1 string@abcdefgh
+JUMP $while
+LABEL $endwhile
+LABEL $$endscope

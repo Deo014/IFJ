@@ -18,16 +18,14 @@
 #define IFJ_SYMTABLE_H
 
 typedef struct variable {
-    char *name;
-    int data_type; // sInteger, sDouble, sString
+    int dataType; /* sInteger, sDouble, sString */
 } tDataVariable;
 
 typedef struct function {
-    char *name;
-    int return_data_type; // sInteger, sDouble, sString
+    int returnDataType; /* sInteger, sDouble, sString */
     bool declared;
     bool defined;
-    /* TODO seznam parametru */
+    char* parameters;   /* parametry funkce: napr. isd (integer, string, double) */
 } tDataFunction;
 
 typedef struct symtable {
@@ -38,15 +36,15 @@ typedef struct symtable {
 void symTableInit(tSymtable*);
 
 
-void symtableInsert(tSymtable* Table, string Key, void* dataPtr);
+//void symtableInsert(tSymtable* Table, string Key, void* dataPtr);
 
 /* --------------------vlozeni dat o funkci do symtable--------------------*/
 void symTableInsertFunction(tSymtable*, string, tDataFunction*);
-tDataFunction *createDataFunction(string, int, bool, bool);
+tDataFunction *createDataFunction(int, bool, bool, char*);
 
 /* --------------------vlozeni dat o promenne do symtable--------------------*/
 void symTableInsertVariable(tSymtable*, string, tDataVariable*);
-tDataVariable *createDataVariable(string, int);
+tDataVariable *createDataVariable(int);
 
 /* --------------------vyhledani prvku v symtable--------------------*/
 tBSTNodePtr symTableSearch(tSymtable*, string);
