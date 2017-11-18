@@ -22,8 +22,10 @@ tDLListInstruction *list;
 tToken aktualni_token;
 tDataVariable var;
 tDataFunction funct;
+tDataFunction foundFunct;
+tBSTNodePtr node;
 //Pomocna promenna pro semantickou analyzu
-int comingFromDefinition;
+bool comingFromDefinition;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -199,6 +201,7 @@ int Deklarace_fce() {
         case sDeclare:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
+            comingFromDefinition = false;
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -213,6 +216,7 @@ int Definice_fce() {
     int result;
     switch (aktualni_token.type) {
         case sFuntion:
+            comingFromDefinition = 1;
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -230,26 +234,52 @@ int Definice_fce() {
     return ERROR_CODE_SYN;
 }
 
+/*
+              ((tDataFunction*) node->Data).
+            var.dataType = aktualni_token.type;
+
+ */
 int Hlavicka_fce() {
     //<Hlavicka_fce> -> <Function><Id><<(><Parametry><)><As><Typ>
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-    if (comingFromDefinition == 1) {
-        //Funkce jiz byla definovana
-        if ((symTableSearch(&table, aktualni_token.atr) != NULL)) return ERROR_CODE_SEM;
+    //Jedna se o definici nebo deklaraci?
+    if (comingFromDefinition == true) {
+        //Pokus o definici
+        //Podivame se jestli je fce vubec v tabulce
+        if ((symTableSearch(&table, aktualni_token.atr)) != NULL) {
+            //V tabulce uz je o teto funkci nejaky zaznam
+            node = symTableSearch(&table, aktualni_token.atr);
+            if (((tDataFunction *) node->Data)->defined == true) {
+                //Uz byla definovana, pokus o redefinici -> error
+                return ERROR_CODE_SEM;
+            } else {
+                //Byla deklarovana, nastavim ze uz bude i definovana
+                ((tDataFunction *) node->Data)->defined = true;
+            }
+        } else {
+            //Neni v tabulce, vlozim a reknu ze je od ted definovana a deklarovana
+            funct.declared = true;
+            funct.defined = true;
+            symTableInsertFunction(&table, aktualni_token.atr, &funct);
+            node = symTableSearch(&table, aktualni_token.atr);
+        }
+    } else {
+        //Pokus o deklaraci
     }
+
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    if (aktualni_token.type != sLeftPar) return ERROR_CODE_SYN;
+    if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Parametry();
-    if (result != ERROR_CODE_OK) return result;
-    if (aktualni_token.type != sRightPar) return ERROR_CODE_SYN;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (result != ERROR_CODE_OK)return result;
+    if (aktualni_token.type != sRightPar)return ERROR_CODE_SYN;
+    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
+    if (aktualni_token.type != sAs)return ERROR_CODE_SYN;
+    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
-    if (result != ERROR_CODE_OK) return result;
+    if (result != ERROR_CODE_OK)return result;
     return ERROR_CODE_OK;
 }
 
@@ -263,7 +293,7 @@ int Typ() {
         case tString:
             return ERROR_CODE_OK;
     }
-        return ERROR_CODE_SYN;
+    return ERROR_CODE_SYN;
 }
 
 int Parametry() {
@@ -457,7 +487,6 @@ int Deklarace_promenne() {
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
             if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
-            var.dataType = sInteger;
             //Nebyla, vlozime ju
             symTableInsertVariable(&table, aktualni_token.atr, &var);
 
