@@ -19,7 +19,6 @@
 #include "error_code.h"
 
 tSymtable *table;
-
 tDLListInstruction *list;
 tToken aktualni_token;
 string attr;
@@ -68,6 +67,7 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
+//Funkce nacte dalsi token a aktualizuje jeho typ
 int dalsiToken() {
     aktualni_token = getNextToken();
     if (aktualni_token.type != sLexError) {
@@ -78,6 +78,7 @@ int dalsiToken() {
 }
 
 int parse(tSymtable *symtable, tDLListInstruction *instrList) {
+    //inicializace tabulky symbolů a instrukčního listu
     int result;
     table = symtable;
     symTableInit(symtable);
@@ -87,12 +88,12 @@ int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     if (aktualni_token.type == sLexError)
         result = ERROR_CODE_LEX;
     else
+        //Prvni token je v poradku, volame prvni pravidlo
         result = Program();
     return result;
 }
 
 int Program() {
-//1<Program> -> <Nekolik_deklaraci_fce><Nekolik_definici_fce><Telo_programu>
     int result;
     switch (aktualni_token.type) {
         case sDeclare:
@@ -103,15 +104,9 @@ int Program() {
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //posledni eol
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //eof
-            // POZOR! Nezapomenout testovat, zda nasleduje konec souboru.
-            // Pri oponenuti teto veci by zde mohly pokracovat nejake nesmysly, ktere by se
-            // v ramci syntakticke analyzy jiz nezpracovavaly a program by se tvaril, ze je OK
             if (aktualni_token.type != sEndOfFile) return ERROR_CODE_SYN;
-
-            // nagenerujeme instrukci konce programu
-            //generateInstruction(list,)
-
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -121,7 +116,6 @@ int Deklarace_fci_definice_fci() {
     int result;
     switch (aktualni_token.type) {
         case sDeclare:
-
             result = Nekolik_deklaraci_fce();
             if (result != ERROR_CODE_OK) return result;
             result = Deklarace_fci_definice_fci();
@@ -143,19 +137,14 @@ int Deklarace_fci_definice_fci() {
 int Nekolik_deklaraci_fce() {
     int result;
     switch (aktualni_token.type)
-        //Nekolik_deklaraci_fce-><Deklarace_fce><Nekolik_deklaraci_fce>
     {
         case sDeclare:
-            // nejprve zavolame funkci Deklarace_fce
             result = Deklarace_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_deklaraci_fce
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Nekolik_deklaraci_fce();
         case sFuntion:
             result = Nekolik_definici_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
         case sScope:
 
@@ -168,14 +157,10 @@ int Nekolik_deklaraci_fce() {
 int Nekolik_definici_fce() {
     int result;
     switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sFuntion:
-            // nejprve zavolame funkci Definice_fce
             result = Definice_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             return Nekolik_definici_fce();
         case sDeclare:
             return ERROR_CODE_OK;
@@ -188,17 +173,13 @@ int Telo_programu() {
     int result;
 
     switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sScope:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            // nejprve zavolame funkci Definice_fce
             result = Deklarace_prom_a_prikazy();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
@@ -212,20 +193,15 @@ int Deklarace_fce() {
     int result;
 
     switch (aktualni_token.type) {
-        // pravidlo <declrList> -> "ID" ";" <declrList>
         case sDeclare:
-
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
             result = Hlavicka_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             return ERROR_CODE_OK;
     }
-    // pokud aktualni token je jiny nez vyse uvedene, jedna se o syntaktickou chybu
     return ERROR_CODE_SYN;
 }
 
@@ -248,7 +224,6 @@ int Definice_fce() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
     }
-    // pokud aktualni token je jiny nez vyse uvedene, jedna se o syntaktickou chybu
     return ERROR_CODE_SYN;
 }
 
@@ -261,11 +236,9 @@ int Hlavicka_fce() {
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Parametry();
     if (result != ERROR_CODE_OK) return result;
-
     if (aktualni_token.type != sRightPar) return ERROR_CODE_SYN;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK) return result;
@@ -281,16 +254,13 @@ int Typ() {
 
 int Parametry() {
     int result;
-
     switch (aktualni_token.type) {
-
         case sIdentificator:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
-
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
             if (result != ERROR_CODE_OK) return result;
@@ -319,9 +289,7 @@ int Dalsi_parametry() {
 int Telo_funkce() {
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    // nejprve zavolame funkci Definice_fce
     result = Deklarace_prom_a_prikazy();
-    // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
 }
@@ -329,19 +297,20 @@ int Telo_funkce() {
 int Deklarace_promennych() {
     int result;
     switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sDim:
-            // nejprve zavolame funkci Definice_fce
             result = Deklarace_promenne();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             return Deklarace_promennych();
         case sScope:
         case sEnd:
         case sIdentificator:
         case sEndOfLine:
+        case sPrint:
+        case sInput:
+        case sIf:
+        case sDo:
+        case sReturn:
             return ERROR_CODE_OK;
     }
 
@@ -351,20 +320,16 @@ int Deklarace_promennych() {
 int Prikazy() {
     int result;
     switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
-
         case sPrint:
         case sInput:
         case sIf:
         case sDo:
         case sIdentificator:
         case sReturn:
-            // nejprve zavolame funkci Definice_fce
+
             result = Prikaz();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
             if (result != ERROR_CODE_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             return Prikazy();
         case sElse:
         case sLoop:
@@ -382,12 +347,12 @@ int Prikaz() {
     switch (aktualni_token.type) {
         case sPrint:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            //Tady se ocekava vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sInput:
@@ -406,11 +371,13 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
@@ -422,12 +389,12 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            //Vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -437,17 +404,16 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            //Vyraz
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
         case sReturn:
-            //Semantikou vyresit aby nemohl byt v hlavnim tele
+            //TODO Semantikou vyresit aby nemohl byt v hlavnim tele
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
@@ -456,14 +422,11 @@ int Prikaz() {
 
 }
 
-
 int Deklarace_promenne() {
     int result;
     switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
     {
         case sDim:
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -471,16 +434,11 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
-
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-
             switch (aktualni_token.type)
-                //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
             {
                 case sAssignment:
-                    // nejprve zavolame funkci Definice_fce
                     result = Prirazeni_hodnoty();
-                    // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
                     if (result != ERROR_CODE_OK) return result;
                     break;
                 case sEndOfLine:
@@ -488,7 +446,6 @@ int Deklarace_promenne() {
 
             }
             return ERROR_CODE_OK;
-
     }
 
     return ERROR_CODE_SYN;
@@ -549,9 +506,7 @@ int Dalsi_vyrazy() {
         case sString:
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
-
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
         case sEndOfLine:
@@ -562,11 +517,8 @@ int Dalsi_vyrazy() {
 }
 
 int Vyraz() {
-    //simulace vyrazu hodnota
-    //Zaridit aby se nebralo klicove slovo jako id
+    //simulace vyrazu jednoho cisla
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    //Pozer eol
-
     int result = 0;
     return result;
 }
