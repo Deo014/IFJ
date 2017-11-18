@@ -39,6 +39,27 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
+    /* tu kukaj ako jede symtable */
+    string jedna;
+    stringInit(&jedna);
+    stringAddChar(&jedna, 'K');
+
+    string dva;
+    stringInit(&dva);
+    stringAddChar(&dva, 'L');
+
+    string tri;
+    stringInit(&tri);
+    stringAddChar(&tri, 'A');
+
+
+    symTableInsertFunction(&glSymTable, jedna, createDataFunction(sInteger, true, false, "ssid" )); /* prvni parametr misto sInteger muzem zmenit na 'i', stejne jak to je v poslednim parametru */
+    symTableInsertFunction(&glSymTable, dva, createDataFunction(sString, true, false, "sd" ));
+    symTableInsertVariable(&glSymTable, tri, createDataVariable(sDouble));
+
+    Print_tree(glSymTable.root);
+    /* tu prestan kukat */
+
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     result_code = parse(&glSymTable, &instList);

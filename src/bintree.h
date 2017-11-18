@@ -15,20 +15,24 @@
 #define IFJ_BINTREE_H
 
 
-
+typedef enum {
+    ndtVariable,     // nodeDataTypeVariable
+    ndtFunction,     // nodeDataTypeFunction
+} tNodeDataType;
 
 /* ----------uzel stromu---------- */
 typedef struct tBSTNode {
-    char* Key;			                             /* klíč */
-    void* Data;                                      /* užitečný obsah uzlu */
-    struct tBSTNode * LPtr;                          /* levý podstrom */
-    struct tBSTNode * RPtr;                          /* pravý podstrom */
+    char* Key;			                             /* klic */
+    tNodeDataType nodeDataType;                      /* typ dat, ktera uzel uchovava */
+    void* Data;                                      /* uzitecny obsah uzlu */
+    struct tBSTNode * LPtr;                          /* ukazatel na levy podstrom */
+    struct tBSTNode * RPtr;                          /* ukazatel na pravy podstrom */
 } *tBSTNodePtr;
 
 /* ----------prototypy funkcí---------- */
 void BSTInit   (tBSTNodePtr *);
 tBSTNodePtr BSTSearch (tBSTNodePtr, char*);
-void BSTInsert (tBSTNodePtr *, char*, void*);
+void BSTInsert (tBSTNodePtr *, char*, void*, tNodeDataType);
 void BSTDelete (tBSTNodePtr *, char*);
 void BSTDispose(tBSTNodePtr *);
 
