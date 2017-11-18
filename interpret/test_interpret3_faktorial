@@ -1,0 +1,49 @@
+#/' Program 1: Vypocet faktorialu (iterativne) '/
+#scope 'Hlavni telo programu
+#Dim a As Integer
+#DIM vysl AS INTEGER
+#PrinT !"Zadejte cislo pro vypocet faktorialu";
+#InpuT A
+#If a < 0 THEN
+#print !"\nFaktorial nelze spocitat\n";
+#ELSE
+#Vysl = 1
+#Do WHile A > 0
+#VYSL = vysl * a
+#a = A - 1
+#LooP
+#Print !"\nVysledek je:" ; vYsl ; !"\n";
+#end IF
+#END SCOPE
+
+.IFJcode17
+LABEL $$scope
+DEFVAR GF@a
+DEFVAR GF@vysl
+MOVE GF@a int@10
+DEFVAR GF@s
+MOVE GF@s string@Zadejte\032cislo\032pro\032vypocet\032faktorialu!\010
+WRITE GF@s
+READ GF@a int
+DEFVAR GF@cmp
+GT GF@cmp GF@a int@0
+JUMPIFEQ $true GF@cmp bool@true
+JUMPIFEQ $true GF@a int@0
+LABEL $false
+MOVE GF@s string@Faktorial\032nelze\032spocitat\010
+WRITE GF@s
+JUMP $$endscope
+LABEL $true
+MOVE GF@vysl int@1
+LABEL $while
+JUMPIFEQ $endwhile GF@a int@0
+MUL GF@vysl GF@vysl GF@a
+SUB GF@a GF@a int@1
+JUMP $while
+LABEL $endwhile
+MOVE GF@s string@Vysledek\032je\032
+WRITE GF@s
+WRITE GF@vysl
+WRITE string@\010
+LABEL $$endscope
+

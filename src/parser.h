@@ -74,4 +74,12 @@ int Deklarace_promenne();
 int Prirazeni_hodnoty();
 
 int Deklarace_fci_definice_fci();
+
+int Prikaz();
+
+int dalsiToken();
+
+int Dalsi_vyrazy();
+
+int Vyraz();
 #endif //IFJ_PARSER_H
