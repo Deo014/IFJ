@@ -10,6 +10,7 @@
 #END SCOPE
 
 .IFJcode17
+DEFVAR GF@tmp
 JUMP $$scope
 LABEL $$scope         # ins   op1   op2   op3   CELKEM
 DEFVAR GF@a         # 1     4                      5

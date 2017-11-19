@@ -27,68 +27,51 @@
 #End Scope
 
 .IFJcode17
+DEFVAR GF@tmp
 JUMP $$scope
-LABEL $factorial
+LABEL $function_factorial
 PUSHFRAME
-##WRITE string@\032->call_factorial:
-##WRITE string@n=
-##WRITE LF@n
-
 DEFVAR LF@%retval
-MOVE LF@%retval int@1
 DEFVAR LF@temp_result
-MOVE LF@temp_result int@1 # prozatím
 DEFVAR LF@decremented_n
-MOVE LF@decremented_n LF@n
 DEFVAR LF@result
-LT GF@cmp LF@n int@2
-JUMPIFEQ $endfactorial GF@cmp bool@true
-
-SUB LF@decremented_n LF@decremented_n int@1
-##WRITE string@,\032decremented_n=
-##WRITE LF@decremented_n
-##WRITE string@\010
-################# REKURZE ##########################
-LABEL $rekurze
+LABEL $if2
+LT GF@tmp LF@n int@2
+JUMPIFEQ $else2 GF@tmp bool@false
+MOVE LF@result int@1
+JUMP $endif2
+LABEL $else2
+SUB LF@decremented_n LF@n int@1
 CREATEFRAME
 DEFVAR TF@n
 MOVE TF@n LF@decremented_n
-CALL $factorial
-##WRITE string@factorial_return:
-##WRITE TF@%retval
-##WRITE string@\010
-MUL LF@temp_result LF@decremented_n TF@%retval
-LABEL $endrekurze
-#####################################################
-#MUL LF@temp_result LF@temp_result TF@n
-JUMP $endfactorial
-LABEL $result1
-MOVE LF@result int@1
-LABEL $endfactorial
-MOVE LF@%retval LF@temp_result
+CALL $function_factorial
+MOVE LF@temp_result TF@%retval
+MUL LF@result LF@n LF@temp_result
+LABEL $endif2
+MOVE LF@%retval LF@result
 POPFRAME
 RETURN
+LABEL $endfunction_factorial
 
 LABEL $$scope
 DEFVAR GF@a
 DEFVAR GF@vysl
-WRITE string@NENI\032JESTE\032PLNE\032FUNKCNI\010
 WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
 READ GF@a int
-DEFVAR GF@cmp
-LT GF@cmp GF@a int@0
-JUMPIFEQ $true GF@cmp bool@false # a < 0
-DPRINT string@Faktorial\032nelze\032spocitat\010
-JUMP $$endscope
-LABEL $true
+LABEL $if
+LT GF@tmp GF@a int@0
+JUMPIFEQ $else GF@tmp bool@false
+WRITE string@Faktorial\032nelze\032spocitat\010
+JUMP $endif
+LABEL $else
 CREATEFRAME
 DEFVAR TF@n
 MOVE TF@n GF@a
-CALL $factorial
+CALL $function_factorial
 MOVE GF@vysl TF@%retval
-MUL GF@vysl GF@vysl TF@n
 WRITE string@Vysledek\032je
 WRITE GF@vysl
 WRITE string@\010
+LABEL $endif
 LABEL $$endscope
-##BREAK # ladící výpisy

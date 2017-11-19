@@ -17,31 +17,29 @@
 #END SCOPE
 
 .IFJcode17
+DEFVAR GF@tmp
 JUMP $$scope
 LABEL $$scope
 DEFVAR GF@a
 DEFVAR GF@vysl
-MOVE GF@a int@10
-DEFVAR GF@s
 WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu!\010
 READ GF@a int
-DEFVAR GF@cmp
-GT GF@cmp GF@a int@0
-JUMPIFEQ $true GF@cmp bool@true
-JUMPIFEQ $true GF@a int@0
-LABEL $false
+LABEL $if
+LT GF@tmp GF@a int@0
+JUMPIFEQ $else GF@tmp bool@false
 WRITE string@Faktorial\032nelze\032spocitat\010
-JUMP $$endscope
-LABEL $true
+JUMP $endif
+LABEL $else
 MOVE GF@vysl int@1
-LABEL $while
-JUMPIFEQ $endwhile GF@a int@0
+LABEL $dowhile
+JUMPIFEQ $loop GF@a int@0
 MUL GF@vysl GF@vysl GF@a
 SUB GF@a GF@a int@1
-JUMP $while
-LABEL $endwhile
+JUMP $dowhile
+LABEL $loop
 WRITE string@Vysledek\032je\032
 WRITE GF@vysl
 WRITE string@\010
+LABEL $endif
 LABEL $$endscope
 
