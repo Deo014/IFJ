@@ -40,33 +40,17 @@ int main(int argc, char **argv)
 
 
     /* testovaci kod zacatek*/
-    //                        funkce
-    string ret;
-    stringInit(&ret);
-    stringAddChar(&ret, 'a');
+    tToken token;
+//    while ( (token = getNextToken()).type != sLexError ) {
+//        if (token.type == sIdentificator) {
+//            symTableInsertVariable(&glSymTable, token.atr);
+//            Print_tree(glSymTable.root);
+//        }
+//    }
 
-    symTableInsertFunction(&glSymTable,ret); // zalozeni nove polozku pro funkci v symtable
-
-    tBSTNodePtr node = symTableSearch(&glSymTable, ret); // vyhledani ukazatele na polozku
-    tDataFunction* data = (tDataFunction*)(node->Data);
-
-    stringAddChar(&(data->parameters), 'c'); // pripsani znaku do parametru
-    data->returnDataType = sDouble; // navratovy typ funkce je double
-
-    //                        promenna
-    string ret2;
-    stringInit(&ret2);
-    stringAddChar(&ret2, 'b');
-
-    symTableInsertVariable(&glSymTable, ret2); // zalozeni nove polozku pro promenno v symtable
-
-    tBSTNodePtr node2 = symTableSearch(&glSymTable, ret2); // vyhledani ukazatele na polozku
-    tDataVariable* data2 = (tDataVariable*)(node2->Data);
-
-    data2->dataType = sInteger; // datovy typ promenne je integer
-
-
-    Print_tree(glSymTable.root);
+    while ( (token = getNextToken()).type != sEndOfFile) {
+        printf("%4d %s\n", token.type, token.atr.value);
+    }
 
     /* testovaci kod konec*/
 
