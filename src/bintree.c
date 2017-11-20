@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "stdbool.h"
 #include "symtable.h"
+#include "string.h"
 #include <string.h>
 
 /* ----------funkce binarniho vyhledavaciho stromu----------*/
@@ -145,7 +146,7 @@ void Print_tree2(tBSTNodePtr TempTree, char* sufix, char fromdir) { /* vykresli 
             suf2 = strcat(suf2, "   ");
         Print_tree2(TempTree->RPtr, suf2, 'R');
         if (TempTree->nodeDataType == ndtFunction)
-            printf("%s  +-[FCE => %s, RV:%d, DC:%d DF:%d, ARG:%s]\n", sufix, TempTree->Key, ((tDataFunction*)TempTree->Data)->returnDataType, ((tDataFunction*)TempTree->Data)->declared, ((tDataFunction*)TempTree->Data)->defined, ((tDataFunction*)TempTree->Data)->parameters);
+            printf("%s  +-[FCE => %s, RV:%d, DC:%d DF:%d, ARG:%s]\n", sufix, TempTree->Key, ((tDataFunction*)TempTree->Data)->returnDataType, ((tDataFunction*)TempTree->Data)->declared, ((tDataFunction*)TempTree->Data)->defined, ((tDataFunction*)TempTree->Data)->parameters.value);
         else
             printf("%s  +-[VAR => %s, DT:%d]\n", sufix, TempTree->Key, ((tDataVariable*)TempTree->Data)->dataType);
         strcpy(suf2, sufix);

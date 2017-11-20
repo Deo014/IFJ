@@ -25,35 +25,33 @@ void symTableInit(tSymtable* Table) {
 //}
 
 /* --------------------vlozeni dat o funkci do symtable--------------------*/
-void symTableInsertFunction(tSymtable* Table, string Key, tDataFunction* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
+void symTableInsertFunction(tSymtable* Table, string Key) { // vlozi do symtable zaznam s klicem Key a data dataPtr
+    // alokovani pameti pro data
+    tDataFunction * dataPtr;
+    if ( (dataPtr = (tDataFunction*)malloc(sizeof(tDataFunction))) == NULL ) {
+        return;
+    }
+    // inicializace dat
+    string parameters;
+    stringInit(&parameters);
+    dataPtr->returnDataType = -1;
+    dataPtr->declared = false;
+    dataPtr->defined = false;
+    dataPtr->parameters = parameters;
+    // vytvoreni nove polozky v symtable
     BSTInsert(&(Table->root), Key.value, dataPtr, ndtFunction);
 }
 
-tDataFunction *createDataFunction(int returnDataType, bool declared, bool defined, char* parameters) { // alokuje novou datovou polozku pro data funkce a vrati ukazatel
-    tDataFunction * newitem;
-    if ( (newitem = (tDataFunction*)malloc(sizeof(tDataFunction))) == NULL ) {
-        return NULL;
-    }
-    // inicializace dat
-    newitem->returnDataType = returnDataType;
-    newitem->declared = declared;
-    newitem->defined = defined;
-    newitem->parameters = parameters;
-    return newitem;
-}
-
 /* --------------------vlozeni dat o promenne do symtable--------------------*/
-void symTableInsertVariable(tSymtable* Table, string Key, tDataVariable* dataPtr) { // vlozi do symtable zaznam s klicem Key a data dataPtr
-    BSTInsert(&(Table->root), Key.value, dataPtr, ndtVariable);
-}
-
-tDataVariable *createDataVariable(int dataType) { // alokuje novou datovou polozku pro data promenne a vrati ukazatel
-    tDataVariable * newitem;
-    if ( (newitem = (tDataVariable*)malloc(sizeof(tDataVariable))) == NULL ) {
-        return NULL;
+void symTableInsertVariable(tSymtable* Table, string Key) { // vlozi do symtable zaznam s klicem Key a data dataPtr
+    // alokovani pameti pro data
+    tDataVariable * dataPtr;
+    if ( (dataPtr = (tDataVariable*)malloc(sizeof(tDataVariable))) == NULL ) {
+        return;
     }
-    newitem->dataType = dataType;
-    return newitem;
+    dataPtr->dataType = -1;
+    // vytvoreni nove polozky v symtable
+    BSTInsert(&(Table->root), Key.value, dataPtr, ndtVariable);
 }
 
 /* --------------------vyhledani prvku v symtable--------------------*/
