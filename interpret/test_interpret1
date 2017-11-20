@@ -1,5 +1,15 @@
-# int a; a = 42; print(a);
+#/' Program 1: Vypocet faktorialu (iterativne) '/
+#scope 'Hlavni telo programu
+#Dim a As Integer
+#a = 42
+#Print  a ; 
+#END SCOPE
+
 .IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
 DEFVAR GF@a
 MOVE GF@a int@42
 WRITE GF@a
+LABEL $$endscope
