@@ -90,24 +90,25 @@ int main(int argc, char **argv)
             case ERROR_CODE_OK:
                 printf("\nOK");
                 return ERROR_CODE_OK;
-                break;
+                //result_code = ERROR_CODE_OK;
+                //break;
             case ERROR_CODE_SYN:
                 printf("\nSyntaxe");
                 return ERROR_CODE_SYN;
-                break;
+                //break;
             case ERROR_CODE_SEM:
                 printf("\nSemantika");
                 return ERROR_CODE_SEM;
-                break;
+                //break;
             case ERROR_CODE_SEM_COMP:
                 printf("\nSemantika - kompozice");
                 return ERROR_CODE_SEM_COMP;
-                break;
+                //break;
             case ERROR_CODE_LEX:
                 printf("\nLexikalní error");
                 return ERROR_CODE_LEX;
                 //kont = false;
-                break;
+                //break;
         }
     //}
 
