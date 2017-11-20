@@ -1,0 +1,33 @@
+#/' Program 1: Vypocet faktorialu (iterativne) '/
+#Dim a As Integer
+#scope 'Hlavni telo programu
+#Dim a As Integer
+#a = 42
+#Print  a ; 
+#END SCOPE
+
+.IFJcode17
+DEFVAR GF@tmp
+DEFVAR GF@a
+MOVE GF@a int@2
+JUMP $$scope
+
+LABEL $function_writeglobala
+PUSHFRAME
+WRITE string@\010global\032a\032=\032
+WRITE GF@a
+POPFRAME
+RETURN
+
+LABEL $$scope
+CREATEFRAME
+DEFVAR TF@a
+PUSHFRAME
+MOVE LF@a int@1
+WRITE string@local\032a\032=\032
+WRITE LF@a
+CREATEFRAME
+CALL $function_writeglobala
+POPFRAME
+WRITE string@\010
+LABEL $$endscope

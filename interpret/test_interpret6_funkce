@@ -26,7 +26,9 @@ RETURN
 LABEL $endfunction_secti
 
 LABEL $$scope
-DEFVAR GF@vysl
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@vysl
 CREATEFRAME
 DEFVAR TF@a
 DEFVAR TF@b
@@ -35,8 +37,9 @@ MOVE TF@a int@4
 MOVE TF@b int@5
 MOVE TF@c int@6
 CALL $function_secti
-MOVE GF@vysl TF@%retval
+MOVE LF@vysl TF@%retval
 WRITE string@vysledek\032=\032
-WRITE GF@vysl
+WRITE LF@vysl
 WRITE string@\010
+POPFRAME
 LABEL $$endscope
