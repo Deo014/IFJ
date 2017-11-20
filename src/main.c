@@ -18,6 +18,7 @@
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
+#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -37,23 +38,14 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-    string str;
-    stringInit(&str);
-    stringAddChar(&str, 's');
 
-    string inte;
-    stringInit(&inte);
-    stringAddChar(&inte, 'i');
-
-    string dou;
-    stringInit(&dou);
-    stringAddChar(&dou, 'd');
-    createDataFunction(sInteger,false,true,"iid");
-    string fun;
-    stringInit(&fun);
-    stringAddChar(&fun, 'f');
     /* testovaci kod zacatek*/
-/*
+    tToken token;
+    while((token = getNextToken()).type != sEndOfFile) {
+        printf("%d %s\n", token.type, token.atr.value);
+    }
+    printf("%d %s\n", token.type, token.atr.value);
+    /*
     tToken token;
     while ( (token = getNextToken()).type != sLexError ) {
         if (token.type == sIdentificator) {
@@ -73,43 +65,13 @@ int main(int argc, char **argv)
 */
     /* testovaci kod konec*/
 
+
     symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
     symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
     symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
     symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
 
-    int er;
-    tToken token = getNextToken();
-    /*
-    bool kont = true;
 
-    while (kont) {*/
-         er = expression(token,sInteger);
-
-        switch (er) {
-            case ERROR_CODE_OK:
-                printf("\nOK");
-                return ERROR_CODE_OK;
-                break;
-            case ERROR_CODE_SYN:
-                printf("\nSyntaxe");
-                return ERROR_CODE_SYN;
-                break;
-            case ERROR_CODE_SEM:
-                printf("\nSemantika");
-                return ERROR_CODE_SEM;
-                break;
-            case ERROR_CODE_SEM_COMP:
-                printf("\nSemantika - kompozice");
-                return ERROR_CODE_SEM_COMP;
-                break;
-            case ERROR_CODE_LEX:
-                printf("\nLexikalní error");
-                return ERROR_CODE_LEX;
-                //kont = false;
-                break;
-        }
-    //}
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
