@@ -1,6 +1,6 @@
-#include "../scanner.h"
-#include "../string.c"
-#include "../string.h"
+#include "../../scanner.h"
+#include "../../string.c"
+#include "../../string.h"
 #include <string.h>
 
 #define POCET_TOKENU_TEST_1 6
@@ -21,29 +21,30 @@ int test1() {
     int testResult = 0;
     if (tokenyTestOcekavane != NULL) {
         //Alokace ok, nastavime ocekavane hodnoty
-        tokenyTestOcekavane[0].type = 1;
+        tokenyTestOcekavane[0].type = sIdentificator;
         tokenyTestOcekavane[0].atr.value = "int";
-        tokenyTestOcekavane[1].type = 3;
+        tokenyTestOcekavane[1].type = sKeyWord;
         tokenyTestOcekavane[1].atr.value = "integer";
-        tokenyTestOcekavane[2].type = 4;
+        tokenyTestOcekavane[2].type = sInteger;
         tokenyTestOcekavane[2].atr.value = "42";
         tokenyTestOcekavane[3].type = 1;
         tokenyTestOcekavane[3].atr.value = "_";
-        tokenyTestOcekavane[4].type = 29;
+        tokenyTestOcekavane[4].type = 32;
         tokenyTestOcekavane[4].atr.value = "EOL";
-        tokenyTestOcekavane[5].type = 30;
+        tokenyTestOcekavane[5].type = 33;
         tokenyTestOcekavane[5].atr.value = "EOF";
         tToken tokenObdrzeny;
         int i = 0;
 
         while (i < POCET_TOKENU_TEST_1) {
             tokenObdrzeny = getNextToken();
-/*
-            printf("%s\n",tokenObdrzeny.atr.value);
-            printf("%s\n",tokenyTestOcekavane[i].atr.value);
-            printf("%d\n",tokenObdrzeny.type);
-            printf("%d\n",tokenyTestOcekavane[i].type);
-*/
+
+           /* 
+	    printf("Obdrzeny:  %s\n",tokenObdrzeny.atr.value);
+            printf("Ocekavany: %s\n",tokenyTestOcekavane[i].atr.value);
+            printf("Obdrzeny:  %d\n",tokenObdrzeny.type);
+            printf("Ocekavany: %d\n\n",tokenyTestOcekavane[i].type);
+           */
             if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) ||
                 (tokenObdrzeny.type != tokenyTestOcekavane[i].type))
                 testResult = 1;
@@ -63,19 +64,19 @@ int test2() {
     int testResult = 0;
     if (tokenyTestOcekavane != NULL) {
         //Alokace ok, nastavime ocekavane hodnoty
-        tokenyTestOcekavane[0].type = 12;
+        tokenyTestOcekavane[0].type = sPlus;
         tokenyTestOcekavane[0].atr.value = "+";
-        tokenyTestOcekavane[1].type = 13;
+        tokenyTestOcekavane[1].type = sMinus;
         tokenyTestOcekavane[1].atr.value = "-";
-        tokenyTestOcekavane[2].type = 16;
+        tokenyTestOcekavane[2].type = sMultiply;
         tokenyTestOcekavane[2].atr.value = "*";
-        tokenyTestOcekavane[3].type = 14;
+        tokenyTestOcekavane[3].type = sDivideD;
         tokenyTestOcekavane[3].atr.value = "/";
-        tokenyTestOcekavane[4].type = 17;
+        tokenyTestOcekavane[4].type = sDivideI;
         tokenyTestOcekavane[4].atr.value = "\\";
-        tokenyTestOcekavane[5].type = 29;
+        tokenyTestOcekavane[5].type = sEndOfLine;
         tokenyTestOcekavane[5].atr.value = "EOL";
-        tokenyTestOcekavane[6].type = 30;
+        tokenyTestOcekavane[6].type = sEndOfFile;
         tokenyTestOcekavane[6].atr.value = "EOF";
         tToken tokenObdrzeny;
         int i = 0;
@@ -101,27 +102,27 @@ int test3() {
     int testResult = 0;
     if (tokenyTestOcekavane != NULL) {
         //Alokace ok, nastavime ocekavane hodnoty
-        tokenyTestOcekavane[0].type = 19;
+        tokenyTestOcekavane[0].type = sNotEqual;
         tokenyTestOcekavane[0].atr.value = "<>";
-        tokenyTestOcekavane[1].type = 21;
+        tokenyTestOcekavane[1].type = sMore;
         tokenyTestOcekavane[1].atr.value = ">";
-        tokenyTestOcekavane[2].type = 22;
+        tokenyTestOcekavane[2].type = sMoreEqual;
         tokenyTestOcekavane[2].atr.value = ">=";
-        tokenyTestOcekavane[3].type = 23;
+        tokenyTestOcekavane[3].type = sAssignment;
         tokenyTestOcekavane[3].atr.value = "=";
-        tokenyTestOcekavane[4].type = 24;
+        tokenyTestOcekavane[4].type = sLeftPar;
         tokenyTestOcekavane[4].atr.value = "(";
-        tokenyTestOcekavane[5].type = 20;
+        tokenyTestOcekavane[5].type = sLessEqual;
         tokenyTestOcekavane[5].atr.value = "<=";
-        tokenyTestOcekavane[6].type = 18;
+        tokenyTestOcekavane[6].type = sLess;
         tokenyTestOcekavane[6].atr.value = "<";
-        tokenyTestOcekavane[7].type = 25;
+        tokenyTestOcekavane[7].type = sRightPar;
         tokenyTestOcekavane[7].atr.value = ")";
-        tokenyTestOcekavane[8].type = 26;
+        tokenyTestOcekavane[8].type = sSemicolon;
         tokenyTestOcekavane[8].atr.value = ";";
-        tokenyTestOcekavane[9].type = 29;
+        tokenyTestOcekavane[9].type = sEndOfLine;
         tokenyTestOcekavane[9].atr.value = "EOL";
-        tokenyTestOcekavane[10].type = 30;
+        tokenyTestOcekavane[10].type = sEndOfFile;
         tokenyTestOcekavane[10].atr.value = "EOF";
         tToken tokenObdrzeny;
         int i = 0;
@@ -153,13 +154,13 @@ int test4() {
         for (int j = 0; j < POCET_TOKENU_TEST_4; j++) {
             //Nastaveni typu(cisla) tokenu na ocekavanou hodnotu
             if (j == 25)
-                tokenyTestOcekavane[j].type = 1;
+                tokenyTestOcekavane[j].type = sIdentificator;
             else if (j == 36)
-                tokenyTestOcekavane[j].type = 29;
+                tokenyTestOcekavane[j].type = sEndOfLine;
             else if (j == 37)
-                tokenyTestOcekavane[j].type = 30;
+                tokenyTestOcekavane[j].type = sEndOfFile;
             else
-                tokenyTestOcekavane[j].type = 3;
+                tokenyTestOcekavane[j].type = sKeyWord;
 
         }
 
@@ -194,15 +195,15 @@ int test5() {
     int testResult = 0;
     if (tokenyTestOcekavane != NULL) {
         //Alokace ok, nastavime ocekavane hodnoty
-        tokenyTestOcekavane[0].type = 5;
+        tokenyTestOcekavane[0].type = sDouble;
         tokenyTestOcekavane[0].atr.value = "2e-1";
-        tokenyTestOcekavane[1].type = 5;
+        tokenyTestOcekavane[1].type = sDouble;
         tokenyTestOcekavane[1].atr.value = "10E2";
-        tokenyTestOcekavane[2].type = 5;
+        tokenyTestOcekavane[2].type = sDouble;
         tokenyTestOcekavane[2].atr.value = "0.25E5";
-        tokenyTestOcekavane[3].type = 29;
+        tokenyTestOcekavane[3].type = sEndOfLine;
         tokenyTestOcekavane[3].atr.value = "EOL";
-        tokenyTestOcekavane[4].type = 30;
+        tokenyTestOcekavane[4].type = sEndOfFile;
         tokenyTestOcekavane[4].atr.value = "EOF";
         tToken tokenObdrzeny;
         int i = 0;
@@ -229,84 +230,85 @@ int test6() {
     int testResult = 0;
     if (tokenyTestOcekavane != NULL) {
         //Alokace ok, nastavime ocekavane hodnoty
-        tokenyTestOcekavane[0].type = 3;
+        tokenyTestOcekavane[0].type = sKeyWord;
         tokenyTestOcekavane[0].atr.value = "scope";
-        tokenyTestOcekavane[1].type = 29;
+        tokenyTestOcekavane[1].type = sEndOfLine;
         tokenyTestOcekavane[1].atr.value = "EOL";
-        tokenyTestOcekavane[2].type = 3;
-        tokenyTestOcekavane[2].atr.value = "Dim";
-        tokenyTestOcekavane[3].type = 1;
+        tokenyTestOcekavane[2].type = sKeyWord;
+        tokenyTestOcekavane[2].atr.value = "dim";
+        tokenyTestOcekavane[3].type = sIdentificator;
         tokenyTestOcekavane[3].atr.value = "a";
-        tokenyTestOcekavane[4].type = 3;
+        tokenyTestOcekavane[4].type = sKeyWord;
         tokenyTestOcekavane[4].atr.value = "as";
-        tokenyTestOcekavane[5].type = 3;
+        tokenyTestOcekavane[5].type = sKeyWord;
         tokenyTestOcekavane[5].atr.value = "integer";
-        tokenyTestOcekavane[6].type = 29;
+        tokenyTestOcekavane[6].type = sEndOfLine;
         tokenyTestOcekavane[6].atr.value = "EOL";
 
-        tokenyTestOcekavane[7].type = 3;
+        tokenyTestOcekavane[7].type = sKeyWord;
         tokenyTestOcekavane[7].atr.value = "dim";
-        tokenyTestOcekavane[8].type = 1;
+        tokenyTestOcekavane[8].type = sIdentificator;
         tokenyTestOcekavane[8].atr.value = "vysl";
-        tokenyTestOcekavane[9].type = 3;
+        tokenyTestOcekavane[9].type = sKeyWord;
         tokenyTestOcekavane[9].atr.value = "as";
-        tokenyTestOcekavane[10].type = 3;
+        tokenyTestOcekavane[10].type = sKeyWord;
         tokenyTestOcekavane[10].atr.value = "integer";
-        tokenyTestOcekavane[11].type = 29;
+        tokenyTestOcekavane[11].type = sEndOfLine;
         tokenyTestOcekavane[11].atr.value = "EOL";
 
-        tokenyTestOcekavane[12].type = 29;
+        tokenyTestOcekavane[12].type = sEndOfLine;
         tokenyTestOcekavane[12].atr.value = "EOL";
 
-        tokenyTestOcekavane[13].type = 3;
+        tokenyTestOcekavane[13].type = sKeyWord;
         tokenyTestOcekavane[13].atr.value = "print";
-        tokenyTestOcekavane[14].type = 10;
-        tokenyTestOcekavane[14].atr.value = "Zadejte cislo pro vypocet faktorialu";
-        tokenyTestOcekavane[15].type = 26;
+        tokenyTestOcekavane[14].type = sString;
+        tokenyTestOcekavane[14].atr.value = "Zadejte\\032cislo\\032pro\\032vypocet\\032faktorialu";
+        tokenyTestOcekavane[15].type = sSemicolon;
         tokenyTestOcekavane[15].atr.value = ";";
-        tokenyTestOcekavane[16].type = 29;
+        tokenyTestOcekavane[16].type = sEndOfLine;
         tokenyTestOcekavane[16].atr.value = "EOL";
 
-        tokenyTestOcekavane[17].type = 3;
+        tokenyTestOcekavane[17].type = sKeyWord;
         tokenyTestOcekavane[17].atr.value = "input";
-        tokenyTestOcekavane[18].type = 1;
+        tokenyTestOcekavane[18].type = sIdentificator;
         tokenyTestOcekavane[18].atr.value = "a";
-        tokenyTestOcekavane[19].type = 29;
+        tokenyTestOcekavane[19].type = sEndOfLine;
         tokenyTestOcekavane[19].atr.value = "EOL";
 
-        tokenyTestOcekavane[20].type = 3;
+        tokenyTestOcekavane[20].type = sKeyWord;
         tokenyTestOcekavane[20].atr.value = "if";
-        tokenyTestOcekavane[21].type = 1;
+        tokenyTestOcekavane[21].type = sIdentificator;
         tokenyTestOcekavane[21].atr.value = "a";
-        tokenyTestOcekavane[22].type = 18;
+        tokenyTestOcekavane[22].type = sLess;
         tokenyTestOcekavane[22].atr.value = "<";
-        tokenyTestOcekavane[23].type = 4;
+        tokenyTestOcekavane[23].type = sInteger;
         tokenyTestOcekavane[23].atr.value = "0";
-        tokenyTestOcekavane[24].type = 3;
-        tokenyTestOcekavane[24].atr.value = "THEN";
-        tokenyTestOcekavane[25].type = 26;
+        tokenyTestOcekavane[24].type = sKeyWord;
+        tokenyTestOcekavane[24].atr.value = "then";
+        tokenyTestOcekavane[25].type = sEndOfLine;
         tokenyTestOcekavane[25].atr.value = "EOL";
 
-        tokenyTestOcekavane[26].type = 3;
+        tokenyTestOcekavane[26].type = sKeyWord;
         tokenyTestOcekavane[26].atr.value = "print";
-        tokenyTestOcekavane[27].type = 10;
-        tokenyTestOcekavane[27].atr.value = "\nFaktorial nelze spocitat\n"; //tady si nejsem jisty tema lomitkama :(
-        tokenyTestOcekavane[28].type = 26;
+        tokenyTestOcekavane[27].type = sString;
+        tokenyTestOcekavane[27].atr.value = "\\010Faktorial\\032nelze\\032spocitat\\010"; //tady si nejsem jisty tema lomitkama :(
+        tokenyTestOcekavane[28].type = sSemicolon;
         tokenyTestOcekavane[28].atr.value = ";";
-        tokenyTestOcekavane[29].type = 29;
+        tokenyTestOcekavane[29].type = sEndOfLine;
         tokenyTestOcekavane[29].atr.value = "EOL";
-        tokenyTestOcekavane[30].type = 30;
+        tokenyTestOcekavane[30].type = sEndOfFile;
         tokenyTestOcekavane[30].atr.value = "EOF";
 
         tToken tokenObdrzeny;
         int i = 0;
-        printf("\n");
+        //printf("\n");
         while (i < POCET_TOKENU_TEST_6) {
             tokenObdrzeny = getNextToken();
-
-            if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) ||
-                (tokenObdrzeny.type != tokenyTestOcekavane[i].type))
-                testResult = 1;
+            if ((strcmp(tokenObdrzeny.atr.value, tokenyTestOcekavane[i].atr.value) != 0) || (tokenObdrzeny.type != tokenyTestOcekavane[i].type)) {
+				printf("OBDRZ: %d %s\n", tokenObdrzeny.type, tokenObdrzeny.atr.value);
+				printf("OCEKA: %d %s\n\n", tokenyTestOcekavane[i].type, tokenyTestOcekavane[i].atr.value);	
+            	testResult = 1;
+            }
             i++;
         }
 

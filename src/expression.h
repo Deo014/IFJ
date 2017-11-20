@@ -20,6 +20,8 @@
 #include "error_code.h"
 #include "string.h"
 #include "symtable.h"
+#include "instList.h"
+#include <string.h>
 
 /*Datový typ enum, popisující všechny možné znaky ve výrazu*/
 typedef enum {
