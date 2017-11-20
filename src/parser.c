@@ -280,6 +280,7 @@ int Hlavicka_fce() {
     if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK)return result;
+    ((tDataFunction *) node->Data)->returnDataType = aktualni_token.type;
     return ERROR_CODE_OK;
 }
 
@@ -306,6 +307,20 @@ int Parametry() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
+            //Podle typu parametru zapiseme do tabulky odpovidajici pismeno
+            switch (aktualni_token.type) {
+
+                case sInteger:
+                    //  stringAddChar(,'a');
+                    // ((tDataFunction *) node->Data)->parameters[((tDataFunction *) node->Data).]='a';
+                    break;
+                case sDouble:
+                    // ((tDataFunction *) node->Data)->parameters='d';
+                    break;
+                case sString:
+                    ///((tDataFunction *) node->Data)->parameters='s';
+                    break;
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
             if (result != ERROR_CODE_OK) return result;
