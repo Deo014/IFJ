@@ -11,53 +11,21 @@
  */
 #include <stdio.h>
 #include "parser.h"
-#include "symtable.h"
 #include "string.h"
 #include "instList.h"
 #include "scanner.h"
 #include <string.h> //doplnit funkce k nam
+#include "error_code.h"
 
-tSymtable *table;
-
+tSymtable table;
 tDLListInstruction *list;
 tToken aktualni_token;
-string attr;
-int tokenType;
-
-int Program();
-
-int Telo_programu();
-
-int Nekolik_deklaraci_fce();
-
-int Nekolik_definici_fce();
-
-int Deklarace_fce();
-
-int Definice_fce();
-
-int Deklarace_prom_a_prikazy();
-
-int Hlavicka_fce();
-
-int Telo_funkce();
-
-int Parametry();
-
-int Typ();
-
-int Dalsi_parametry();
-
-int Deklarace_promennych();
-
-int Prikazy();
-
-int Deklarace_promenne();
-
-int Prirazeni_hodnoty();
-
-int Deklarace_fci_definice_fci();
-
+tDataVariable var;
+tDataFunction funct;
+tDataFunction foundFunct;
+tBSTNodePtr node;
+//Pomocna promenna pro semantickou analyzu
+bool comingFromDefinition;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -102,358 +70,466 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
+//Funkce nacte dalsi token a aktualizuje jeho typ
+int dalsiToken() {
+    aktualni_token = getNextToken();
+    if (aktualni_token.type != sLexError) {
+        aktualni_token.type = adjustTokenType(aktualni_token);
+        return ERROR_CODE_OK;
+    } else
+        return ERROR_CODE_LEX;
+}
 
 int parse(tSymtable *symtable, tDLListInstruction *instrList) {
+    //inicializace tabulky symbolů a instrukčního listu
     int result;
-    table = symtable;
-    symTableInit(symtable);
+    table = *symtable;
     list = instrList;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //pokud hned prvni token je chybny
     if (aktualni_token.type == sLexError)
-        result = LEX_ERROR;
+        result = ERROR_CODE_LEX;
     else
+        //Prvni token je v poradku, volame prvni pravidlo
         result = Program();
     return result;
 }
 
 int Program() {
-//1<Program> -> <Nekolik_deklaraci_fce><Nekolik_definici_fce><Telo_programu>
+    //<Program> -> <Deklarace_funkci_definice_funkci><Telo_programu><EOF>
     int result;
     switch (aktualni_token.type) {
         case sDeclare:
         case sFuntion:
         case sScope:
             result = Deklarace_fci_definice_fci();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             result = Telo_programu();
-            if (result != SYNTAX_OK) return result;
-
-            // POZOR! Nezapomenout testovat, zda nasleduje konec souboru.
-            // Pri oponenuti teto veci by zde mohly pokracovat nejake nesmysly, ktere by se
-            // v ramci syntakticke analyzy jiz nezpracovavaly a program by se tvaril, ze je OK
-            if (aktualni_token.type != sEndOfFile) return SYNTAX_ERROR;
-
-            // nagenerujeme instrukci konce programu
-            //generateInstruction(list,)
-
-            return SYNTAX_OK;
-            break;
+            if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //posledni eol
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //eof
+            if (aktualni_token.type != sEndOfFile) return ERROR_CODE_SYN;
+            return ERROR_CODE_OK;
     }
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Deklarace_fci_definice_fci() {
     int result;
     switch (aktualni_token.type) {
+        //<Deklarace_funkci_definice_funkci> -> < Nekolik_Deklaraci_fce > <Deklarace_funkci_definice_funkci>
         case sDeclare:
-
             result = Nekolik_deklaraci_fce();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             result = Deklarace_fci_definice_fci();
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            return ERROR_CODE_OK;
+            //<Deklarace_funkci_definice_funkci> -> < Nekolik_Definici_fce > <Deklarace_funkci_definice_funkci>
         case sFuntion:
             result = Nekolik_definici_fce();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             result = Deklarace_fci_definice_fci();
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            return ERROR_CODE_OK;
+            //<Deklarace_funkci_definice_funkci> -> e
         case sScope:
-            return SYNTAX_OK;
+            return ERROR_CODE_OK;
 
     }
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Nekolik_deklaraci_fce() {
     int result;
-    switch (aktualni_token.type)
-        //Nekolik_deklaraci_fce-><Deklarace_fce><Nekolik_deklaraci_fce>
-    {
+    switch (aktualni_token.type) {
+        //<Nekolik_Deklaraci_fce> -> <Deklarace_fce> <Nekolik_Deklaraci_fce>
         case sDeclare:
-            // nejprve zavolame funkci Deklarace_fce
             result = Deklarace_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_deklaraci_fce
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
+            if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Nekolik_deklaraci_fce();
+//<Nekolik_Deklaraci_fce> -> e
         case sFuntion:
-            result = Nekolik_definici_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
         case sScope:
-            result = Telo_programu();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
+            return ERROR_CODE_OK;
     }
 
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Nekolik_definici_fce() {
     int result;
-    switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
-    {
+    switch (aktualni_token.type) {
+        //<Nekolik_Definici_fce> -> < Definice_fce><Nekolik_Definici_fce>
         case sFuntion:
-            // nejprve zavolame funkci Definice_fce
             result = Definice_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
+            if (result != ERROR_CODE_OK) return result;
             return Nekolik_definici_fce();
+            //<Nekolik_Definici_fce> -> e
+        case sDeclare:
+        case sScope:
+            return ERROR_CODE_OK;
     }
 
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Telo_programu() {
+    //<Telo_programu> -> <Scope><Deklarace_promennych_a _prikazy><End><Scope>
     int result;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
-    {
+    switch (aktualni_token.type) {
         case sScope:
-            // nejprve zavolame funkci Definice_fce
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Deklarace_prom_a_prikazy();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sEnd) return SYNTAX_ERROR;
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sScope) return SYNTAX_ERROR;
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
 
-            return SYNTAX_OK;
+            return ERROR_CODE_OK;
     }
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Deklarace_fce() {
+    //<Deklarace_fce> -> <Declare> <Hlavicka_fce><EOL>
     int result;
-
     switch (aktualni_token.type) {
-        // pravidlo <declrList> -> "ID" ";" <declrList>
         case sDeclare:
-
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-
-            if (aktualni_token.type != sFuntion) return SYNTAX_ERROR;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
+            comingFromDefinition = false;
             result = Hlavicka_fce();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            return ERROR_CODE_OK;
     }
-    // pokud aktualni token je jiny nez vyse uvedene, jedna se o syntaktickou chybu
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Definice_fce() {
+    //<Definice_fce> -> <Hlavicka_fce><EOL><Telo_fce><End><Function><EOL>
     int result;
     switch (aktualni_token.type) {
-
         case sFuntion:
+            comingFromDefinition = 1;
             result = Hlavicka_fce();
-            if (result != SYNTAX_OK) return result;
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sEndOfLine) return SYNTAX_ERROR;
+            if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Telo_funkce();
-            if (result != SYNTAX_OK) return result;
-            if (aktualni_token.type != sEnd) return SYNTAX_ERROR;
-            aktualni_token = getNextToken();
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sFuntion) return SYNTAX_ERROR;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            return ERROR_CODE_OK;
     }
-    // pokud aktualni token je jiny nez vyse uvedene, jedna se o syntaktickou chybu
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
+/*
+              ((tDataFunction*) node->Data).
+            var.dataType = aktualni_token.type;
+
+ */
 int Hlavicka_fce() {
+    //<Hlavicka_fce> -> <Function><Id><<(><Parametry><)><As><Typ>
     int result;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    if (aktualni_token.type != sIdentificator) return SYNTAX_ERROR;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    if (aktualni_token.type != sLeftPar) return SYNTAX_ERROR;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+    //Jedna se o definici nebo deklaraci?
+    if (comingFromDefinition == true) {
+        //Pokus o definici
+        //Podivame se jestli je fce vubec v tabulce
+        if ((symTableSearch(&table, aktualni_token.atr)) != NULL) {
+            //V tabulce uz je o teto funkci nejaky zaznam
+            node = symTableSearch(&table, aktualni_token.atr);
+            if (((tDataFunction *) node->Data)->defined == true) {
+                //Uz byla definovana, pokus o redefinici -> error
+                return ERROR_CODE_SEM;
+            } else {
+                //Byla deklarovana, nastavim ze uz bude i definovana
+                ((tDataFunction *) node->Data)->defined = true;
+            }
+        } else {
+            //Neni v tabulce, vlozim a reknu ze je od ted definovana a deklarovana
+            funct.declared = true;
+            funct.defined = true;
+            symTableInsertFunction(&table, aktualni_token.atr, &funct);
+            node = symTableSearch(&table, aktualni_token.atr);
+        }
+    } else {
+        //Pokus o deklaraci
+    }
+
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Parametry();
-    if (result != SYNTAX_OK) return result;
-
-    if (aktualni_token.type != sRightPar) return SYNTAX_ERROR;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    if (aktualni_token.type != sAs) return SYNTAX_ERROR;
-
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    if (result != ERROR_CODE_OK)return result;
+    if (aktualni_token.type != sRightPar)return ERROR_CODE_SYN;
+    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
+    if (aktualni_token.type != sAs)return ERROR_CODE_SYN;
+    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
-    if (result != SYNTAX_OK) return result;
-    return SYNTAX_OK;
+    if (result != ERROR_CODE_OK)return result;
+    ((tDataFunction *) node->Data)->returnDataType = aktualni_token.type;
+    return ERROR_CODE_OK;
 }
 
 int Typ() {
-    if (aktualni_token.type == tInteger || aktualni_token.type == tDouble || aktualni_token.type == tString)
-        return SYNTAX_OK;
-    else
-        return SYNTAX_ERROR;
+    switch (aktualni_token.type) {
+        //<Typ> -> <Integer>
+        //<Typ> -> <Double>
+        //<Typ> -> <String>
+        case tInteger:
+        case tDouble:
+        case tString:
+            return ERROR_CODE_OK;
+    }
+    return ERROR_CODE_SYN;
 }
 
 int Parametry() {
     int result;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    if (aktualni_token.type != sAs) return SYNTAX_ERROR;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    result = Typ();
-    if (result != SYNTAX_OK) return result;
+    switch (aktualni_token.type) {
+        //<Parametry> -> <Id><As><Typ><Dalsi_parametry>
+        case sIdentificator:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Typ();
+            if (result != ERROR_CODE_OK) return result;
+            //Podle typu parametru zapiseme do tabulky odpovidajici pismeno
+            switch (aktualni_token.type) {
 
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
-    result = Dalsi_parametry();
-    if (result != SYNTAX_OK) return result;
-    return result;
+                case sInteger:
+                    //  stringAddChar(,'a');
+                    // ((tDataFunction *) node->Data)->parameters[((tDataFunction *) node->Data).]='a';
+                    break;
+                case sDouble:
+                    // ((tDataFunction *) node->Data)->parameters='d';
+                    break;
+                case sString:
+                    ///((tDataFunction *) node->Data)->parameters='s';
+                    break;
+            }
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Dalsi_parametry();
+            if (result != ERROR_CODE_OK) return result;
+            return ERROR_CODE_OK;
+            //<Parametry> -> e
+        case sRightPar:
+            return ERROR_CODE_OK;
+
+    }
+    return ERROR_CODE_SYN;
 }
 
 int Dalsi_parametry() {
     int result;
     switch (aktualni_token.type) {
+        //<Dalsi_parametry> -> <,><Parametry><Dalsi_parametry>
         case sComma:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Parametry();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             return Dalsi_parametry();
+            //<Dalsi_parametry> -> e
+        case sRightPar:
+            return ERROR_CODE_OK;
     }
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Telo_funkce() {
+    //<Telo_fce> -> <Deklarace_promennych_a _prikazy>
     int result;
-    aktualni_token = getNextToken();
-    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    result = Deklarace_prom_a_prikazy();
+    if (result != ERROR_CODE_OK) return result;
+    return ERROR_CODE_OK;
+}
 
+int Deklarace_promennych() {
+    int result;
     switch (aktualni_token.type) {
+        //< Deklarace _promennych> ->< Deklarace_promenne> <Deklarace_promennych>
         case sDim:
+            result = Deklarace_promenne();
+            if (result != ERROR_CODE_OK) return result;
+            return Deklarace_promennych();
+            //< Deklarace _promennych> -> e
+        case sScope:
+        case sEnd:
+        case sIdentificator:
+        case sEndOfLine:
+        case sPrint:
+        case sInput:
+        case sIf:
+        case sDo:
+        case sReturn:
+            return ERROR_CODE_OK;
+    }
+
+    return ERROR_CODE_SYN;
+}
+
+int Prikazy() {
+    int result;
+    switch (aktualni_token.type) {
+        //<Prikazy> -> <Prikaz><Prikazy>
         case sPrint:
         case sInput:
         case sIf:
         case sDo:
         case sIdentificator:
         case sReturn:
-            result = Deklarace_promennych();
-            if (result != SYNTAX_OK) return result;
-            result = Prikazy();
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
-
-    }
-    return SYNTAX_ERROR;
-}
-
-int Deklarace_promennych() {
-    int result;
-    switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
-    {
+            result = Prikaz();
+            if (result != ERROR_CODE_OK) return result;
+            return Prikazy();
+            //<Prikazy> -> e
+        case sElse:
+        case sLoop:
+        case sEnd:
         case sDim:
-            // nejprve zavolame funkci Definice_fce
-            result = Deklarace_promenne();
-            // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-            if (result != SYNTAX_OK) return result;
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
-            return Deklarace_promennych();
         case sScope:
-            return SYNTAX_OK;
+            return ERROR_CODE_OK;
     }
 
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
-int Prikazy() {
+int Prikaz() {
     int result = 0;
-
+    switch (aktualni_token.type) {
+        //<Prikaz> -> <Print><Vyraz><;><Dalsi_vyrazy><EOL>
+        case sPrint:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
+            result = Dalsi_vyrazy();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+            //<Prikaz> -> <Input><Id><EOL>
+        case sInput:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+            //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
+        case sIf:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+            //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
+        case sDo:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Prikazy();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+            //<Prikaz> -> <Id><=><Vyraz><EOL>
+        case sIdentificator:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+            //<Prikaz> -> <Return><Vyraz><EOL>
+        case sReturn:
+            //TODO Semantikou vyresit aby nemohl byt v hlavnim tele
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            break;
+    }
     return result;
+
 }
 
 int Deklarace_promenne() {
+    //<Deklarace_promenne> -> <Dim><Id><As><Typ><Prirazeni_hodnoty>
     int result;
-    switch (aktualni_token.type)
-        //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
-    {
+    switch (aktualni_token.type) {
         case sDim:
-            // pokud probehlo vse v poradku, hlasime vysledek, ktery dostaneme od funkce Nekolik_definici_fce
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sIdentificator) return SYNTAX_ERROR;
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-            if (aktualni_token.type != sAs) return SYNTAX_ERROR;
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
+            if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+            //Nebyla, vlozime ju
+            symTableInsertVariable(&table, aktualni_token.atr, &var);
+
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
-            if (result != SYNTAX_OK) return result;
-
-            aktualni_token = getNextToken();
-            //Uprava tokenu klicoveho slova na konkretni klicove slovo
-            aktualni_token.type = adjustTokenType(aktualni_token);
-
-            switch (aktualni_token.type)
-                //Nekolik_definici_fce-><Definice_fce><Nekolik_definici_fce>
-            {
+            if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            switch (aktualni_token.type) {
                 case sAssignment:
-                    // nejprve zavolame funkci Definice_fce
                     result = Prirazeni_hodnoty();
-                    // pokud v ramci teto funkce nastala chyba, vracime jeji kod a nepokracujeme dal
-                    if (result != SYNTAX_OK) return result;
+                    if (result != ERROR_CODE_OK) return result;
                     break;
                 case sEndOfLine:
-                    aktualni_token = getNextToken();
-                    //Uprava tokenu klicoveho slova na konkretni klicove slovo
-                    aktualni_token.type = adjustTokenType(aktualni_token);
+                    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             }
-            return SYNTAX_OK;
-
+            return ERROR_CODE_OK;
     }
 
-    return SYNTAX_ERROR;
-
-    return result;
+    return ERROR_CODE_SYN;
 }
 
 int Deklarace_prom_a_prikazy() {
     int result;
     switch (aktualni_token.type) {
+        //< Deklarace_promennych_a _prikazy >-> <Prikazy><Deklarace_promennych_a _prikazy>
         case sPrint:
         case sInput:
         case sIf:
@@ -461,24 +537,69 @@ int Deklarace_prom_a_prikazy() {
         case sIdentificator:
         case sReturn:
             result = Prikazy();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             result = Deklarace_prom_a_prikazy();
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            return ERROR_CODE_OK;
+            //< Deklarace_promennych_a _prikazy> -> <Deklarace_promennych> <Deklarace_promennych_a _prikazy>
         case sDim:
             result = Deklarace_promennych();
-            if (result != SYNTAX_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             result = Deklarace_prom_a_prikazy();
-            if (result != SYNTAX_OK) return result;
-            return SYNTAX_OK;
+            if (result != ERROR_CODE_OK) return result;
+            return ERROR_CODE_OK;
+            //<Deklarace_promennych_a _prikazy> -> e
         case sEnd:
-            return SYNTAX_OK;
+        case sScope:
+            return ERROR_CODE_OK;
 
     }
-    return SYNTAX_ERROR;
+    return ERROR_CODE_SYN;
 }
 
 int Prirazeni_hodnoty() {
+    int result;
+    switch (aktualni_token.type) {
+        //<Prirazeni_hodnoty> -><=><Vyraz>
+        case sAssignment:
+            result = Vyraz();
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            return result;
+            //<Prirazeni_hodnoty> -> e
+        case sEndOfLine:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            return ERROR_CODE_OK;
+
+    }
+    return ERROR_CODE_SYN;
+}
+
+
+int Dalsi_vyrazy() {
+    int result;
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    switch (aktualni_token.type) {
+        //<Dalsi_vyrazy> -> <Vyraz> <;><Dalsi_vyrazy>
+        case sIdentificator:
+        case sInteger:
+        case sDouble:
+        case sString:
+            result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
+            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
+            result = Dalsi_vyrazy();
+            if (result != ERROR_CODE_OK) return result;
+            //<Dalsi_vyrazy> -> e
+        case sEndOfLine:
+            return ERROR_CODE_OK;
+    }
+    return ERROR_CODE_SYN;
+}
+
+int Vyraz() {
+    //simulace vyrazu jednoho cisla
+    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     int result = 0;
     return result;
 }

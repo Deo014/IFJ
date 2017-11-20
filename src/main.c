@@ -66,6 +66,13 @@ int main(int argc, char **argv)
     /* testovaci kod konec*/
 
 
+    symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
+    symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
+    symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
+    symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
+
+
+
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
 
@@ -75,7 +82,7 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
 
 

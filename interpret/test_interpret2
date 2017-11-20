@@ -1,10 +1,27 @@
-.IFJcode17          # ins   op1   op2   op3   CELKEM
-DEFVAR GF@a         # 1     4                      5
-DEFVAR GF@b         # 1     4                      5
-DEFVAR GF@c         # 1     4                      5
-MOVE GF@a int@10    # 1     4     1                6
-MOVE GF@b int@5     # 1     4     1                6
-ADD GF@c GF@a GF@b  # 4     4     4     4         16
-WRITE GF@c          # 4     4                      8
-                    # ==============================
+#/' Program 2: Scitani '/
+#scope 'Hlavni telo programu
+#Dim a As Integer
+#Dim b As Integer
+#Dim c As Integer
+#a = 10
+#b = 5
+#c = a + b
+#Print  c ; 
+#END SCOPE
+
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope         # ins   op1   op2   op3   CELKEM
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a         # 1     4                      5
+DEFVAR LF@b         # 1     4                      5
+DEFVAR LF@c         # 1     4                      5
+MOVE LF@a int@10    # 1     4     1                6
+MOVE LF@b int@5     # 1     4     1                6
+ADD LF@c LF@a LF@b  # 4     4     4     4         16
+WRITE LF@c          # 4     4                      8
+POPFRAME
+LABEL $$endscope    # ==============================
                     # Ceny instrukcí pro rychlostní soutěž: SUMA  51
