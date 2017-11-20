@@ -40,36 +40,36 @@ int main(int argc, char **argv)
 
 
     /* testovaci kod zacatek*/
-    tToken token;
-    while((token = getNextToken()).type != sEndOfFile) {
-        printf("%d %s\n", token.type, token.atr.value);
-    }
-    printf("%d %s\n", token.type, token.atr.value);
-    /*
-    tToken token;
-    while ( (token = getNextToken()).type != sLexError ) {
-        if (token.type == sIdentificator) {
-            symTableInsertVariable(&glSymTable, token.atr, createDataVariable(token.atr, sInteger) );
-            Print_tree(glSymTable.root);
-        }
-    }
+    //                        funkce
+    string ret;
+    stringInit(&ret);
+    stringAddChar(&ret, 'a');
 
-//    symTableInsertFunction(&glSymTable, "klic1", createDataFunction("becko",sDouble, false, false));
+    symTableInsertFunction(&glSymTable,ret); // zalozeni nove polozku pro funkci v symtable
 
-//    symtableInsert(&glSymTable, "klic3", createDataVariable("ccko", sInteger));
+    tBSTNodePtr node = symTableSearch(&glSymTable, ret); // vyhledani ukazatele na polozku
+    tDataFunction* data = (tDataFunction*)(node->Data);
 
-    //Print_tree(glSymTable.root);
-    //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
-    //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
+    stringAddChar(&(data->parameters), 'c'); // pripsani znaku do parametru
+    data->returnDataType = sDouble; // navratovy typ funkce je double
 
-*/
+    //                        promenna
+    string ret2;
+    stringInit(&ret2);
+    stringAddChar(&ret2, 'b');
+
+    symTableInsertVariable(&glSymTable, ret2); // zalozeni nove polozku pro promenno v symtable
+
+    tBSTNodePtr node2 = symTableSearch(&glSymTable, ret2); // vyhledani ukazatele na polozku
+    tDataVariable* data2 = (tDataVariable*)(node2->Data);
+
+    data2->dataType = sInteger; // datovy typ promenne je integer
+
+
+    Print_tree(glSymTable.root);
+
     /* testovaci kod konec*/
 
-
-    symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
-    symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
-    symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
-    symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
 
 
 
