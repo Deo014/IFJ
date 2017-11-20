@@ -71,8 +71,6 @@ int main(int argc, char **argv)
     /* testovaci kod konec*/
 
 
-
-
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
 

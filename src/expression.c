@@ -10,14 +10,14 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
-#include "scanner.h"
-#include "stack.h"
+#include "string.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
 
 
 extern tSymtable glSymTable;
+extern tDLListInstruction instList;
 
 int operation;
 int operation_type_global;  //Typ výsledné proměnné
@@ -79,6 +79,10 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
             //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
             if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
                 return ERROR_CODE_OK;
+            }
+
+            if(strcmp(next_exp_token.atr.value,"then") != 0  && next_exp_token.type == sKeyWord){
+                return ERROR_CODE_LEX;
             }
 
             //Zjistíme se známénko z tabulky
@@ -168,7 +172,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                 tBSTNodePtr element_id = symTableSearch(&glSymTable,new_element->value);
 
                 if(element_id != NULL) {
-                    //Pokud se jedná o proměnnou nebo pevnou hodnotu
+                    //Pokud se jedná o proměnnou
                     if (element_id->nodeDataType == ndtVariable) {
                         tDataVariable *variable = ((tDataVariable *) (element_id->Data));
                         if(!exp_function) {
@@ -212,9 +216,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                             exp_function = true;
                             params = function->parameters;
 
-                            while (params[param_length] != '\0') {
-                                param_length++;
-                            }
+                            param_length = (int)strlen(function->parameters);
                         }
 
 
@@ -262,7 +264,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-
+                //generateInstruction(&instList,I_MUL,)
                 operation = eMultiply;
                 break;
                 //Řeší redukci dělení
@@ -287,14 +289,15 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
+                //generateInstruction(&instList,I_ADD,(string*)((Exp_element*)(expression_stack->top_of_stack->left->left->value))->value,((Exp_element*)(expression_stack->top_of_stack->value))->value,((Exp_element*)(expression_stack->top_of_stack->left->left->value))->value);
                 operation = ePlus;
                 break;
 
                 //Řeší redukci odčítání
             case eMinus:
-
                 if((error_type = checkBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
                     return error_type;
+                //generateInstruction(&instList,I_SUB,)
                 operation = eMinus;
                 break;
 
@@ -638,6 +641,9 @@ int convertTokenToIndex(int token_num){
             return eDollar;
 
         case sEndOfLine:
+            return eDollar;
+
+        case sSemicolon:
             return eDollar;
 
         case sComma:
