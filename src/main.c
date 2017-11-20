@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
 
 
