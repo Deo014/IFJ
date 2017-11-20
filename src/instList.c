@@ -35,6 +35,7 @@ void printInstructionList(tDLListInstruction *L) {
         DLCopy(L, &currentInst);
         // vypsani typu instrukce
         switch (currentInst.instType) {
+            case I_HEADER:          printf(".IFJcode17\n");        break;
             case I_MOVE:            printf("MOVE %s %s\n",         (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_CREATEFRAME:     printf("CREATEFRAME\n");       break;
             case I_PUSHFRAME:       printf("PUSHFRAME\n");         break;
@@ -134,6 +135,7 @@ void DLInitList (tDLListInstruction *L) {
     L->First = NULL;
     L->Last = NULL;
     L->Act = NULL;
+    generateInstruction(L, I_HEADER, NULL, NULL, NULL);
 }
 
 void DLDisposeList (tDLListInstruction *L) {

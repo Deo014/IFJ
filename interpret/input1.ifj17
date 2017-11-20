@@ -1,0 +1,5 @@
+Scope 'Hlavni telo programu
+Dim a As Integer
+a = 42
+Print  a ; 
+END SCOPE

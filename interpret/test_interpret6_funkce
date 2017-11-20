@@ -12,10 +12,9 @@
 #End Scope
 
 .IFJcode17
+DEFVAR GF@tmp
 JUMP $$scope
-
-#secti(a, b, c)
-LABEL $secti
+LABEL $function_secti
 PUSHFRAME
 DEFVAR LF@%retval
 DEFVAR LF@result
@@ -24,10 +23,12 @@ ADD LF@result LF@result LF@c
 MOVE LF@%retval LF@result
 POPFRAME
 RETURN
+LABEL $endfunction_secti
 
 LABEL $$scope
-#vysl = secti(4, 5, 6)
-DEFVAR GF@vysl
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@vysl
 CREATEFRAME
 DEFVAR TF@a
 DEFVAR TF@b
@@ -35,10 +36,10 @@ DEFVAR TF@c
 MOVE TF@a int@4
 MOVE TF@b int@5
 MOVE TF@c int@6
-CALL $secti
-MOVE GF@vysl TF@%retval
-
+CALL $function_secti
+MOVE LF@vysl TF@%retval
 WRITE string@vysledek\032=\032
-WRITE GF@vysl
+WRITE LF@vysl
 WRITE string@\010
+POPFRAME
 LABEL $$endscope

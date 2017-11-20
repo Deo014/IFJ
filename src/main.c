@@ -18,7 +18,7 @@
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
-#include "parser.h"
+#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -26,7 +26,6 @@ tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukc
 
 int main(int argc, char **argv)
 {
-    freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -39,30 +38,43 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-    /* tu kukaj ako jede symtable */
-    string jedna;
-    stringInit(&jedna);
-    stringAddChar(&jedna, 'K');
 
-    string dva;
-    stringInit(&dva);
-    stringAddChar(&dva, 'L');
+    /* testovaci kod zacatek*/
+    tToken token;
+    while((token = getNextToken()).type != sEndOfFile) {
+        printf("%d %s\n", token.type, token.atr.value);
+    }
+    printf("%d %s\n", token.type, token.atr.value);
+    /*
+    tToken token;
+    while ( (token = getNextToken()).type != sLexError ) {
+        if (token.type == sIdentificator) {
+            symTableInsertVariable(&glSymTable, token.atr, createDataVariable(token.atr, sInteger) );
+            Print_tree(glSymTable.root);
+        }
+    }
 
-    string tri;
-    stringInit(&tri);
-    stringAddChar(&tri, 'A');
+//    symTableInsertFunction(&glSymTable, "klic1", createDataFunction("becko",sDouble, false, false));
+
+//    symtableInsert(&glSymTable, "klic3", createDataVariable("ccko", sInteger));
+
+    //Print_tree(glSymTable.root);
+    //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
+    //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
+
+*/
+    /* testovaci kod konec*/
 
 
-    symTableInsertFunction(&glSymTable, jedna, createDataFunction(sInteger, true, false, "ssid" )); /* prvni parametr misto sInteger muzem zmenit na 'i', stejne jak to je v poslednim parametru */
-    symTableInsertFunction(&glSymTable, dva, createDataFunction(sString, true, false, "sd" ));
-    symTableInsertVariable(&glSymTable, tri, createDataVariable(sDouble));
+    symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
+    symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
+    symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
+    symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
 
-    Print_tree(glSymTable.root);
-    /* tu prestan kukat */
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    result_code = parse(&glSymTable, &instList);
+    //result_code = parse();
 
 
     /*----------vypsani instrukcni pasky na stdout----------*/
@@ -70,7 +82,7 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
 
 

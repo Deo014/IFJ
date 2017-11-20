@@ -1,4 +1,4 @@
-#/' Program 1: Vypocet faktorialu (iterativne) '/
+#/' Program 3: Vypocet faktorialu (iterativne) '/
 #scope 'Hlavni telo programu
 #Dim a As Integer
 #DIM vysl AS INTEGER
@@ -17,33 +17,32 @@
 #END SCOPE
 
 .IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
 LABEL $$scope
-DEFVAR GF@a
-DEFVAR GF@vysl
-MOVE GF@a int@10
-DEFVAR GF@s
-MOVE GF@s string@Zadejte\032cislo\032pro\032vypocet\032faktorialu!\010
-WRITE GF@s
-READ GF@a int
-DEFVAR GF@cmp
-GT GF@cmp GF@a int@0
-JUMPIFEQ $true GF@cmp bool@true
-JUMPIFEQ $true GF@a int@0
-LABEL $false
-MOVE GF@s string@Faktorial\032nelze\032spocitat\010
-WRITE GF@s
-JUMP $$endscope
-LABEL $true
-MOVE GF@vysl int@1
-LABEL $while
-JUMPIFEQ $endwhile GF@a int@0
-MUL GF@vysl GF@vysl GF@a
-SUB GF@a GF@a int@1
-JUMP $while
-LABEL $endwhile
-MOVE GF@s string@Vysledek\032je\032
-WRITE GF@s
-WRITE GF@vysl
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a
+DEFVAR LF@vysl
+WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu!\010
+READ LF@a int
+LABEL $if
+LT GF@tmp LF@a int@0
+JUMPIFEQ $else GF@tmp bool@false
+WRITE string@Faktorial\032nelze\032spocitat\010
+JUMP $endif
+LABEL $else
+MOVE LF@vysl int@1
+LABEL $dowhile
+JUMPIFEQ $loop LF@a int@0
+MUL LF@vysl LF@vysl LF@a
+SUB LF@a LF@a int@1
+JUMP $dowhile
+LABEL $loop
+WRITE string@Vysledek\032je\032
+WRITE LF@vysl
 WRITE string@\010
+LABEL $endif
+POPFRAME
 LABEL $$endscope
 
