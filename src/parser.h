@@ -82,4 +82,6 @@ int dalsiToken();
 int Dalsi_vyrazy();
 
 int Vyraz();
+
+void checkDefinitionsOfDeclarations(tBSTNodePtr root);
 #endif //IFJ_PARSER_H

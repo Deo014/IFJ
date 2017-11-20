@@ -10,6 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include "parser.h"
 #include "string.h"
 #include "instList.h"
@@ -17,15 +18,17 @@
 #include <string.h> //doplnit funkce k nam
 #include "error_code.h"
 
-tSymtable table;
+tSymtable *GlTable;
+tSymtable *table;
 tDLListInstruction *list;
 tToken aktualni_token;
-tDataVariable var;
-tDataFunction funct;
-tDataFunction foundFunct;
 tBSTNodePtr node;
+string funtionName;
+tBSTNodePtr tmpNode;
 //Pomocna promenna pro semantickou analyzu
 bool comingFromDefinition;
+bool inScope;
+int allDeclaredAreDefined = ERROR_CODE_OK;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -70,6 +73,19 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
+//Funkce projde tabulku a zkontroluje jestli byly vsechny deklarovane funkce i definovane
+void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) { /* vykresli sktrukturu binarniho stromu */
+    if (TempTree != NULL) {
+
+        checkDefinitionsOfDeclarations(TempTree->RPtr);
+        if (TempTree->nodeDataType == ndtFunction) {
+            if (!((((tDataFunction *) TempTree->Data)->defined) && (((tDataFunction *) TempTree->Data)->declared)))
+                allDeclaredAreDefined = ERROR_CODE_SEM;
+        }
+        checkDefinitionsOfDeclarations(TempTree->LPtr);
+    }
+}
+
 //Funkce nacte dalsi token a aktualizuje jeho typ
 int dalsiToken() {
     aktualni_token = getNextToken();
@@ -82,8 +98,11 @@ int dalsiToken() {
 
 int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     //inicializace tabulky symbolů a instrukčního listu
+
     int result;
-    table = *symtable;
+
+    GlTable = symtable;
+    table = symtable;
     list = instrList;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //pokud hned prvni token je chybny
@@ -92,6 +111,10 @@ int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     else
         //Prvni token je v poradku, volame prvni pravidlo
         result = Program();
+    //Nakonec projedeme globalni tabulku, a podivame se jestli byly vsechny deklarovane funkce i definovany
+    checkDefinitionsOfDeclarations(GlTable->root);
+    if ((allDeclaredAreDefined) != ERROR_CODE_OK)
+        return ERROR_CODE_SEM;
     return result;
 }
 
@@ -244,13 +267,14 @@ int Hlavicka_fce() {
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+    funtionName = aktualni_token.atr;
     //Jedna se o definici nebo deklaraci?
     if (comingFromDefinition == true) {
         //Pokus o definici
-        //Podivame se jestli je fce vubec v tabulce
-        if ((symTableSearch(&table, aktualni_token.atr)) != NULL) {
+        //Podivame se jestli je fcde vubec v tabulce
+        if ((symTableSearch(table, aktualni_token.atr)) != NULL) {
             //V tabulce uz je o teto funkci nejaky zaznam
-            node = symTableSearch(&table, aktualni_token.atr);
+            node = symTableSearch(table, aktualni_token.atr);
             if (((tDataFunction *) node->Data)->defined == true) {
                 //Uz byla definovana, pokus o redefinici -> error
                 return ERROR_CODE_SEM;
@@ -260,14 +284,26 @@ int Hlavicka_fce() {
             }
         } else {
             //Neni v tabulce, vlozim a reknu ze je od ted definovana a deklarovana
-            funct.declared = true;
-            funct.defined = true;
-            symTableInsertFunction(&table, aktualni_token.atr, &funct);
-            node = symTableSearch(&table, aktualni_token.atr);
+            symTableInsertFunction(table, aktualni_token.atr);
+            node = symTableSearch(table, aktualni_token.atr);
+            ((tDataFunction *) node->Data)->declared = true;
+            ((tDataFunction *) node->Data)->defined = true;
+
         }
     } else {
-        //Pokus o deklaraci
+        //Comingfromdefinition==0, takze jsem tu z deklarace
+        //Neco o funkci tam je, coz u deklarace nelze
+        if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+        else {
+            //Jdu z deklarace a fce je deklarovana poprve
+            symTableInsertFunction(table, aktualni_token.atr);
+            node = symTableSearch(table, aktualni_token.atr);
+            ((tDataFunction *) node->Data)->declared = true;
+            ((tDataFunction *) node->Data)->defined = false;
+        }
+
     }
+
 
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
@@ -302,6 +338,9 @@ int Parametry() {
     switch (aktualni_token.type) {
         //<Parametry> -> <Id><As><Typ><Dalsi_parametry>
         case sIdentificator:
+            if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+            //Nebyla, vlozime ju
+            symTableInsertVariable(table, aktualni_token.atr);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -351,10 +390,15 @@ int Dalsi_parametry() {
 
 int Telo_funkce() {
     //<Telo_fce> -> <Deklarace_promennych_a _prikazy>
+
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    table = (tSymtable *) malloc(sizeof(tSymtable));
+    symTableInit(table);
     result = Deklarace_prom_a_prikazy();
     if (result != ERROR_CODE_OK) return result;
+    free(table);
+    table = GlTable;
     return ERROR_CODE_OK;
 }
 
@@ -481,7 +525,9 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
-            //TODO Semantikou vyresit aby nemohl byt v hlavnim tele
+            //V hlavnim tele scope nemuze return byt
+            if (inScope == true)
+                return ERROR_CODE_SEM;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
@@ -501,15 +547,15 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
-            if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+            if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
             //Nebyla, vlozime ju
-            symTableInsertVariable(&table, aktualni_token.atr, &var);
-
+            symTableInsertVariable(table, aktualni_token.atr);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
+            ((tDataVariable *) node->Data)->dataType = aktualni_token.type;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             switch (aktualni_token.type) {
                 case sAssignment:
