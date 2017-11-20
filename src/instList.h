@@ -15,6 +15,7 @@
 
 typedef enum {
     // prace s ramci, volani funkci
+    I_HEADER,
     I_MOVE,             //  <var> <symb>
     I_CREATEFRAME,
     I_PUSHFRAME,

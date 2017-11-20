@@ -55,23 +55,26 @@ RETURN
 LABEL $endfunction_factorial
 
 LABEL $$scope
-DEFVAR GF@a
-DEFVAR GF@vysl
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a
+DEFVAR LF@vysl
 WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
-READ GF@a int
+READ LF@a int
 LABEL $if
-LT GF@tmp GF@a int@0
+LT GF@tmp LF@a int@0
 JUMPIFEQ $else GF@tmp bool@false
 WRITE string@Faktorial\032nelze\032spocitat\010
 JUMP $endif
 LABEL $else
 CREATEFRAME
 DEFVAR TF@n
-MOVE TF@n GF@a
+MOVE TF@n LF@a
 CALL $function_factorial
-MOVE GF@vysl TF@%retval
+MOVE LF@vysl TF@%retval
 WRITE string@Vysledek\032je
-WRITE GF@vysl
+WRITE LF@vysl
 WRITE string@\010
 LABEL $endif
+POPFRAME
 LABEL $$endscope
