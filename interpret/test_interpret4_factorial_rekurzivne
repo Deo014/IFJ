@@ -1,0 +1,80 @@
+#/' Program 4: Vypocet faktorialu (rekurzivne) '/
+#Declare Function factorial (n As Integer) As Integer
+#Function factorial (n As Integer) As Integer
+#Dim temp_result As Integer
+#Dim decremented_n As Integer
+#Dim result As Integer
+#If n < 2 Then
+#result = 1
+#Else
+#decremented_n = n - 1
+#temp_result = factorial(decremented_n)
+#result = n * temp_result
+#End If
+#Return result
+#End Function
+#Scope 'Hlavni telo programu
+#Dim a As Integer
+#Dim vysl As Integer
+#Print !"Zadejte cislo pro vypocet faktorialu";
+#Input a
+#If a < 0 Then
+#Print !"\nFaktorial nelze spocitat\n";
+#Else
+#vysl = factorial(a)
+#Print !"\nVysledek je:" ; vysl ; !"\n";
+#End If
+#End Scope
+
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $function_factorial
+PUSHFRAME
+DEFVAR LF@%retval
+DEFVAR LF@temp_result
+DEFVAR LF@decremented_n
+DEFVAR LF@result
+LABEL $if2
+LT GF@tmp LF@n int@2
+JUMPIFEQ $else2 GF@tmp bool@false
+MOVE LF@result int@1
+JUMP $endif2
+LABEL $else2
+SUB LF@decremented_n LF@n int@1
+CREATEFRAME
+DEFVAR TF@n
+MOVE TF@n LF@decremented_n
+CALL $function_factorial
+MOVE LF@temp_result TF@%retval
+MUL LF@result LF@n LF@temp_result
+LABEL $endif2
+MOVE LF@%retval LF@result
+POPFRAME
+RETURN
+LABEL $endfunction_factorial
+
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a
+DEFVAR LF@vysl
+WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
+READ LF@a int
+LABEL $if
+LT GF@tmp LF@a int@0
+JUMPIFEQ $else GF@tmp bool@false
+WRITE string@Faktorial\032nelze\032spocitat\010
+JUMP $endif
+LABEL $else
+CREATEFRAME
+DEFVAR TF@n
+MOVE TF@n LF@a
+CALL $function_factorial
+MOVE LF@vysl TF@%retval
+WRITE string@Vysledek\032je
+WRITE LF@vysl
+WRITE string@\010
+LABEL $endif
+POPFRAME
+LABEL $$endscope

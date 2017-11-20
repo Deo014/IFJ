@@ -1,0 +1,9 @@
+Scope
+Dim a As Integer
+Dim b As Integer
+Dim c As Integer
+a = 10
+b = 5
+c = a + b
+Print  c ; 
+END SCOPE

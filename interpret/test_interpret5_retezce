@@ -1,0 +1,78 @@
+#/' Program 7: Prace s retezci a vestavenymi funkcemi '/
+#Scope 'Hlavni telo programu
+#Dim s1 As String
+#Dim s2 As String
+#Dim s1len As Integer
+#s1 = !"Toto je nejaky text"
+#s2 = s1 + !", ktery jeste trochu obohatime"
+#Print s1; !"\n"; s2; !"\n";
+#s1len = Length(s1)
+#s1len = s1len - 4 + 1
+#s1 = SubStr(s2, s1len, 4)
+#Print !"4 znaky od "; s1len; !". znaku v \""; s2; !"\":"; s1; #!"\n";
+#Print !"Zadejte serazenou posloupnost vsech malych pismen #a-h, ";
+#Print !"pricemz se pismena nesmeji v posloupnosti opakovat";
+#Input s1
+#Do While (s1 <> !"abcdefgh")
+#Print !"\nSpatne zadana posloupnost, zkuste znovu";
+#Input s1
+#Loop
+#End Scope
+
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@s1
+DEFVAR LF@s2
+DEFVAR LF@s1len
+MOVE LF@s1 string@Toto\032je\032nejaky\032text
+CONCAT LF@s2 LF@s1 string@,\032jeste\032obohatime
+WRITE LF@s1
+WRITE string@\010
+WRITE LF@s2
+WRITE string@\010
+STRLEN LF@s1len LF@s1
+ADD LF@s1len LF@s1len int@3
+
+LABEL $substr
+CREATEFRAME
+MOVE GF@tmp string@\00
+DEFVAR TF@substr_char
+DEFVAR TF@substr_string
+DEFVAR TF@substr_index
+DEFVAR TF@substr_shift
+MOVE TF@substr_string LF@s2
+MOVE TF@substr_index LF@s1len
+MOVE TF@substr_shift int@4
+PUSHFRAME
+LABEL $do_substr
+GETCHAR LF@substr_char LF@substr_string LF@substr_index
+ADD LF@substr_index LF@substr_index int@1
+CONCAT GF@tmp GF@tmp LF@substr_char
+SUB LF@substr_shift LF@substr_shift int@1
+JUMPIFNEQ $do_substr LF@substr_shift int@0
+POPFRAME
+LABEL $endsubstr
+MOVE LF@s1 GF@tmp
+
+WRITE string@4\032znaky\032od
+WRITE LF@s1len
+WRITE string@\046\032znaku\032v\032"
+WRITE LF@s2
+WRITE string@":
+WRITE LF@s1
+WRITE string@\010
+WRITE string@Zadejte\032serazenou\032posloupnost\032vsech\032malych\032pismen\032a-h,
+WRITE string@pricemz\032se\032pisemna\032nesmeji\032v\032posloupnosti\032opakovat:
+READ LF@s1 string
+LABEL $dowhile
+JUMPIFEQ $loop LF@s1 string@abcdefgh
+WRITE string@\032Spatne\032zadana\032posloupnost,\032zkuste\032znovu:
+READ LF@s1 string
+JUMP $dowhile
+LABEL $loop
+POPFRAME
+LABEL $$endscope

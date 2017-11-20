@@ -18,6 +18,7 @@
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
+#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -37,80 +38,38 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-    string str;
-    stringInit(&str);
-    stringAddChar(&str, 's');
 
-    string inte;
-    stringInit(&inte);
-    stringAddChar(&inte, 'i');
-
-    string dou;
-    stringInit(&dou);
-    stringAddChar(&dou, 'd');
-    createDataFunction(sInteger,false,true,"iid");
-    string fun;
-    stringInit(&fun);
-    stringAddChar(&fun, 'f');
     /* testovaci kod zacatek*/
-/*
-    tToken token;
-    while ( (token = getNextToken()).type != sLexError ) {
-        if (token.type == sIdentificator) {
-            symTableInsertVariable(&glSymTable, token.atr, createDataVariable(token.atr, sInteger) );
-            Print_tree(glSymTable.root);
-        }
-    }
+    //                        funkce
+    string ret;
+    stringInit(&ret);
+    stringAddChar(&ret, 'a');
 
-//    symTableInsertFunction(&glSymTable, "klic1", createDataFunction("becko",sDouble, false, false));
+    symTableInsertFunction(&glSymTable,ret); // zalozeni nove polozku pro funkci v symtable
 
-//    symtableInsert(&glSymTable, "klic3", createDataVariable("ccko", sInteger));
+    tBSTNodePtr node = symTableSearch(&glSymTable, ret); // vyhledani ukazatele na polozku
+    tDataFunction* data = (tDataFunction*)(node->Data);
 
-    //Print_tree(glSymTable.root);
-    //tBSTNodePtr node = symTableSearch(&glSymTable, "klic");
-    //printf("%s %d %d\n", ((tDataFunction*)node->Data)->name, ((tDataFunction*)node->Data)->return_data_type, ((tDataFunction*)node->Data)->declared);
+    stringAddChar(&(data->parameters), 'c'); // pripsani znaku do parametru
+    data->returnDataType = sDouble; // navratovy typ funkce je double
 
-*/
+    //                        promenna
+    string ret2;
+    stringInit(&ret2);
+    stringAddChar(&ret2, 'b');
+
+    symTableInsertVariable(&glSymTable, ret2); // zalozeni nove polozku pro promenno v symtable
+
+    tBSTNodePtr node2 = symTableSearch(&glSymTable, ret2); // vyhledani ukazatele na polozku
+    tDataVariable* data2 = (tDataVariable*)(node2->Data);
+
+    data2->dataType = sInteger; // datovy typ promenne je integer
+
+
+    Print_tree(glSymTable.root);
+
     /* testovaci kod konec*/
 
-    symTableInsertFunction(&glSymTable,fun,createDataFunction(sInteger,false,true,"iid"));
-    symTableInsertVariable(&glSymTable, str,createDataVariable(sString));
-    symTableInsertVariable(&glSymTable, inte,createDataVariable(sInteger));
-    symTableInsertVariable(&glSymTable, dou,createDataVariable(sDouble));
-
-    int er;
-    tToken token = getNextToken();
-    /*
-    bool kont = true;
-
-    while (kont) {*/
-         er = expression(token,sInteger);
-
-        switch (er) {
-            case ERROR_CODE_OK:
-                printf("\nOK");
-                return ERROR_CODE_OK;
-                //result_code = ERROR_CODE_OK;
-                //break;
-            case ERROR_CODE_SYN:
-                printf("\nSyntaxe");
-                return ERROR_CODE_SYN;
-                //break;
-            case ERROR_CODE_SEM:
-                printf("\nSemantika");
-                return ERROR_CODE_SEM;
-                //break;
-            case ERROR_CODE_SEM_COMP:
-                printf("\nSemantika - kompozice");
-                return ERROR_CODE_SEM_COMP;
-                //break;
-            case ERROR_CODE_LEX:
-                printf("\nLexikalní error");
-                return ERROR_CODE_LEX;
-                //kont = false;
-                //break;
-        }
-    //}
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     //result_code = parse();
@@ -121,7 +80,7 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
 
 
