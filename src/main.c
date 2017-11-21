@@ -15,6 +15,7 @@
 #include "error_code.h"
 #include "instList.h"
 #include "symtable.h"
+#include "parser.h"
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
@@ -22,10 +23,12 @@
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
+tSymtable table;
 tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
 
 int main(int argc, char **argv)
 {
+    freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -36,6 +39,7 @@ int main(int argc, char **argv)
 
     /*----------inicializace----------*/
     symTableInit(&glSymTable); // globalni tabulka symbolu
+    symTableInit(&table);
     DLInitList(&instList);  // instrukcni paska
 
 

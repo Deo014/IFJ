@@ -12,27 +12,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+#include "expression.h"
 #include "string.h"
 #include "instList.h"
 #include "scanner.h"
 #include <string.h> //doplnit funkce k nam
 #include "error_code.h"
+#include "bintree.h"
 
-tSymtable *GlTable;
-tSymtable *table;
+//TODO když bude v definici fce parametr, aby byl v obou tabulkach v globalni u fce a v lokalni jako promenna
+extern tSymtable glSymTable;
+extern tSymtable table;
+tSymtable tmp;
 tDLListInstruction *list;
 tToken aktualni_token;
 tBSTNodePtr node;
-string funtionName;
-tBSTNodePtr tmpNode;
+
 //Pomocna promenna pro semantickou analyzu
 bool comingFromDefinition;
 bool inScope;
+bool exprAdjust = false;
 int allDeclaredAreDefined = ERROR_CODE_OK;
+extern tToken next_exp_token;
+int paramIndex;
+bool decl = false;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
-    if (tok.type == 3) {
+    if ((tok.type == 3) || (exprAdjust == true)) {
+        exprAdjust = false;
         if (strcmp(tok.atr.value, "end") == 0)
             return sEnd;
         if (strcmp(tok.atr.value, "scope") == 0)
@@ -96,14 +104,9 @@ int dalsiToken() {
         return ERROR_CODE_LEX;
 }
 
-int parse(tSymtable *symtable, tDLListInstruction *instrList) {
+int parse() {
     //inicializace tabulky symbolů a instrukčního listu
-
     int result;
-
-    GlTable = symtable;
-    table = symtable;
-    list = instrList;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //pokud hned prvni token je chybny
     if (aktualni_token.type == sLexError)
@@ -111,10 +114,9 @@ int parse(tSymtable *symtable, tDLListInstruction *instrList) {
     else
         //Prvni token je v poradku, volame prvni pravidlo
         result = Program();
+    Print_tree(table.root);
     //Nakonec projedeme globalni tabulku, a podivame se jestli byly vsechny deklarovane funkce i definovany
-    checkDefinitionsOfDeclarations(GlTable->root);
-    if ((allDeclaredAreDefined) != ERROR_CODE_OK)
-        return ERROR_CODE_SEM;
+
     return result;
 }
 
@@ -203,6 +205,13 @@ int Telo_programu() {
     int result;
     switch (aktualni_token.type) {
         case sScope:
+            //Pred vstupem do tela zkontrolujeme jestli vsechny deklarovane funkce byly i definovany
+            checkDefinitionsOfDeclarations(table.root);
+            if ((allDeclaredAreDefined) != ERROR_CODE_OK)
+                return ERROR_CODE_SEM;
+            inScope = true;
+            glSymTable = table;
+            symTableInit(&table);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -267,14 +276,13 @@ int Hlavicka_fce() {
     int result;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-    funtionName = aktualni_token.atr;
     //Jedna se o definici nebo deklaraci?
     if (comingFromDefinition == true) {
         //Pokus o definici
         //Podivame se jestli je fcde vubec v tabulce
-        if ((symTableSearch(table, aktualni_token.atr)) != NULL) {
+        if ((symTableSearch(&table, aktualni_token.atr)) != NULL) {
             //V tabulce uz je o teto funkci nejaky zaznam
-            node = symTableSearch(table, aktualni_token.atr);
+            node = symTableSearch(&table, aktualni_token.atr);
             if (((tDataFunction *) node->Data)->defined == true) {
                 //Uz byla definovana, pokus o redefinici -> error
                 return ERROR_CODE_SEM;
@@ -284,20 +292,21 @@ int Hlavicka_fce() {
             }
         } else {
             //Neni v tabulce, vlozim a reknu ze je od ted definovana a deklarovana
-            symTableInsertFunction(table, aktualni_token.atr);
-            node = symTableSearch(table, aktualni_token.atr);
+            symTableInsertFunction(&table, aktualni_token.atr);
+            node = symTableSearch(&table, aktualni_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
+            decl = true;
             ((tDataFunction *) node->Data)->defined = true;
 
         }
     } else {
         //Comingfromdefinition==0, takze jsem tu z deklarace
         //Neco o funkci tam je, coz u deklarace nelze
-        if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+        if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
         else {
             //Jdu z deklarace a fce je deklarovana poprve
-            symTableInsertFunction(table, aktualni_token.atr);
-            node = symTableSearch(table, aktualni_token.atr);
+            symTableInsertFunction(&table, aktualni_token.atr);
+            node = symTableSearch(&table, aktualni_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
             ((tDataFunction *) node->Data)->defined = false;
         }
@@ -307,6 +316,7 @@ int Hlavicka_fce() {
 
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
+    paramIndex = 0;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Parametry();
     if (result != ERROR_CODE_OK)return result;
@@ -316,8 +326,43 @@ int Hlavicka_fce() {
     if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK)return result;
-    ((tDataFunction *) node->Data)->returnDataType = aktualni_token.type;
+    if (comingFromDefinition == 1) {
+        if (decl != true) {
+            switch (aktualni_token.type) {
+                case tInteger:
+                    if ((((tDataFunction *) node->Data)->returnDataType) != sInteger)
+                        return ERROR_CODE_SEM;
+                    break;
+
+                case tDouble:
+                    if ((((tDataFunction *) node->Data)->returnDataType) != sDouble)
+                        return ERROR_CODE_SEM;
+                    break;
+
+                case tString:
+                    if ((((tDataFunction *) node->Data)->returnDataType) != sString)
+                        return ERROR_CODE_SEM;
+                    break;
+
+            }
+        }
+    } else {
+        switch (aktualni_token.type) {
+            case tInteger:
+                ((tDataFunction *) node->Data)->returnDataType = sInteger;
+                break;
+            case tDouble:
+                ((tDataFunction *) node->Data)->returnDataType = sDouble;
+                break;
+            case tString:
+                ((tDataFunction *) node->Data)->returnDataType = sString;
+                break;
+        }
+
+    }
+    decl = false;
     return ERROR_CODE_OK;
+
 }
 
 int Typ() {
@@ -338,27 +383,63 @@ int Parametry() {
     switch (aktualni_token.type) {
         //<Parametry> -> <Id><As><Typ><Dalsi_parametry>
         case sIdentificator:
-            if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
             //Nebyla, vlozime ju
-            symTableInsertVariable(table, aktualni_token.atr);
+            symTableInsertVariable(&table, aktualni_token.atr);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
-            //Podle typu parametru zapiseme do tabulky odpovidajici pismeno
-            switch (aktualni_token.type) {
+            if (comingFromDefinition == 0) {
+                //Jdu z deklarace, parametry nekontroluju jen zapisu
+                switch (aktualni_token.type) {
+                    case tInteger:
+                        //  stringAddChar(,'a');
+                        stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                        break;
+                    case tDouble:
+                        stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                        break;
+                    case tString:
+                        stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                        break;
+                }
+            } else {
 
-                case sInteger:
-                    //  stringAddChar(,'a');
-                    // ((tDataFunction *) node->Data)->parameters[((tDataFunction *) node->Data).]='a';
-                    break;
-                case sDouble:
-                    // ((tDataFunction *) node->Data)->parameters='d';
-                    break;
-                case sString:
-                    ///((tDataFunction *) node->Data)->parameters='s';
-                    break;
+                //Jdu z definice a funkce byla deklarovana, musim zkontrolovat, jestli souhlasi typy parametru
+                if (((tDataFunction *) node->Data)->declared == false) {
+                    switch (aktualni_token.type) {
+                        case tInteger:
+                            //  stringAddChar(,'a');
+                            if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'i')
+                                return ERROR_CODE_SEM;
+                            break;
+                        case tDouble:
+                            if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'd')
+                                return ERROR_CODE_SEM;
+                            break;
+                        case tString:
+                            if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 's')
+                                return ERROR_CODE_SEM;
+                            break;
+                    }
+                    paramIndex++;
+
+                } else {
+                    //TODO kdyz jdu z definice, ale deklarace nebyla uvedena
+                    switch (aktualni_token.type) {
+                        case tInteger:
+                            //  stringAddChar(,'a');
+                            stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                            break;
+                        case tDouble:
+                            stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                            break;
+                        case tString:
+                            stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                            break;
+                    }
+                }
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
@@ -366,6 +447,7 @@ int Parametry() {
             return ERROR_CODE_OK;
             //<Parametry> -> e
         case sRightPar:
+            paramIndex = 0;
             return ERROR_CODE_OK;
 
     }
@@ -390,15 +472,13 @@ int Dalsi_parametry() {
 
 int Telo_funkce() {
     //<Telo_fce> -> <Deklarace_promennych_a _prikazy>
-
     int result;
+    glSymTable = table;
+    symTableInit(&table);
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    table = (tSymtable *) malloc(sizeof(tSymtable));
-    symTableInit(table);
     result = Deklarace_prom_a_prikazy();
     if (result != ERROR_CODE_OK) return result;
-    free(table);
-    table = GlTable;
+    table = glSymTable;
     return ERROR_CODE_OK;
 }
 
@@ -438,13 +518,16 @@ int Prikazy() {
         case sReturn:
             result = Prikaz();
             if (result != ERROR_CODE_OK) return result;
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Prikazy();
-            //<Prikazy> -> e
+            //<Prikazy> -> ed
+        case sEndOfLine:
         case sElse:
         case sLoop:
         case sEnd:
         case sDim:
         case sScope:
+            //if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
     }
 
@@ -459,19 +542,24 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+
             break;
             //<Prikaz> -> <Input><Id><EOL>
         case sInput:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            //Promenna musi byt v tabulce symbolu
+            if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+            node = symTableSearch(&table, aktualni_token.atr);
+            //Overeni ze klic co jsme nasli je promenna a ne funkce
+            if (node->nodeDataType != ndtVariable)
+                return ERROR_CODE_SEM;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
@@ -495,7 +583,6 @@ int Prikaz() {
             if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
@@ -511,7 +598,6 @@ int Prikaz() {
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
@@ -521,7 +607,6 @@ int Prikaz() {
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
@@ -532,7 +617,6 @@ int Prikaz() {
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             break;
     }
     return result;
@@ -547,20 +631,34 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
-            if ((symTableSearch(table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+            if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
             //Nebyla, vlozime ju
-            symTableInsertVariable(table, aktualni_token.atr);
+            symTableInsertVariable(&table, aktualni_token.atr);
+            node = symTableSearch(&table, aktualni_token.atr);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
-            ((tDataVariable *) node->Data)->dataType = aktualni_token.type;
+            //uprava typu do tabulky na typ scanneru
+            switch (aktualni_token.type) {
+                case tInteger:
+                    ((tDataVariable *) node->Data)->dataType = sInteger;
+                    break;
+                case tDouble:
+                    ((tDataVariable *) node->Data)->dataType = sDouble;
+                    break;
+                case tString:
+                    ((tDataVariable *) node->Data)->dataType = sString;
+                    break;
+            }
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             switch (aktualni_token.type) {
                 case sAssignment:
                     result = Prirazeni_hodnoty();
                     if (result != ERROR_CODE_OK) return result;
+                    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
                     break;
                 case sEndOfLine:
                     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -608,9 +706,8 @@ int Prirazeni_hodnoty() {
     switch (aktualni_token.type) {
         //<Prirazeni_hodnoty> -><=><Vyraz>
         case sAssignment:
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return result;
             //<Prirazeni_hodnoty> -> e
         case sEndOfLine:
@@ -633,19 +730,24 @@ int Dalsi_vyrazy() {
         case sString:
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             //<Dalsi_vyrazy> -> e
         case sEndOfLine:
+        case sSemicolon:
+
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
 }
 
 int Vyraz() {
+    int result;
     //simulace vyrazu jednoho cisla
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    int result = 0;
+
+    result = expression(aktualni_token, aktualni_token.type);
+    exprAdjust = true;
+    aktualni_token = next_exp_token;
+    aktualni_token.type = adjustTokenType(aktualni_token);
     return result;
 }
