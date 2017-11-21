@@ -111,7 +111,6 @@ tToken getNextToken(){
                     state = sInteger;
                 }
                 else if ( c == '!' ) { // pocatek retezce
-                    //stringAddChar(&token.atr, c);
                     state = sStringStart;
                 }
                 else {// nacteni nepovoleneho znaku: lex error
@@ -311,9 +310,8 @@ tToken getNextToken(){
 
 
             /* ----------------------------------------START STRING-------------------------------------------------- */
-            case sStringStart: // !
+            case sStringStart: // precteno: !
                 if ( c == '"' ) { // znak "
-                    //stringAddChar(&token.atr, c);
                     token.type = sString; // predpokladany typ tokenu je sString
                     state = sString;
                 }
@@ -326,15 +324,24 @@ tToken getNextToken(){
                 }
                 break;
 
-            case sString:
+            case sString: // precteno !"
                 if ( c == '"' ) { // znak " ukonceni stringu: vrat token string
-                    //stringAddChar(&token.atr, c);
-                    //token.type = sString;
                     return token;
                 }
                 else if ( c == '\\') { // zapis znaku pomoci escape sekvence
-                    //stringAddChar(&token.atr, c);
                     state = sStringEscape;
+                }
+                else if ( c == '#') { // zapis znaku pomoci escape sekvence
+                    stringAddChar(&token.atr, '\\');
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '3');
+                    stringAddChar(&token.atr, '5'); // string: \035
+                }
+                else if ( c == ' ') { // zapis znaku pomoci escape sekvence
+                    stringAddChar(&token.atr, '\\');
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '3');
+                    stringAddChar(&token.atr, '2');
                 }
                 else if ( c > 31 ) { // primy zapis znaku
                     stringAddChar(&token.atr, c);
@@ -352,14 +359,23 @@ tToken getNextToken(){
             case sStringEscape:
                 if ( c == '\\') {
                     stringAddChar(&token.atr, c);
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '9');
+                    stringAddChar(&token.atr, '2'); // string: \092
                     state = sString;
                 }
                 else if ( c == 'n' ) {
-                    stringAddChar(&token.atr, '\n');
+                    stringAddChar(&token.atr, '\\');
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '1');
+                    stringAddChar(&token.atr, '0'); // string: \010
                     state = sString;
                 }
                 else if ( c == 't' ) {
-                    stringAddChar(&token.atr, '\t');
+                    stringAddChar(&token.atr, '\\');
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '0');
+                    stringAddChar(&token.atr, '9'); // string \009
                     state = sString;
                 }
                 else if ( c == '"' ) {
@@ -378,36 +394,33 @@ tToken getNextToken(){
                 break;
 
             case sStringEscapeNumber:
-                if ( charIsDigit(c) && (escapeCounter == 1) ) {
+                if ( charIsDigit(c) && (escapeCounter == 1) ) { // prijeti druheho cisla
                     escapeCounter = 2;
                     escapeValue += charToDec(c) * 10; // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, druha cislice je v radu desitek
                     state = sStringEscapeNumber;
                 }
                 else if ( charIsDigit(c) && (escapeCounter == 2) ) {
                     escapeValue += charToDec(c); // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, treti cislice je v radu jednotek
-                    if ( (escapeValue >= 0) && (escapeValue <= 255) ) { // pokud je znak v rozsahu
-                        stringAddChar(&token.atr, escapeValue); // zapsani znaku do retezce
-                        state = sString;
-                    }
-                    else { // znak neni v rozsahu
-                        stringAddChar(&token.atr, '\\'); // aby bylo poznat, ze k chybe doslo pri escape sekvenci: zapsani znaku '\'
 
-                        // prevod cisla escapeValue zpet na char a zapis do tokenu
-                        stringAddChar(&token.atr, decToChar(escapeValue/100) );
-                        escapeValue -= (escapeValue/100) * 100; // odstraneni stovek
-                        stringAddChar(&token.atr, decToChar(escapeValue/10) );
-                        escapeValue -= (escapeValue/10) * 10; // odstraneni desitek
-                        stringAddChar(&token.atr, decToChar(escapeValue) );
-
+                    if ( !((escapeValue >= 0) && (escapeValue <= 255)) ) { // zjisteni, jestli je escape sekvence platna
                         token.type = sLexError;
-                        state = sString;
                     }
+                    // zapsani escape sekvence do stringu
+                    stringAddChar(&token.atr, '\\');
+                    stringAddChar(&token.atr, decToChar(escapeValue/100) );
+                    escapeValue -= (escapeValue/100) * 100; // odstraneni stovek
+                    stringAddChar(&token.atr, decToChar(escapeValue/10) );
+                    escapeValue -= (escapeValue/10) * 10; // odstraneni desitek
+                    stringAddChar(&token.atr, decToChar(escapeValue) );
+
+                    state = sString;
                 }
                 else { // nepovoleny znak: lexx error
                     token.type = sLexError;
                     state = sString;
                 }
                 break;
+
             /* ----------------------------------------END STRING---------------------------------------------------- */
 
 
