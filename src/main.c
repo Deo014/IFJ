@@ -40,65 +40,26 @@ int main(int argc, char **argv)
 
 
     /* testovaci kod zacatek*/
-    //                        funkce
-    string ret;
-    stringInit(&ret);
-    stringAddChar(&ret, 'a');
 
-    symTableInsertFunction(&glSymTable,ret); // zalozeni nove polozku pro funkci v symtable
+//    tToken token;
+//    while ( (token = getNextToken()).type != sLexError ) {
+//        if (token.type == sIdentificator) {
+//            symTableInsertVariable(&glSymTable, token.atr);
+//            Print_tree(glSymTable.root);
+//        }
+//    }
 
-    tBSTNodePtr node = symTableSearch(&glSymTable, ret); // vyhledani ukazatele na polozku
-    tDataFunction* data = (tDataFunction*)(node->Data);
+//    while ( (token = getNextToken()).type != sEndOfFile) {
+//        printf("%4d %s\n", token.type, token.atr.value);
+//    }
 
-    stringAddChar(&(data->parameters), 'd'); // pripsani znaku do parametru
-    data->returnDataType = sDouble; // navratovy typ funkce je double
-
-
-
-    string ret3;
-    stringInit(&ret3);
-    stringAddChar(&ret3, 'd');
-
-    symTableInsertVariable(&glSymTable, ret3); // zalozeni nove polozku pro promenno v symtable
-
-    tBSTNodePtr node3 = symTableSearch(&glSymTable, ret3); // vyhledani ukazatele na polozku
-    tDataVariable* data3 = (tDataVariable*)(node3->Data);
-
-    data3->dataType = sDouble;
-
-    string ret4;
-    stringInit(&ret4);
-    stringAddChar(&ret4, 's');
-
-    symTableInsertVariable(&glSymTable, ret4); // zalozeni nove polozku pro promenno v symtable
-
-    tBSTNodePtr node4 = symTableSearch(&glSymTable, ret4); // vyhledani ukazatele na polozku
-    tDataVariable* data4 = (tDataVariable*)(node4->Data);
-
-    data4->dataType = sString;
-
-    //                        promenna
-    string ret2;
-    stringInit(&ret2);
-    stringAddChar(&ret2, 'b');
-
-    symTableInsertVariable(&glSymTable, ret2); // zalozeni nove polozku pro promenno v symtable
-
-    tBSTNodePtr node2 = symTableSearch(&glSymTable, ret2); // vyhledani ukazatele na polozku
-    tDataVariable* data2 = (tDataVariable*)(node2->Data);
-
-    data2->dataType = sInteger; // datovy typ promenne je integer
-
-
-    Print_tree(glSymTable.root);
-
-    result_code = expression(getNextToken(),sDouble);
+//    result_code = expression(getNextToken(),sDouble);
 
     /* testovaci kod konec*/
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    //result_code = parse();
+    result_code = parse();
 
 
     /*----------vypsani instrukcni pasky na stdout----------*/
