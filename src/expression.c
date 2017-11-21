@@ -10,6 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
+#include "stack.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
@@ -17,6 +18,8 @@ tStack *first_terminal; //Nejvyšší terminál na stacku
 
 extern tSymtable glSymTable;
 extern tDLListInstruction instList;
+
+//str_element result_element;
 
 int operation;
 int operation_type_global;  //Typ výsledné proměnné
@@ -263,7 +266,6 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-                //generateInstruction(&instList,I_MUL,)
                 operation = eMultiply;
                 break;
                 //Řeší redukci dělení
@@ -271,7 +273,6 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
                     return error_type;
-
                 operation = eDivideD;
                 break;
 
@@ -285,10 +286,9 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 //Řeší redukci sčítání
             case ePlus:
-
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
-                //generateInstruction(&instList,I_ADD,(string*)((Exp_element*)(expression_stack->top_of_stack->left->left->value))->value,((Exp_element*)(expression_stack->top_of_stack->value))->value,((Exp_element*)(expression_stack->top_of_stack->left->left->value))->value);
+
                 operation = ePlus;
                 break;
 
@@ -547,6 +547,16 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 }
 
 
+ERROR_CODE checkRestultType(ptrStack *expression_stack){
+    if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack)->token_type != sDouble){
+        /*TODO přetypovat proměnnou výsledku*/
+    }
+    else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack)->token_type != sInteger){
+        /*TODO přetypovat proměnnou výsledku*/
+    }
+    return ERROR_CODE_OK;
+}
+
 //Funkce vytvaří nový element pro vložení na stack
 Exp_element *newElementToStack(string value, int pt_index, int token_type){
 
@@ -650,5 +660,3 @@ int convertTokenToIndex(int token_num){
     }
     return eOther;
 }
-
-

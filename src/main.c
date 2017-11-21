@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    result_code = parse();
+    //result_code = parse();
 
     //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
