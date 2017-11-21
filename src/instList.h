@@ -21,17 +21,19 @@ typedef enum {
     F_TF
 }FRAME;
 
-typedef struct instr_element{
+typedef struct instr_operand{
     string value;
     int token_type;
     FRAME frame;
+    bool isTMP;
     bool isLabel;
     bool isScope;
-}Instr_element;
+}tInstrOperand;
 
 typedef enum {
     // prace s ramci, volani funkci
     I_HEADER,
+    I_TMP,
     I_MOVE,             //  <var> <symb>
     I_CREATEFRAME,
     I_PUSHFRAME,
@@ -161,9 +163,9 @@ void DLPred (tDLListInstruction *);
 int DLActive (tDLListInstruction *);
 
 void writeInstructionNoOperand(tDLListInstruction *,int);
-void writeInstructionOneOperand(tDLListInstruction *,int, Instr_element);
-void writeInstructionTwoOperands(tDLListInstruction *,int, Instr_element, Instr_element);
-void writeInstructionThreeOperands(tDLListInstruction *,int, Instr_element, Instr_element, Instr_element);
+void writeInstructionOneOperand(tDLListInstruction *,int, tInstrOperand);
+void writeInstructionTwoOperands(tDLListInstruction *,int, tInstrOperand, tInstrOperand);
+void writeInstructionThreeOperands(tDLListInstruction *,int, tInstrOperand, tInstrOperand, tInstrOperand);
 void generateInstruction (tDLListInstruction *, int, void*, void*, void*); // vygeneruje instrukci do instrucni pasky
 
 void printInstructionList (tDLListInstruction *);

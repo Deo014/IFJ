@@ -20,6 +20,8 @@
 #include "expression.h"
 #include "parser.h"
 
+tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3;
+string TMP;
 
 tSymtable glSymTable; // globalni tabulka symbolu
 tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
@@ -68,28 +70,38 @@ int main(int argc, char **argv)
     /*----------vypsani instrukcni pasky na stdout----------*/
 
     //*******************************************
-    Instr_element test_element1; Instr_element test_element2; Instr_element test_element3; Instr_element test_element4;
-    string test_string1; stringInit(&test_string1); stringAddChar(&test_string1, 'a'); test_element1.frame = F_LF;
+    string test_string1; stringInit(&test_string1); stringAddChar(&test_string1, 'a');
     string test_string2; stringInit(&test_string2); stringAddChar(&test_string2, '4');
-    string test_string3; stringInit(&test_string3); stringAddChar(&test_string3, 'b'); test_element3.frame = F_TF;
-    string test_string4; stringInit(&test_string4); test_element4.value.value = "Scope";
-    test_element1.token_type = sIdentificator; test_element1.value = test_string1; test_element1.isLabel = false; test_element1.isScope = false;
-    test_element2.token_type = sDouble; test_element2.value = test_string2;test_element2.isLabel = false; test_element2.isScope = false;
-    test_element3.token_type = sIdentificator; test_element3.value = test_string3; test_element3.isLabel = false; test_element3.isScope = false;
-    test_element4.token_type = sKeyWord; test_element4.value = test_string4; test_element4.isLabel = true; test_element4.isScope = true;
+    string test_string3; stringInit(&test_string3); stringAddChar(&test_string3, 'b');
 
-    writeInstructionOneOperand(&instList, I_LABEL, test_element4);
+    operand1.token_type = sKeyWord; operand1.value.value = "Scope"; operand1.isLabel = true; operand1.isScope = true;
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    writeInstructionNoOperand(&instList, I_CREATEFRAME);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
-    writeInstructionOneOperand(&instList, I_DEFVAR, test_element1);
-    writeInstructionOneOperand(&instList, I_WRITE, test_element2);
-    writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element2);
-    test_element4.value.value = "jmeno"; test_element4.isLabel = true; test_element4.isScope = false;
-    writeInstructionOneOperand(&instList, I_LABEL, test_element4);
-    writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element3);
-    writeInstructionThreeOperands(&instList, I_ADD, test_element1, test_element2, test_element3);
 
-    //generateInstruction(&instList, I_DEFVAR, &test_element1, NULL, NULL);
+    operand1.token_type = sKeyWord; operand1.value.value = "nejakylabel"; operand1.isLabel = true; operand1.isScope = false;
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
 
+    operand2.token_type = sDouble; operand2.value = test_string2;operand2.isLabel = false; operand2.isScope = false;
+    operand3.token_type = sIdentificator; operand3.value = test_string3; operand3.isLabel = false; operand3.isScope = false;
+
+    operand1.token_type = sIdentificator; operand1.value = test_string1; operand1.isLabel = false; operand1.isScope = false; operand1.isTMP = false;
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1.value = test_string3;
+    writeInstructionOneOperand(&instList, I_WRITE, operand1);
+    operand2.token_type = sInteger; operand2.value.value = "4";
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1.isTMP = true;
+    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+
+    /* TMP */ operand1.token_type = sIdentificator; operand1.isTMP = true; operand1.isLabel = false; operand1.isScope = false; operand1.frame = F_LF;
+    operand2.value.value = ""; operand2.token_type = sIdentificator; operand2.isTMP = true; operand2.isLabel = false; operand2.isScope = false; operand2.frame = F_LF;
+    operand3.value.value = ""; operand3.token_type = sIdentificator; operand3.isTMP = true; operand3.isLabel = false; operand3.isScope = false; operand3.frame = F_LF;
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+    operand1.value = test_string1; operand1.isTMP = false;
+    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
 
     //if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
         printInstructionList(&instList);
