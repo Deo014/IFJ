@@ -50,8 +50,32 @@ int main(int argc, char **argv)
     tBSTNodePtr node = symTableSearch(&glSymTable, ret); // vyhledani ukazatele na polozku
     tDataFunction* data = (tDataFunction*)(node->Data);
 
-    stringAddChar(&(data->parameters), 'c'); // pripsani znaku do parametru
+    stringAddChar(&(data->parameters), 'd'); // pripsani znaku do parametru
     data->returnDataType = sDouble; // navratovy typ funkce je double
+
+
+
+    string ret3;
+    stringInit(&ret3);
+    stringAddChar(&ret3, 'd');
+
+    symTableInsertVariable(&glSymTable, ret3); // zalozeni nove polozku pro promenno v symtable
+
+    tBSTNodePtr node3 = symTableSearch(&glSymTable, ret3); // vyhledani ukazatele na polozku
+    tDataVariable* data3 = (tDataVariable*)(node3->Data);
+
+    data3->dataType = sDouble;
+
+    string ret4;
+    stringInit(&ret4);
+    stringAddChar(&ret4, 's');
+
+    symTableInsertVariable(&glSymTable, ret4); // zalozeni nove polozku pro promenno v symtable
+
+    tBSTNodePtr node4 = symTableSearch(&glSymTable, ret4); // vyhledani ukazatele na polozku
+    tDataVariable* data4 = (tDataVariable*)(node4->Data);
+
+    data4->dataType = sString;
 
     //                        promenna
     string ret2;
@@ -67,6 +91,8 @@ int main(int argc, char **argv)
 
 
     Print_tree(glSymTable.root);
+
+    result_code = expression(getNextToken(),sDouble);
 
     /* testovaci kod konec*/
 

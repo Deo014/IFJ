@@ -10,7 +10,6 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
-#include "string.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
@@ -214,9 +213,9 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                             }
                             new_element->pt_index = eFunction;
                             exp_function = true;
-                            params = function->parameters;
+                            params = function->parameters.value;
 
-                            param_length = (int)strlen(function->parameters);
+                            param_length = (int)strlen(function->parameters.value);
                         }
 
 
@@ -445,7 +444,7 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 ERROR_CODE reduceFunction(ptrStack *expression_stack){
     //Pokud nesedí počet parametrů je to chyba
     if(param_length != parameter_index)
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_SEM_COMP;
     else {
         Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
 
@@ -485,7 +484,7 @@ ERROR_CODE checkParams(tDataVariable *variable){
         parameter_index++;
     }
     else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_SEM_COMP;
 
     return ERROR_CODE_OK;
 
