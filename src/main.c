@@ -18,7 +18,7 @@
 #include "string.h"
 #include "bintree.h"
 #include "expression.h"
-#include "parser.h"
+#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -26,7 +26,6 @@ tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukc
 
 int main(int argc, char **argv)
 {
-    freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -39,30 +38,28 @@ int main(int argc, char **argv)
     symTableInit(&glSymTable); // globalni tabulka symbolu
     DLInitList(&instList);  // instrukcni paska
 
-    /* tu kukaj ako jede symtable */
-    string jedna;
-    stringInit(&jedna);
-    stringAddChar(&jedna, 'K');
 
-    string dva;
-    stringInit(&dva);
-    stringAddChar(&dva, 'L');
+    /* testovaci kod zacatek*/
 
-    string tri;
-    stringInit(&tri);
-    stringAddChar(&tri, 'A');
+//    tToken token;
+//    while ( (token = getNextToken()).type != sLexError ) {
+//        if (token.type == sIdentificator) {
+//            symTableInsertVariable(&glSymTable, token.atr);
+//            Print_tree(glSymTable.root);
+//        }
+//    }
 
+//    while ( (token = getNextToken()).type != sEndOfFile) {
+//        printf("%4d %s\n", token.type, token.atr.value);
+//    }
 
-    symTableInsertFunction(&glSymTable, jedna, createDataFunction(sInteger, true, false, "ssid" )); /* prvni parametr misto sInteger muzem zmenit na 'i', stejne jak to je v poslednim parametru */
-    symTableInsertFunction(&glSymTable, dva, createDataFunction(sString, true, false, "sd" ));
-    symTableInsertVariable(&glSymTable, tri, createDataVariable(sDouble));
+//    result_code = expression(getNextToken(),sDouble);
 
-    Print_tree(glSymTable.root);
-    /* tu prestan kukat */
+    /* testovaci kod konec*/
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    result_code = parse(&glSymTable, &instList);
+    result_code = parse();
 
     //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
@@ -95,7 +92,7 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
     DLDisposeList(&instList); // insturkcni paska
 
 

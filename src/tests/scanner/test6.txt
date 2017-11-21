@@ -1,6 +1,6 @@
 scope 'Hlavni telo programu
 Dim a As Integer
-DIM vysl AS INTEGER
+Dim vysl AS INTEGER
 
 PrinT !"Zadejte cislo pro vypocet faktorialu";
 InpuT A

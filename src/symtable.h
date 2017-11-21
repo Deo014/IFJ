@@ -25,7 +25,7 @@ typedef struct function {
     int returnDataType; /* sInteger, sDouble, sString */
     bool declared;
     bool defined;
-    char* parameters;   /* parametry funkce: napr. isd (integer, string, double) */
+    string parameters;   /* parametry funkce: napr. isd (integer, string, double) */
 } tDataFunction;
 
 typedef struct symtable {
@@ -39,12 +39,12 @@ void symTableInit(tSymtable*);
 //void symtableInsert(tSymtable* Table, string Key, void* dataPtr);
 
 /* --------------------vlozeni dat o funkci do symtable--------------------*/
-void symTableInsertFunction(tSymtable*, string, tDataFunction*);
-tDataFunction *createDataFunction(int, bool, bool, char*);
+void symTableInsertFunction(tSymtable*, string);
+//tDataFunction *createDataFunction();
 
 /* --------------------vlozeni dat o promenne do symtable--------------------*/
-void symTableInsertVariable(tSymtable*, string, tDataVariable*);
-tDataVariable *createDataVariable(int);
+void symTableInsertVariable(tSymtable*, string);
+//tDataVariable *createDataVariable();
 
 /* --------------------vyhledani prvku v symtable--------------------*/
 tBSTNodePtr symTableSearch(tSymtable*, string);
