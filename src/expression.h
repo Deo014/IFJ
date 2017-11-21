@@ -70,6 +70,7 @@ ERROR_CODE reducePars(ptrStack*);
 ERROR_CODE reduceFunction(ptrStack*);
 ERROR_CODE checkSemAConv(Exp_element*, int, Exp_element*);
 ERROR_CODE checkParams(tDataVariable*);
+ERROR_CODE checkResultType(Exp_element*);
 Exp_element *newElementToStack(string, int, int);
 char getSignFromTable();
 int convertTokenToIndex(int);

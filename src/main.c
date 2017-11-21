@@ -40,7 +40,8 @@ int main(int argc, char **argv)
 
 
     /* testovaci kod zacatek*/
-    tToken token;
+
+//    tToken token;
 //    while ( (token = getNextToken()).type != sLexError ) {
 //        if (token.type == sIdentificator) {
 //            symTableInsertVariable(&glSymTable, token.atr);
@@ -48,15 +49,17 @@ int main(int argc, char **argv)
 //        }
 //    }
 
-    while ( (token = getNextToken()).type != sEndOfFile) {
-        printf("%4d %s\n", token.type, token.atr.value);
-    }
+//    while ( (token = getNextToken()).type != sEndOfFile) {
+//        printf("%4d %s\n", token.type, token.atr.value);
+//    }
+
+//    result_code = expression(getNextToken(),sDouble);
 
     /* testovaci kod konec*/
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    //result_code = parse();
+    result_code = parse();
 
 
     /*----------vypsani instrukcni pasky na stdout----------*/
