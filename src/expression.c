@@ -23,7 +23,7 @@ extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo fu
 
 //str_element result_element;
 
-int operation;
+//int operation;
 int operation_type_global;  //Typ výsledné proměnné
 bool exp_function;          //Pokud se řeší funkce je true
 int parameter_index = 0;    //Index kontrolovaného parametru
@@ -108,7 +108,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
 
                 }
-                printf("%d,",operation);
+                //printf("%d,",operation);
                 next_exp_token = getNextToken();
             }
             else if (sign == '<') {     //Pushujeme na zábosobník
@@ -124,7 +124,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                 if((error_type = useRule(expression_stack)) != ERROR_CODE_OK){
                     return error_type;
                 }
-                printf("%d,",operation);
+                //printf("%d,",operation);
             }
             else {      //Pokud nastane nepovolený stav
                 return ERROR_CODE_SYN;
@@ -215,7 +215,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     //Pokud se jedná o funkci
                 else if(element_id->nodeDataType == ndtFunction) {
                     tDataFunction *function = ((tDataFunction*) (element_id->Data));
-                    if(function->returnDataType != operation_type_global)
+                    if(function->returnDataType != sString && sString != operation_type_global)
                         return ERROR_CODE_SEM_COMP;
                     else {
                         //A podle toho nastavíme typ prvku vkládanému na stack
@@ -262,7 +262,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
     if(expression_stack != NULL) {
         tStack *stack_item = expression_stack->top_of_stack;
-        operation = 0;
+        //operation = 0;
 
         //Zjistí se, které pravidlo se uplatní pro redukci
         switch (((Exp_element *) (first_terminal->value))->pt_index) {
@@ -274,21 +274,21 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
                 first_terminal = (stack_item->left);
-                operation = eOperand;
+                //operation = eOperand;
                 return ERROR_CODE_OK;
 
                 //Řeší redukci násobení
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eMultiply;
+                //operation = eMultiply;
                 break;
                 //Řeší redukci dělení
             case eDivideD:
 
                 if((error_type = checkBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eDivideD;
+                //operation = eDivideD;
                 break;
 
                 //Řeší redukci celočíselného dělení
@@ -296,7 +296,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
                         return error_type;
-                operation = eDivideI;
+                //operation = eDivideI;
                 break;
 
                 //Řeší redukci sčítání
@@ -304,7 +304,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
 
-                operation = ePlus;
+                //operation = ePlus;
                 break;
 
                 //Řeší redukci odčítání
@@ -312,7 +312,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
                     return error_type;
                 //generateInstruction(&instList,I_SUB,)
-                operation = eMinus;
+                //operation = eMinus;
                 break;
 
                 //Řeší redukci rovnosti
@@ -320,48 +320,48 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eEqual)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eEqual;
+                //operation = eEqual;
                 break;
 
                 //Řeší redukci nerovnosti
             case eNotEqual:
                 if((error_type = checkBinary(expression_stack, eNotEqual)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eNotEqual;
+                //operation = eNotEqual;
                 break;
 
                 //Řeší redukci menšítka
             case eLess:
                 if((error_type = checkBinary(expression_stack, eLess)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eLess;
+                //operation = eLess;
                 break;
 
                 //Řeší redukci většítka
             case eMore:
                 if((error_type = checkBinary(expression_stack, eMore)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eMore;
+                //operation = eMore;
                 break;
 
                 //Řeší redukci menší nebo rovno
             case eLessEqual:
                 if((error_type = checkBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eLessEqual;
+                //operation = eLessEqual;
                 break;
 
                 //Řeší redukci větší nebo rovno
             case eMoreEqual:
                 if((error_type = checkBinary(expression_stack, eMoreEqual)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eMoreEqual;
+                //operation = eMoreEqual;
                 break;
 
             case eRightPar:
                 if((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK)
                     return error_type;
-                operation = eFunction;
+                //operation = eFunction;
                 return ERROR_CODE_OK;
 
         }
@@ -441,7 +441,7 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
                 first_terminal = expression_stack->top_of_stack->left;
                 ((Exp_element*) (first_terminal->value))->handle = false;
-                operation = eRightPar;
+                //operation = eRightPar;
             }
             else
                 return ERROR_CODE_SYN;
@@ -464,13 +464,15 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
         Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
 
         //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
-        while (del_element->pt_index != eDollar) {
+        while (del_element->->pt_index != eFunction) {
 
             SPop(expression_stack);
             del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
         }
-        operation = eFunction;
-        first_terminal = expression_stack->top_of_stack;
+        //operation = eFunction;
+        ((Exp_element*)expression_stack->top_of_stack->value)->handle = false;
+        ((Exp_element*)expression_stack->top_of_stack->value)->terminal = false;
+        first_terminal = expression_stack->top_of_stack->left;
         return ERROR_CODE_OK;
     }
 
