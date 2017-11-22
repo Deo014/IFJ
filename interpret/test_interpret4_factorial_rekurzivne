@@ -13,6 +13,7 @@
 #End If
 #Return result
 #End Function
+
 #Scope 'Hlavni telo programu
 #Dim a As Integer
 #Dim vysl As Integer
