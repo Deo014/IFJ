@@ -4,12 +4,13 @@
 #include <cmocka.h>
 #include <stdio.h>
 
-#include "../../src/scanner.h" // UUT
-#include "../../src/string.h"
+#include "../src/scanner.h" // UUT
+#include "../src/string.h"
 
-static void test1(void** state) {
+/*--------------------------------------------------SCANNER-----------------------------------------------------------*/
+static void scanner_prazdny_vstup(void** state) {
     (void) state; // unused
-    freopen("test1.txt", "r", stdin);
+    freopen("prazdny_vstup.txt", "r", stdin);
 
     tToken token;
     token = getNextToken();
@@ -17,10 +18,10 @@ static void test1(void** state) {
     assert_string_equal(token.atr.value, "EOF");
 }
 
-static void test2(void** state) {
+static void scanner_vypocet_faktorialu_nerekurzivne(void** state) {
     (void)state; // unused
     tToken token;
-    freopen("test2.txt", "r", stdin);
+    freopen("vypocet_faktorialu_nerekurzivne.txt", "r", stdin);
 
     token = getNextToken();
     assert_int_equal(token.type, sEndOfLine);
@@ -304,9 +305,9 @@ static void test2(void** state) {
 
 }
 
-static void test3(void** state) {
+static void scanner_vypocet_faktorialu_rekurzivne(void** state) {
     (void) state; // unused
-    freopen("test3.txt", "r", stdin);
+    freopen("vypocet_faktorialu_rekurzivne.txt", "r", stdin);
 
     tToken token;
 
@@ -904,14 +905,19 @@ static void test3(void** state) {
 
 }
 
+/*--------------------------------------------------PARSER------------------------------------------------------------*/
+
+
 int main(void)
 {
-    const struct CMUnitTest tests[] =
+    const struct CMUnitTest scanner_tests[] =
             {
-                    cmocka_unit_test(test1),
-                    cmocka_unit_test(test2),
-                    cmocka_unit_test(test3),
+                    cmocka_unit_test(scanner_prazdny_vstup),
+                    cmocka_unit_test(scanner_vypocet_faktorialu_nerekurzivne),
+                    cmocka_unit_test(scanner_vypocet_faktorialu_rekurzivne),
             };
+    printf("--------------------SCANNER--------------------\n");
+    cmocka_run_group_tests(scanner_tests, NULL, NULL);
+    printf("--------------------PARSER---------------------\n");
 
-    return cmocka_run_group_tests(tests, NULL, NULL);
 }
