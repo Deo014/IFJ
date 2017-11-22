@@ -16,8 +16,10 @@ tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
 
 
-extern tSymtable glSymTable;
-extern tDLListInstruction instList;
+extern tSymtable glSymTable;            //GL tabulka symbolů
+extern tSymtable table;                 //Lokální tabulka
+extern tDLListInstruction instList;     //List instrukcí
+extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo funkce
 
 //str_element result_element;
 
@@ -170,62 +172,75 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
         if(new_element != NULL) {
             //Jestli je vkládaný prvek proměnná, zjistíme, jakou má v tabulce symbolů typ
             if(sIdentificator == new_element->token_type){
-
                 tBSTNodePtr element_id = symTableSearch(&glSymTable,new_element->value);
 
-                if(element_id != NULL) {
-                    //Pokud se jedná o proměnnou
-                    if (element_id->nodeDataType == ndtVariable) {
-                        tDataVariable *variable = ((tDataVariable *) (element_id->Data));
-                        if(!exp_function) {
-                            //A podle toho nastavíme typ prvku vkládanému na stack
-                            switch (variable->dataType) {
-                                case sInteger:
-                                    new_element->token_type = sInteger;
-                                    break;
-                                case sDouble:
-                                    new_element->token_type = sDouble;
-                                    break;
-                                case sString:
-                                    new_element->token_type = sString;
-                                    break;
-                            }
+                //Pokud jsme nenašli v GL tabulce identifikator
+                if(element_id == NULL) {
+
+                    //Pokud se nachazime v těle funkce, prohledame lokalni tabulku
+                    if(inFunctionBody){
+                        element_id = symTableSearch(&table,new_element->value);
+
+                        //Pokud se i tak nic nenašlo nebo pokud našlo, ale není to proměnna, je to chyba
+                        if(element_id == NULL || element_id->nodeDataType != ndtVariable){
+                            return ERROR_CODE_SEM;
                         }
-                        else{
-                            if((error_type = checkParams(variable)) != ERROR_CODE_OK)
-                                return error_type;
+                    }//Pokud neřešíme tělo funkce, nenašli jsme identifikator -> chyba
+                    else
+                        return ERROR_CODE_SEM;
+                }
+                    //Pokud se jedná o proměnnou
+                if (element_id->nodeDataType == ndtVariable) {
+                    tDataVariable *variable = ((tDataVariable *) (element_id->Data));
+                    if(!exp_function) {
+                        //A podle toho nastavíme typ prvku vkládanému na stack
+                        switch (variable->dataType) {
+                            case sInteger:
+                                new_element->token_type = sInteger;
+                                break;
+                            case sDouble:
+                                new_element->token_type = sDouble;
+                                break;
+                            case sString:
+                                new_element->token_type = sString;
+                                break;
                         }
                     }
-                        //Pokud se jedná o funkci
-                    else if(element_id->nodeDataType == ndtFunction) {
-                        tDataFunction *function = ((tDataFunction*) (element_id->Data));
-                        if(function->returnDataType != operation_type_global)
-                            return ERROR_CODE_SEM_COMP;
-                        else {
-                            //A podle toho nastavíme typ prvku vkládanému na stack
-                            switch (function->returnDataType) {
-                                case sInteger:
-                                    new_element->token_type = sInteger;
-                                    break;
-                                case sDouble:
-                                    new_element->token_type = sDouble;
-                                    break;
-                                case sString:
-                                    new_element->token_type = sString;
-                                    break;
-                            }
-                            new_element->pt_index = eFunction;
-                            exp_function = true;
-                            params = function->parameters.value;
-
-                            param_length = (int)strlen(function->parameters.value);
-                        }
-
-
+                    else{
+                        //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
+                        if((error_type = checkParams(variable)) != ERROR_CODE_OK)
+                            return error_type;
                     }
                 }
-                else
-                    return ERROR_CODE_SEM;
+                    //Pokud se jedná o funkci
+                else if(element_id->nodeDataType == ndtFunction) {
+                    tDataFunction *function = ((tDataFunction*) (element_id->Data));
+                    if(function->returnDataType != operation_type_global)
+                        return ERROR_CODE_SEM_COMP;
+                    else {
+                        //A podle toho nastavíme typ prvku vkládanému na stack
+                        switch (function->returnDataType) {
+                            case sInteger:
+                                new_element->token_type = sInteger;
+                                break;
+                            case sDouble:
+                                new_element->token_type = sDouble;
+                                break;
+                            case sString:
+                                new_element->token_type = sString;
+                                break;
+                        }
+
+
+                        new_element->pt_index = eFunction;      //V tabulce budeme hledat funkci
+                        exp_function = true;                    //Řešíme funkci
+                        params = function->parameters.value;    //params drží parametry funkce
+
+                        param_length = (int)strlen(function->parameters.value);     //Počet parametrů
+                    }
+
+
+                }
 
             }
 
