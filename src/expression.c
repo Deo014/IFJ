@@ -57,6 +57,8 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     ptrStack expression_stack;
     operation_type_global = operation_type;
     result = expressionAnalysis(&expression_stack,first_token);
+    exp_function = false;
+    parameter_index = 0;
     SDispose(&expression_stack);
     return result;
     }
@@ -215,7 +217,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     //Pokud se jedná o funkci
                 else if(element_id->nodeDataType == ndtFunction) {
                     tDataFunction *function = ((tDataFunction*) (element_id->Data));
-                    if(function->returnDataType != sString && sString != operation_type_global)
+                    if (function->returnDataType != sString && sString == operation_type_global)
                         return ERROR_CODE_SEM_COMP;
                     else {
                         //A podle toho nastavíme typ prvku vkládanému na stack
@@ -464,7 +466,7 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
         Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
 
         //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
-        while (del_element->->pt_index != eFunction) {
+        while (del_element->pt_index != eFunction) {
 
             SPop(expression_stack);
             del_element = ((Exp_element *) (expression_stack->top_of_stack->value));

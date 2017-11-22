@@ -39,6 +39,8 @@ string paramName;
 string functionName;
 int paramsToDeclare;
 bool inFunctionBody = false;
+int expectedValue;
+string processing;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -188,7 +190,7 @@ int Nekolik_deklaraci_fce() {
         case sDeclare:
             result = Deklarace_fce();
             if (result != ERROR_CODE_OK) return result;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+
             return Nekolik_deklaraci_fce();
 //<Nekolik_Deklaraci_fce> -> e
         case sFuntion:
@@ -226,8 +228,13 @@ int Telo_programu() {
             if ((allDeclaredAreDefined) != ERROR_CODE_OK)
                 return ERROR_CODE_SEM;
             inScope = true;
-            //symTableInit(&table);
-            table = glSymTable;
+
+            glNode = symTableSearch(&glSymTable, functionName);
+            paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
+            for (int i = 0; i < paramsToDeclare; i++) {
+                symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
+                i++;
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
 
@@ -255,6 +262,8 @@ int Deklarace_fce() {
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -277,7 +286,8 @@ int Definice_fce() {
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -566,7 +576,9 @@ int Prikaz() {
         //<Prikaz> -> <Print><Vyraz><;><Dalsi_vyrazy><EOL>
         case sPrint:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            expectedValue = -1;
             result = Vyraz();
+            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
@@ -579,8 +591,15 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Promenna musi byt v tabulce symbolu
-            if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
-            node = symTableSearch(&table, aktualni_token.atr);
+            if (!inScope) {
+                if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                node = symTableSearch(&table, aktualni_token.atr);
+
+            } else {
+                if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                node = symTableSearch(&glSymTable, aktualni_token.atr);
+            }
+
             //Overeni ze klic co jsme nasli je promenna a ne funkce
             if (node->nodeDataType != ndtVariable)
                 return ERROR_CODE_SEM;
@@ -592,6 +611,7 @@ int Prikaz() {
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
@@ -619,6 +639,7 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -633,9 +654,20 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
+            if (!inScope) {
+                if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                node = symTableSearch(&table, aktualni_token.atr);
+                expectedValue = ((tDataVariable *) node->Data)->dataType;
+
+            } else {
+                if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                node = symTableSearch(&glSymTable, aktualni_token.atr);
+                expectedValue = ((tDataVariable *) node->Data)->dataType;
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -647,6 +679,13 @@ int Prikaz() {
             //V hlavnim tele scope nemuze return byt
             if (inScope == true)
                 return ERROR_CODE_SEM;
+
+
+            if (((symTableSearch(&glSymTable, functionName)) == NULL)) return ERROR_CODE_SEM;
+            node = symTableSearch(&glSymTable, functionName);
+            expectedValue = ((tDataFunction *) node->Data)->returnDataType;
+
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
@@ -667,11 +706,18 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
+            if (inScope) {
+                if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+                //Nebyla, vlozime ju
+                symTableInsertVariable(&glSymTable, aktualni_token.atr);
+                node = symTableSearch(&glSymTable, aktualni_token.atr);
+            } else {
 
-            if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
-            //Nebyla, vlozime ju
-            symTableInsertVariable(&table, aktualni_token.atr);
-            node = symTableSearch(&table, aktualni_token.atr);
+                if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+                //Nebyla, vlozime ju
+                symTableInsertVariable(&table, aktualni_token.atr);
+                node = symTableSearch(&table, aktualni_token.atr);
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -784,7 +830,7 @@ int Dalsi_vyrazy() {
 
 int Vyraz() {
     int result;
-    result = expression(aktualni_token, aktualni_token.type);
+    result = expression(aktualni_token, expectedValue);
     exprAdjust = true;
     aktualni_token = next_exp_token;
     aktualni_token.type = adjustTokenType(aktualni_token);
