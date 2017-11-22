@@ -26,6 +26,7 @@ typedef struct function {
     bool declared;
     bool defined;
     string parameters;   /* parametry funkce: napr. isd (integer, string, double) */
+    string paramName[10];
 } tDataFunction;
 
 typedef struct symtable {
