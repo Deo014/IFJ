@@ -14,13 +14,12 @@
 #define IFJ_EXPRESSION_H
 
 #define PT_SIZE 17
-
+#include "instList.h"
 #include "scanner.h"
 #include "stack.h"
 #include "error_code.h"
 #include "string.h"
 #include "symtable.h"
-#include "instList.h"
 #include <string.h>
 
 /*Datový typ enum, popisující všechny možné znaky ve výrazu*/
@@ -70,6 +69,7 @@ ERROR_CODE reducePars(ptrStack*);
 ERROR_CODE reduceFunction(ptrStack*);
 ERROR_CODE checkSemAConv(Exp_element*, int, Exp_element*);
 ERROR_CODE checkParams(tDataVariable*);
+ERROR_CODE checkResultType(ptrStack*);
 Exp_element *newElementToStack(string, int, int);
 char getSignFromTable();
 int convertTokenToIndex(int);

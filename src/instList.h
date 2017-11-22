@@ -13,6 +13,22 @@
 #ifndef IFJ_INSTLIST_H
 #define IFJ_INSTLIST_H
 
+#include "string.h"
+#include "expression.h"
+
+typedef enum {
+    F_LF,
+    F_TF
+}FRAME;
+
+typedef struct instr_element{
+    string value;
+    int token_type;
+    FRAME frame;
+    bool isLabel;
+    bool isScope;
+}Instr_element;
+
 typedef enum {
     // prace s ramci, volani funkci
     I_HEADER,
@@ -106,9 +122,9 @@ typedef enum {
 
 typedef struct {
     int instType;
-    void *addr1;
-    void *addr2;
-    void *addr3;
+    void * addr1;
+    void * addr2;
+    void * addr3;
 } tInstr;
 
 typedef struct tDLElem {
@@ -144,7 +160,10 @@ void DLSucc (tDLListInstruction *);
 void DLPred (tDLListInstruction *);
 int DLActive (tDLListInstruction *);
 
-
+void writeInstructionNoOperand(tDLListInstruction *,int);
+void writeInstructionOneOperand(tDLListInstruction *,int, Instr_element);
+void writeInstructionTwoOperands(tDLListInstruction *,int, Instr_element, Instr_element);
+void writeInstructionThreeOperands(tDLListInstruction *,int, Instr_element, Instr_element, Instr_element);
 void generateInstruction (tDLListInstruction *, int, void*, void*, void*); // vygeneruje instrukci do instrucni pasky
 
 void printInstructionList (tDLListInstruction *);

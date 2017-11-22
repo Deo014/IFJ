@@ -39,7 +39,7 @@ typedef enum {
     tString
 } keyword_type;
 
-int parse(tSymtable *, tDLListInstruction *);
+int parse();
 
 int Program();
 
@@ -82,4 +82,6 @@ int dalsiToken();
 int Dalsi_vyrazy();
 
 int Vyraz();
+
+void checkDefinitionsOfDeclarations(tBSTNodePtr root);
 #endif //IFJ_PARSER_H
