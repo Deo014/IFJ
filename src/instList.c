@@ -24,7 +24,7 @@
 #define TYPEINT "int@"
 #define TYPEBOOL "bool@"
 #define TYPESTRING "string@"
-#define TYPEDOUBLE "double@"
+#define TYPEDOUBLE "float@"
 
 
 tInstrOperand initOperand(tInstrOperand operand, char* value, int type, FRAME frame, bool isTMP, bool isLabel, bool isScope, INPUTTYPE inputType){
