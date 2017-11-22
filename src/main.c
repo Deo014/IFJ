@@ -63,41 +63,43 @@ int main(int argc, char **argv)
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    //result_code = parse();
+    result_code = parse();
 
     //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
 
     //*******************************************
-    Instr_element test_element1; Instr_element test_element2; Instr_element test_element3; Instr_element test_element4;
-    string test_string1; stringInit(&test_string1); stringAddChar(&test_string1, 'a'); test_element1.frame = F_LF;
-    string test_string2; stringInit(&test_string2); stringAddChar(&test_string2, '4');
-    string test_string3; stringInit(&test_string3); stringAddChar(&test_string3, 'b'); test_element3.frame = F_TF;
-    string test_string4; stringInit(&test_string4); test_element4.value.value = "Scope";
-    test_element1.token_type = sIdentificator; test_element1.value = test_string1; test_element1.isLabel = false; test_element1.isScope = false;
-    test_element2.token_type = sDouble; test_element2.value = test_string2;test_element2.isLabel = false; test_element2.isScope = false;
-    test_element3.token_type = sIdentificator; test_element3.value = test_string3; test_element3.isLabel = false; test_element3.isScope = false;
-    test_element4.token_type = sKeyWord; test_element4.value = test_string4; test_element4.isLabel = true; test_element4.isScope = true;
+    /*
+      Instr_element test_element1; Instr_element test_element2; Instr_element test_element3; Instr_element test_element4;
+      string test_string1; stringInit(&test_string1); stringAddChar(&test_string1, 'a'); test_element1.frame = F_LF;
+      string test_string2; stringInit(&test_string2); stringAddChar(&test_string2, '4');
+      string test_string3; stringInit(&test_string3); stringAddChar(&test_string3, 'b'); test_element3.frame = F_TF;
+      string test_string4; stringInit(&test_string4); test_element4.value.value = "Scope";
+      test_element1.token_type = sIdentificator; test_element1.value = test_string1; test_element1.isLabel = false; test_element1.isScope = false;
+      test_element2.token_type = sDouble; test_element2.value = test_string2;test_element2.isLabel = false; test_element2.isScope = false;
+      test_element3.token_type = sIdentificator; test_element3.value = test_string3; test_element3.isLabel = false; test_element3.isScope = false;
+      test_element4.token_type = sKeyWord; test_element4.value = test_string4; test_element4.isLabel = true; test_element4.isScope = true;
 
-    writeInstructionOneOperand(&instList, I_LABEL, test_element4);
-    writeInstructionNoOperand(&instList, I_PUSHFRAME);
-    writeInstructionOneOperand(&instList, I_DEFVAR, test_element1);
-    writeInstructionOneOperand(&instList, I_WRITE, test_element2);
-    writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element2);
-    test_element4.value.value = "jmeno"; test_element4.isLabel = true; test_element4.isScope = false;
-    writeInstructionOneOperand(&instList, I_LABEL, test_element4);
-    writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element3);
-    writeInstructionThreeOperands(&instList, I_ADD, test_element1, test_element2, test_element3);
-
+      writeInstructionOneOperand(&instList, I_LABEL, test_element4);
+      writeInstructionNoOperand(&instList, I_PUSHFRAME);
+      writeInstructionOneOperand(&instList, I_DEFVAR, test_element1);
+      writeInstructionOneOperand(&instList, I_WRITE, test_element2);
+      writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element2);
+      test_element4.value.value = "jmeno"; test_element4.isLabel = true; test_element4.isScope = false;
+      writeInstructionOneOperand(&instList, I_LABEL, test_element4);
+      writeInstructionTwoOperands(&instList, I_MOVE, test_element1, test_element3);
+      writeInstructionThreeOperands(&instList, I_ADD, test_element1, test_element2, test_element3);
+  */
     //generateInstruction(&instList, I_DEFVAR, &test_element1, NULL, NULL);
 
 
-    //if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
+    if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
+    //!!!Zapoznamkovano, SIGABRT
     //symTableDispose(&glSymTable); // globalni tabulka symbolu
-    DLDisposeList(&instList); // insturkcni paska
+    //DLDisposeList(&instList); // insturkcni paska
 
 
     return result_code;
