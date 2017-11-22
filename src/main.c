@@ -103,12 +103,12 @@ int main(int argc, char **argv)
     operand1 = initOperand(operand1, "func", sIdentificator, F_LF, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_CALL, operand1);
 
-    // Vypsání stringu "nejaky text\n"
+    // Práce s doublem (float)
     operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "4e2", sDouble, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
-    // Práce s doublem
+    // Vypsání stringu "nejaky text\n"
     operand1 = initOperand(operand1, "nejaky\\032text", sString, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_WRITE, operand1);
 

@@ -152,7 +152,7 @@ void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOper
     if(tmp_operand2_inputtype == INPUT_INT)
         operand2 = "int";
     else if(tmp_operand2_inputtype == INPUT_DOUBLE)
-        operand2 = "double";
+        operand2 = "float";
     else if(tmp_operand2_inputtype == INPUT_STRING)
         operand2 = "string";
 
