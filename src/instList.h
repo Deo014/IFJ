@@ -18,16 +18,25 @@
 
 typedef enum {
     F_LF,
-    F_TF
+    F_TF,
+    F_DEFAULT
 }FRAME;
+
+typedef enum {
+    INPUT_INT,
+    INPUT_DOUBLE,
+    INPUT_STRING,
+    I_DEFAULT
+}INPUTTYPE;
 
 typedef struct instr_operand{
     string value;
-    int token_type;
+    int type;
     FRAME frame;
     bool isTMP;
     bool isLabel;
     bool isScope;
+    INPUTTYPE inputType;
 }tInstrOperand;
 
 typedef enum {
@@ -162,6 +171,8 @@ void DLSucc (tDLListInstruction *);
 void DLPred (tDLListInstruction *);
 int DLActive (tDLListInstruction *);
 
+//tInstrOperand initOperand(tInstrOperand);
+tInstrOperand initOperand(tInstrOperand , char* , int , FRAME , bool , bool , bool , INPUTTYPE);
 void writeInstructionNoOperand(tDLListInstruction *,int);
 void writeInstructionOneOperand(tDLListInstruction *,int, tInstrOperand);
 void writeInstructionTwoOperands(tDLListInstruction *,int, tInstrOperand, tInstrOperand);

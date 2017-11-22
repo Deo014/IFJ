@@ -21,7 +21,6 @@
 #include "scanner.h"
 
 tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3;
-string TMP;
 
 tSymtable glSymTable; // globalni tabulka symbolu
 tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
@@ -61,7 +60,7 @@ int main(int argc, char **argv)
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
-    result_code = parse();
+    //result_code = parse();
 
     //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
@@ -70,35 +69,78 @@ int main(int argc, char **argv)
     string test_string1; stringInit(&test_string1); stringAddChar(&test_string1, 'a');
     string test_string2; stringInit(&test_string2); stringAddChar(&test_string2, '4');
     string test_string3; stringInit(&test_string3); stringAddChar(&test_string3, 'b');
+    // operand,  value,  type,  frame,  isTMP,  isLabel,  isScope,  input, inputtype
 
-    operand1.token_type = sKeyWord; operand1.value.value = "Scope"; operand1.isLabel = true; operand1.isScope = true;
+    // Vypsání $$scope, CREATEFRAME a PUSHFRAME
+    operand1 = initOperand(operand1, "", sKeyWord, F_DEFAULT, false, false, true, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_CREATEFRAME);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
 
-    operand1.token_type = sKeyWord; operand1.value.value = "nejakylabel"; operand1.isLabel = true; operand1.isScope = false;
+    // vytvoření LABEL $nejakylabel
+    operand1 = initOperand(operand1, "nejakylabel", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
 
-    operand2.token_type = sDouble; operand2.value = test_string2;operand2.isLabel = false; operand2.isScope = false;
-    operand3.token_type = sIdentificator; operand3.value = test_string3; operand3.isLabel = false; operand3.isScope = false;
+    // Nahrání double@4 do LF@b
+    operand1 = initOperand(operand1, test_string3.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, test_string2.value, sDouble, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
-    operand1.token_type = sIdentificator; operand1.value = test_string1; operand1.isLabel = false; operand1.isScope = false; operand1.isTMP = false;
+    // Vytvoření LF@a
+    operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
-    operand1.value = test_string3;
+
+    // Načtení hodnoty int do LF@a
+    operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false, INPUT_STRING);
+    writeInstructionTwoOperands(&instList, I_READ, operand1, operand2);
+
+    // Vypsání hodnoty LF@a
+    operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_WRITE, operand1);
-    operand2.token_type = sInteger; operand2.value.value = "4";
+
+    // Zavolání funkce $func
+    operand1 = initOperand(operand1, "func", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_CALL, operand1);
+
+    // Vypsání stringu "nejaky text\n"
+    operand1 = initOperand(operand1, "nejaky\\032text\\010", sString, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
+    // Nahrání prázdného řetězce do LF@a
+    operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sString, F_LF, false, false, false,  I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-    operand1.isTMP = true;
+
+    // Nahrání int@4 do LF@b
+    operand1 = initOperand(operand1, test_string3.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, test_string2.value, sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+
+    // Sečtení int@4 a TF@b do globální proměnné GF@tmp
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, test_string2.value, sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, test_string3.value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
 
-    /* TMP */ operand1.token_type = sIdentificator; operand1.isTMP = true; operand1.isLabel = false; operand1.isScope = false; operand1.frame = F_LF;
-    operand2.value.value = ""; operand2.token_type = sIdentificator; operand2.isTMP = true; operand2.isLabel = false; operand2.isScope = false; operand2.frame = F_LF;
-    operand3.value.value = ""; operand3.token_type = sIdentificator; operand3.isTMP = true; operand3.isLabel = false; operand3.isScope = false; operand3.frame = F_LF;
+    // Přeskočení na návěští $else pokud v GF@tmp je bool@false
+    operand1 = initOperand(operand1, "else", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "false", 42, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFNEQ, operand1, operand2, operand3);
+
+    // Práce s proměnou na globálním rámci GF@tmp
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
     writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
-    operand1.value = test_string1; operand1.isTMP = false;
-    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+
+    // Vypsání konce programu
+    writeInstructionNoOperand(&instList, I_POPFRAME);
+    operand1 = initOperand(operand1, "endscope", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
 
     //if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
         printInstructionList(&instList);
