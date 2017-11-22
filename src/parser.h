@@ -39,7 +39,7 @@ typedef enum {
     tString
 } keyword_type;
 
-int parse(tSymtable *, tDLListInstruction *);
+int parse();
 
 int Program();
 
