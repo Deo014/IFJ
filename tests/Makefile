@@ -1,5 +1,5 @@
 PROJ=OUTPUT_TESTS_EXE
-FILES=tests.c ../src/scanner.c ../src/string.c
+FILES=tests.c ../src/scanner.c ../src/string.c ../src/expression.c
 CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread
 CC=gcc
 RM=rm -f

@@ -4,8 +4,10 @@
 #include <cmocka.h>
 #include <stdio.h>
 
-#include "../src/scanner.h" // UUT
-#include "../src/string.h"
+/* testovane moduly */
+#include "../src/scanner.h"
+#include "../src/expression.h"
+#include "../src/symtable.h"
 
 /*--------------------------------------------------SCANNER-----------------------------------------------------------*/
 static void scanner_prazdny_vstup(void** state) {
@@ -906,18 +908,68 @@ static void scanner_vypocet_faktorialu_rekurzivne(void** state) {
 }
 
 /*--------------------------------------------------PARSER------------------------------------------------------------*/
+static void parser_prazdny_vstup( void** state) {
+    (void) state; // unused
+    freopen("prazdny_vstup.txt", "r", stdin);
 
+}
+
+static void parser_vypocet_faktorialu_nerekurzivne( void** state) {
+    (void) state; // unused
+    freopen("vypocet_faktorialu_nerekurzivne.txt", "r", stdin);
+
+}
+
+static void parser_faktorialu_rekurzivne( void** state) {
+    (void) state; // unused
+    freopen("vypocet_faktorialu_rekurzivne.txt", "r", stdin);
+
+}
+
+/*--------------------------------------------------EXPRESSION--------------------------------------------------------*/
+
+static void expression_test1( void** state) {
+    (void) state; // unused
+    freopen("expression_test1.txt", "r", stdin);
+    assert_int_equal(expression(getNextToken(), sInteger), ERROR_CODE_OK);
+}
+/*
+static void expression_vypocet_faktorialu_nerekurzivne( void** state) {
+    (void) state; // unused
+    freopen("vypocet_faktorialu_nerekurzivne.txt", "r", stdin);
+
+}
+
+static void expression_faktorialu_rekurzivne( void** state) {
+    (void) state; // unused
+    freopen("vypocet_faktorialu_rekurzivne.txt", "r", stdin);
+
+}
+*/
 
 int main(void)
 {
+    printf("--------------------SCANNER--------------------\n");
     const struct CMUnitTest scanner_tests[] =
             {
                     cmocka_unit_test(scanner_prazdny_vstup),
                     cmocka_unit_test(scanner_vypocet_faktorialu_nerekurzivne),
                     cmocka_unit_test(scanner_vypocet_faktorialu_rekurzivne),
             };
-    printf("--------------------SCANNER--------------------\n");
     cmocka_run_group_tests(scanner_tests, NULL, NULL);
     printf("--------------------PARSER---------------------\n");
+    const struct CMUnitTest parser_tests[] =
+            {
+                    cmocka_unit_test(parser_prazdny_vstup),
+                    cmocka_unit_test(parser_vypocet_faktorialu_nerekurzivne),
+                    cmocka_unit_test(parser_faktorialu_rekurzivne),
+            };
+    cmocka_run_group_tests(parser_tests, NULL, NULL);
+    printf("--------------------EXPRESSION---------------------\n");
+    const struct CMUnitTest expression_tests[] =
+            {
+                    cmocka_unit_test(expression_test1),
+            };
+    cmocka_run_group_tests(expression_tests, NULL, NULL);
 
 }
