@@ -229,11 +229,13 @@ int Telo_programu() {
                 return ERROR_CODE_SEM;
             inScope = true;
 
-            glNode = symTableSearch(&glSymTable, functionName);
-            paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
-            for (int i = 0; i < paramsToDeclare; i++) {
-                symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
-                i++;
+            if (((symTableSearch(&glSymTable, functionName)) != NULL)) {
+                glNode = symTableSearch(&glSymTable, functionName);
+                paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
+                for (int i = 0; i < paramsToDeclare; i++) {
+                    symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
+                    i++;
+                }
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;

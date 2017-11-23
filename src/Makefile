@@ -11,8 +11,8 @@
 #
 PROJ=proj
 #FILES=symtable.c symtable.h main.c
-FILES=main.c scanner.c string.c symtable.c stack.c instList.c expression.c bintree.c
-CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread
+FILES=main.c scanner.c string.c symtable.c stack.c instList.c expression.c bintree.c parser.c
+CFLAGS=-std=gnu99 -Wall -Wextra -pedantic -pthread
 CC=gcc
 RM=rm -f
 
