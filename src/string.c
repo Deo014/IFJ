@@ -62,7 +62,7 @@ int stringAddChar(string *str, char c) {
 
 int stringAddChars(string *str, char* c) {
     int result_code;
-    for (int i = 0; i < strlen(c); i++) {
+    for (unsigned int i = 0; i < strlen(c); i++) {
         result_code = stringAddChar(str, c[i]);
     }
     return result_code;

@@ -16,7 +16,7 @@
 
 #include "error_code.h"
 #include"symtable.h"
-#include "instList.h"
+#include "instlist.h"
 
 typedef enum {
     sEnd = 100,

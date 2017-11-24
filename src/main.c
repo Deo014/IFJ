@@ -13,7 +13,7 @@
 #include <stdio.h>
 //#include <stdlib.h>
 #include "error_code.h"
-#include "instList.h"
+#include "instlist.h"
 #include "symtable.h"
 #include "parser.h"
 #include "string.h"
@@ -28,7 +28,16 @@ tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukc
 
 int main(int argc, char **argv)
 {
-    //freopen("test1.txt", "r", stdin);
+    char f1[] = "length";
+    char f2[] = "substr";
+    string length;
+    string substr;
+    string param;
+    tBSTNodePtr node;
+    stringInit(&param);
+    stringInit(&length);
+    stringInit(&substr);
+    freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -40,8 +49,39 @@ int main(int argc, char **argv)
     /*----------inicializace----------*/
     symTableInit(&glSymTable); // globalni tabulka symbolu
     symTableInit(&table);
-    //DLInitList(&instList);  // instrukcni paska
 
+    stringAddChars(&length, f1);
+    symTableInsertFunction(&glSymTable, length);
+    node = symTableSearch(&glSymTable, length);
+    ((tDataFunction *) node->Data)->declared = true;
+    ((tDataFunction *) node->Data)->defined = true;
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+    stringAddChar(&param, 's');
+    ((tDataFunction *) node->Data)->paramName[0] = param;
+    stringClear(&param);
+    ((tDataFunction *) node->Data)->returnDataType = sInteger;
+
+
+    stringAddChars(&substr, f2);
+    symTableInsertFunction(&glSymTable, substr);
+    node = symTableSearch(&glSymTable, substr);
+    ((tDataFunction *) node->Data)->declared = true;
+    ((tDataFunction *) node->Data)->defined = true;
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+    stringAddChar(&param, 's');
+    ((tDataFunction *) node->Data)->paramName[0] = param;
+    stringClear(&param);
+    stringAddChar(&param, 'i');
+    ((tDataFunction *) node->Data)->paramName[1] = param;
+    stringClear(&param);
+    stringAddChar(&param, 'n');
+    ((tDataFunction *) node->Data)->paramName[2] = param;
+    stringClear(&param);
+    ((tDataFunction *) node->Data)->returnDataType = sString;
+
+    //DLInitList(&instList);  // instrukcni paska
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     result_code = parse();
@@ -78,8 +118,8 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    symTableDispose(&glSymTable); // globalni tabulka symbolu
-    symTableDispose(&table);
+    //symTableDispose(&glSymTable); // globalni tabulka symbolu
+    //symTableDispose(&table);
     //DLDisposeList(&instList); // insturkcni paska
 
 
