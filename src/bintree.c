@@ -81,7 +81,9 @@ void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
         PtrReplaced->Data = (*RootPtr)->Data;
         PtrReplaced->Key = (*RootPtr)->Key;
         // uvolneni uzlu
-        BSTDelete(RootPtr, (*RootPtr)->Key);
+        tBSTNodePtr itemToDelete = *RootPtr;
+        *RootPtr = (*RootPtr)->LPtr;
+        free(itemToDelete);
     }
     else {
         ReplaceByRightmost(PtrReplaced, &((*RootPtr)->RPtr));
@@ -125,8 +127,11 @@ void BSTDelete (tBSTNodePtr *RootPtr, char* K) 		{
 void BSTDispose (tBSTNodePtr *RootPtr) {
 
     if ( (*RootPtr) != NULL ) {
-        BSTDelete(RootPtr, (*RootPtr)->Key);
-        BSTDispose(RootPtr);
+        BSTDispose(&(*RootPtr)->LPtr); // zruseni leveho podstromu
+        BSTDispose(&(*RootPtr)->RPtr); // zruseni praveho podstromu
+        // uvolneni aktualniho prvku
+        free(*RootPtr);
+        *RootPtr = NULL;
     }
 
 }
