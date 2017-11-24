@@ -32,9 +32,11 @@ int main(int argc, char **argv)
     char f2[] = "substr";
     string length;
     string substr;
-    string param;
+    string paramLength;
+    string paramSubstr;
     tBSTNodePtr node;
-    stringInit(&param);
+    stringInit(&paramLength);
+    stringInit(&paramSubstr);
     stringInit(&length);
     stringInit(&substr);
     freopen("test1.txt", "r", stdin);
@@ -56,9 +58,9 @@ int main(int argc, char **argv)
     ((tDataFunction *) node->Data)->declared = true;
     ((tDataFunction *) node->Data)->defined = true;
     stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
-    stringAddChar(&param, 's');
-    ((tDataFunction *) node->Data)->paramName[0] = param;
-    stringClear(&param);
+    stringAddChar(&paramLength, 's');
+    ((tDataFunction *) node->Data)->paramName[0] = paramLength;
+    stringClear(&paramLength);
     ((tDataFunction *) node->Data)->returnDataType = sInteger;
 
 
@@ -70,15 +72,15 @@ int main(int argc, char **argv)
     stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
     stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
     stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
-    stringAddChar(&param, 's');
-    ((tDataFunction *) node->Data)->paramName[0] = param;
-    stringClear(&param);
-    stringAddChar(&param, 'i');
-    ((tDataFunction *) node->Data)->paramName[1] = param;
-    stringClear(&param);
-    stringAddChar(&param, 'n');
-    ((tDataFunction *) node->Data)->paramName[2] = param;
-    stringClear(&param);
+    stringAddChar(&paramSubstr, 's');
+    ((tDataFunction *) node->Data)->paramName[0] = paramSubstr;
+    stringClear(&paramSubstr);
+    stringAddChar(&paramSubstr, 'i');
+    ((tDataFunction *) node->Data)->paramName[1] = paramSubstr;
+    stringClear(&paramSubstr);
+    stringAddChar(&paramSubstr, 'n');
+    ((tDataFunction *) node->Data)->paramName[2] = paramSubstr;
+    stringClear(&paramSubstr);
     ((tDataFunction *) node->Data)->returnDataType = sString;
 
     //DLInitList(&instList);  // instrukcni paska
