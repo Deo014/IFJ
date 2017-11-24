@@ -20,10 +20,11 @@
 #include "expression.h"
 #include "scanner.h"
 
-tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3;
+//tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3; ........ V inst_list.h
+//tDLListInstruction instList; ................................................... V inst_list.h
 
 tSymtable glSymTable; // globalni tabulka symbolu
-tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
+
 
 int main(int argc, char **argv)
 {
@@ -146,6 +147,23 @@ int main(int argc, char **argv)
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
     writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+
+    // Vypsání vestavěných funkcí
+    /*operand1 = initOperand(operand1, "A", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "aaa", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeLenght(operand1, operand2);*/
+
+    /*operand1 = initOperand(operand1, "s1", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "5", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeAsc(operand1, operand2);*/
+
+    /*operand1 = initOperand(operand1, "97", sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeChr(operand1);*/
+
+    /*operand1 = initOperand(operand1, "s2", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "10", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "4", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeSubstr(operand1, operand2, operand3);*/
 
     // Vypsání konce programu
     writeInstructionNoOperand(&instList, I_POPFRAME);

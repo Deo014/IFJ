@@ -625,18 +625,12 @@ int DLActive (tDLListInstruction *L) {
 }
 
 // Vestavěné funkce
-
-/*extern instList = instList;
-extern operand1 = operand1;
-extern operand2 = operand2;
-extern operand3 = operand3;*/
-
-/*void writeLenght(tInstrOperand tmp_operand1, tInstrOperand tmp_operand2){
-    writeInstructionTwoOperands(&instList, I_STRLEN, extern operand1, extern operand2);
+void writeLenght(tInstrOperand tmp_operand1, tInstrOperand tmp_operand2){
+    writeInstructionTwoOperands(&instList, I_STRLEN, tmp_operand1, tmp_operand2);
     return;
-}*/
+}
 
-/*void writeAsc(tInstrOperand retezec, tInstrOperand index){
+void writeAsc(tInstrOperand retezec, tInstrOperand index){
     writeInstructionNoOperand(&instList, I_CREATEFRAME);
     operand1 = initOperand(operand1, "@%ascretval", sIdentificator, F_TF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
@@ -823,4 +817,4 @@ void writeSubstr(tInstrOperand retezec, tInstrOperand index, tInstrOperand shift
     operand1 = initOperand(operand1, "%endsubstrwithshift0", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     return;
-}*/
+}
