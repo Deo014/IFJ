@@ -26,7 +26,7 @@ extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo fu
 //str_element result_element;
 
 //int operation;
-int operation_type_global;  //Typ výsledné proměnné
+int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
@@ -91,8 +91,8 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
         //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
         if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-            /*if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
-                return error_type;*/
+            if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
+                return error_type;
             return ERROR_CODE_OK;
         }
 
@@ -255,6 +255,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                 }
 
             }
+                //Kontrola parametru, pokud parametr není proměnná
             else if(exp_function && (sString == new_element->token_type || sDouble == new_element->token_type || sInteger == new_element->token_type)){
                 if((error_type = checkParams(new_element->token_type)) != ERROR_CODE_OK)
                     return error_type;
@@ -528,10 +529,11 @@ ERROR_CODE checkParams(int variable){
 //Funkce kontroluje sémantiku a případně konvertuje typ operatoru
 ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element *operand_type_r){
 
+    /*
     //Pokud má být výsledek string a jeden z operátorů není string, chyba
     if((operand_type_l->token_type != sString || operand_type_r->token_type != sString) && operation_type_global == sString)
         return ERROR_CODE_SEM_COMP;
-
+*/
     //Jestli se provadi operace '\'
     if(operator == eDivideI){
         //Pokud není ani jeden z operandů string, oba se přetypují na int
@@ -555,6 +557,8 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
         else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
             operand_type_l->token_type = sDouble;
             operand_type_r->token_type = sDouble;
+        }
+        else if(operand_type_l->token_type == sString|| operand_type_r->token_type == sString) {
         }
         //Jinak máme v operaci dva stringy...
     }
@@ -588,8 +592,8 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
     else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack)->token_type != sInteger){
         /*TODO přetypovat proměnnou výsledku*/
     }
-    else if((operation_type_global != sString && ((Exp_element*)expression_stack->top_of_stack)->token_type == sString)||
-            (operation_type_global == sString && ((Exp_element*)expression_stack->top_of_stack)->token_type != sString))
+    else if(( ((Exp_element*)expression_stack->top_of_stack)->token_type != sString && sString == operation_type_global) ||
+            (((Exp_element*)expression_stack->top_of_stack)->token_type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
     return ERROR_CODE_OK;
 }
