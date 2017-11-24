@@ -13,7 +13,7 @@
 #include <stdio.h>
 //#include <stdlib.h>
 #include "error_code.h"
-#include "instList.h"
+#include "inst_list.h"
 #include "symtable.h"
 #include "string.h"
 #include "bintree.h"
@@ -92,12 +92,17 @@ int main(int argc, char **argv)
 
     // Načtení hodnoty int do LF@a
     operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false, INPUT_STRING);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false, INPUT_DOUBLE   );
     writeInstructionTwoOperands(&instList, I_READ, operand1, operand2);
 
     // Vypsání hodnoty LF@a
     operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
+    // Práce se zásobníkem hodnot
+    operand1 = initOperand(operand1, test_string1.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+    writeInstructionOneOperand(&instList, I_POPS, operand1);
 
     // Zavolání funkce $func
     operand1 = initOperand(operand1, "func", sIdentificator, F_LF, false, true, false, I_DEFAULT);

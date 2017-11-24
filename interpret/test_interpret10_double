@@ -1,0 +1,18 @@
+#/' Program 1: Vypis a=42 '/
+#scope 'Hlavni telo programu
+#Dim a As Integer
+#a = 42
+#Print  a ; 
+#END SCOPE
+
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a
+MOVE LF@a float@4e2
+WRITE LF@a
+POPFRAME
+LABEL $$endscope

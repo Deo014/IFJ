@@ -1,0 +1,11 @@
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@a
+MOVE LF@a string@
+WRITE LF@a
+POPFRAME
+LABEL $$endscope

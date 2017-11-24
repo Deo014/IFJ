@@ -1,0 +1,122 @@
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+
+#############################################################
+#result = Length(!"xxx")
+DEFVAR LF@%strlenresult
+
+STRLEN LF@%strlenresult string@xxx
+
+WRITE string@Funkce\032Lenght:\032
+WRITE LF@%strlenresult
+WRITE string@\010
+
+##############################################################
+#result = Asc(s1, 5)
+DEFVAR LF@s1
+DEFVAR LF@ascresult
+MOVE LF@s1 string@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+CREATEFRAME
+DEFVAR TF@%ascretval
+DEFVAR TF@s
+DEFVAR TF@i
+MOVE TF@s LF@s1
+MOVE TF@i int@15
+PUSHFRAME
+DEFVAR LF@s_len
+STRLEN LF@s_len LF@s
+LT GF@tmp LF@i int@0
+JUMPIFEQ $%asc_error GF@tmp bool@true
+GT GF@tmp LF@i LF@s_len
+JUMPIFEQ $%asc_error GF@tmp bool@true
+STRI2INT LF@%ascretval LF@s LF@i
+JUMP $%asc_end
+LABEL $%asc_error
+MOVE LF@%ascretval int@0
+LABEL $%asc_end
+POPFRAME
+
+MOVE LF@ascresult TF@%ascretval
+WRITE string@Funkce\032asc:\032
+WRITE LF@ascresult
+WRITE string@\010
+
+##############################################################
+#result = Chr(97)
+DEFVAR LF@chrresult
+
+CREATEFRAME
+DEFVAR TF@%chrretval
+DEFVAR TF@i
+MOVE TF@i int@97
+PUSHFRAME
+INT2CHAR LF@%chrretval LF@i
+POPFRAME
+
+MOVE LF@chrresult TF@%chrretval
+WRITE string@Funkce\032chr:\032
+WRITE LF@chrresult
+WRITE string@\010
+
+################################################################
+#result = SubStr(s2 10, 4)
+DEFVAR LF@substrresult
+DEFVAR LF@s2
+MOVE LF@s2 string@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+CREATEFRAME
+DEFVAR TF@%substrretval
+MOVE TF@%substrretval string@
+DEFVAR TF@substr_string
+DEFVAR TF@substr_len
+DEFVAR TF@substr_index
+DEFVAR TF@substr_shift
+DEFVAR TF@substr_char
+MOVE TF@substr_string LF@s2
+MOVE TF@substr_index int@10
+MOVE TF@substr_shift int@4
+STRLEN TF@substr_len TF@substr_string
+SUB TF@substr_len TF@substr_len TF@substr_index
+
+LT GF@tmp TF@substr_index int@1
+JUMPIFEQ $%emptystring GF@tmp bool@true
+JUMPIFEQ $%emptystring TF@substr_string string@
+LT GF@tmp TF@substr_shift int@0
+JUMPIFEQ $%error_shift GF@tmp bool@true
+GT GF@tmp TF@substr_shift TF@substr_len
+JUMPIFEQ $%error_shift GF@tmp bool@true
+JUMPIFEQ $%endsubstr_with_shift0 TF@substr_shift int@0
+JUMP $%substr
+
+LABEL $%error_shift
+SUB TF@substr_shift TF@substr_len TF@substr_index
+LABEL $%substr
+PUSHFRAME
+MOVE GF@tmp string@\00
+LABEL $%do_substr
+GETCHAR LF@substr_char LF@substr_string LF@substr_index
+ADD LF@substr_index LF@substr_index int@1
+CONCAT GF@tmp GF@tmp LF@substr_char
+SUB LF@substr_shift LF@substr_shift int@1
+JUMPIFNEQ $%do_substr LF@substr_shift int@0
+MOVE LF@%substrretval GF@tmp
+JUMP $%endsubstr
+LABEL $%emptystring
+MOVE LF@%substrretval string@
+LABEL $%endsubstr
+POPFRAME
+LABEL $%endsubstr_with_shift0
+
+MOVE LF@substrresult TF@%substrretval
+WRITE string@Funkce\032substr:\032
+WRITE LF@substrresult
+WRITE string@\010
+
+##############################################################
+POPFRAME
+LABEL $$endscope

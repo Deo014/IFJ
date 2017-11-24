@@ -1,0 +1,51 @@
+.IFJcode17
+DEFVAR GF@tmp
+JUMP $$scope
+LABEL $$scope
+CREATEFRAME
+PUSHFRAME
+##############################################################
+
+DEFVAR LF@result
+DEFVAR LF@a
+DEFVAR LF@b
+DEFVAR LF@c
+DEFVAR LF@d
+MOVE LF@a int@1
+MOVE LF@b int@2
+MOVE LF@c int@3
+MOVE LF@d int@4
+
+#result = a + b = 3
+ADD LF@result LF@a LF@b
+WRITE string@a+b=
+WRITE LF@result
+WRITE string@\010
+
+#result = a + b + c = 6
+PUSHS LF@a
+PUSHS LF@b
+ADDS
+PUSHS LF@c
+ADDS
+POPS LF@result
+WRITE string@a+b+c=
+WRITE LF@result
+WRITE string@\010
+
+#result = a + b + (c * d) = 15
+PUSHS LF@c
+PUSHS LF@d
+MULS
+PUSHS LF@a
+ADDS
+PUSHS LF@b
+ADDS
+POPS LF@result
+WRITE string@a+b+(c*d)=
+WRITE LF@result
+WRITE string@\010
+
+##############################################################
+POPFRAME
+LABEL $$endscope

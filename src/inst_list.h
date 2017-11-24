@@ -180,5 +180,10 @@ void writeInstructionThreeOperands(tDLListInstruction *,int, tInstrOperand, tIns
 void generateInstruction (tDLListInstruction *, int, void*, void*, void*); // vygeneruje instrukci do instrucni pasky
 
 void printInstructionList (tDLListInstruction *);
+// Vestavěné funkce
+void writeLenght(tInstrOperand , tInstrOperand );
+void writeAsc(tInstrOperand , tInstrOperand );
+void writeChr(tInstrOperand );
+void writeSubstr(tInstrOperand , tInstrOperand , tInstrOperand );
 
 #endif //IFJ_INSTLIST_H
