@@ -11,6 +11,7 @@
  */
 #include "expression.h"
 #include "stack.h"
+#include "scanner.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
@@ -56,10 +57,15 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     ERROR_CODE result;
     ptrStack expression_stack;
     operation_type_global = operation_type;
-    result = expressionAnalysis(&expression_stack,first_token);
-    exp_function = false;
-    parameter_index = 0;
-    SDispose(&expression_stack);
+    //Pokud je první token EOF nebo EOL, je to chyba
+    if (first_token.type == sEndOfLine || first_token.type == sEndOfFile) {
+        return ERROR_CODE_SYN;
+    } else {
+        result = expressionAnalysis(&expression_stack, first_token);
+        exp_function = false;
+        parameter_index = 0;
+        SDispose(&expression_stack);
+    }
     return result;
     }
 
@@ -217,7 +223,8 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     //Pokud se jedná o funkci
                 else if(element_id->nodeDataType == ndtFunction) {
                     tDataFunction *function = ((tDataFunction*) (element_id->Data));
-                    if (function->returnDataType != sString && sString == operation_type_global)
+                    if ((function->returnDataType != sString && sString == operation_type_global) ||
+                        (function->returnDataType == sString && sString != operation_type_global))
                         return ERROR_CODE_SEM_COMP;
                     else {
                         //A podle toho nastavíme typ prvku vkládanému na stack

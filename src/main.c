@@ -28,7 +28,7 @@ tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukc
 
 int main(int argc, char **argv)
 {
-    freopen("test1.txt", "r", stdin);
+    //freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -40,26 +40,7 @@ int main(int argc, char **argv)
     /*----------inicializace----------*/
     symTableInit(&glSymTable); // globalni tabulka symbolu
     symTableInit(&table);
-    DLInitList(&instList);  // instrukcni paska
-
-
-    /* testovaci kod zacatek*/
-
-//    tToken token;
-//    while ( (token = getNextToken()).type != sLexError ) {
-//        if (token.type == sIdentificator) {
-//            symTableInsertVariable(&glSymTable, token.atr);
-//            Print_tree(glSymTable.root);
-//        }
-//    }
-
-//    while ( (token = getNextToken()).type != sEndOfFile) {
-//        printf("%4d %s\n", token.type, token.atr.value);
-//    }
-
-//    result_code = expression(getNextToken(),sDouble);
-
-    /* testovaci kod konec*/
+    //DLInitList(&instList);  // instrukcni paska
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
@@ -97,8 +78,8 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    //!!!Zapoznamkovano, SIGABRT
-    //symTableDispose(&glSymTable); // globalni tabulka symbolu
+    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    symTableDispose(&table);
     //DLDisposeList(&instList); // insturkcni paska
 
 

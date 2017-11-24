@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "parser.h"
 #include "scanner.h"
+#include "string.h"
 
 //TODO eoly pred scopem
 extern tSymtable glSymTable;
@@ -46,42 +47,44 @@ string processing;
 int adjustTokenType(tToken tok) {
     if ((tok.type == 3) || (exprAdjust == true)) {
         exprAdjust = false;
-        if (strcmp(tok.atr.value, "end") == 0)
-            return sEnd;
-        if (strcmp(tok.atr.value, "scope") == 0)
-            return sScope;
-        if (strcmp(tok.atr.value, "declare") == 0)
-            return sDeclare;
-        if (strcmp(tok.atr.value, "function") == 0)
-            return sFuntion;
-        if (strcmp(tok.atr.value, "as") == 0)
-            return sAs;
-        if (strcmp(tok.atr.value, "dim") == 0)
-            return sDim;
-        if (strcmp(tok.atr.value, "print") == 0)
-            return sPrint;
-        if (strcmp(tok.atr.value, "input") == 0)
-            return sInput;
-        if (strcmp(tok.atr.value, "if") == 0)
-            return sIf;
-        if (strcmp(tok.atr.value, "then") == 0)
-            return sThen;
-        if (strcmp(tok.atr.value, "else") == 0)
-            return sElse;
-        if (strcmp(tok.atr.value, "do") == 0)
-            return sDo;
-        if (strcmp(tok.atr.value, "while") == 0)
-            return sWhile;
-        if (strcmp(tok.atr.value, "loop") == 0)
-            return sLoop;
-        if (strcmp(tok.atr.value, "return") == 0)
-            return sReturn;
-        if (strcmp(tok.atr.value, "integer") == 0)
-            return tInteger;
-        if (strcmp(tok.atr.value, "double") == 0)
-            return tDouble;
-        if (strcmp(tok.atr.value, "string") == 0)
-            return tString;
+        if (tok.type != 0) {
+            if (strcmp(tok.atr.value, "end") == 0)
+                return sEnd;
+            if (strcmp(tok.atr.value, "scope") == 0)
+                return sScope;
+            if (strcmp(tok.atr.value, "declare") == 0)
+                return sDeclare;
+            if (strcmp(tok.atr.value, "function") == 0)
+                return sFuntion;
+            if (strcmp(tok.atr.value, "as") == 0)
+                return sAs;
+            if (strcmp(tok.atr.value, "dim") == 0)
+                return sDim;
+            if (strcmp(tok.atr.value, "print") == 0)
+                return sPrint;
+            if (strcmp(tok.atr.value, "input") == 0)
+                return sInput;
+            if (strcmp(tok.atr.value, "if") == 0)
+                return sIf;
+            if (strcmp(tok.atr.value, "then") == 0)
+                return sThen;
+            if (strcmp(tok.atr.value, "else") == 0)
+                return sElse;
+            if (strcmp(tok.atr.value, "do") == 0)
+                return sDo;
+            if (strcmp(tok.atr.value, "while") == 0)
+                return sWhile;
+            if (strcmp(tok.atr.value, "loop") == 0)
+                return sLoop;
+            if (strcmp(tok.atr.value, "return") == 0)
+                return sReturn;
+            if (strcmp(tok.atr.value, "integer") == 0)
+                return tInteger;
+            if (strcmp(tok.atr.value, "double") == 0)
+                return tDouble;
+            if (strcmp(tok.atr.value, "string") == 0)
+                return tString;
+        }
     }
     return tok.type;
 }
@@ -149,9 +152,9 @@ int Program() {
             if (result != ERROR_CODE_OK) return result;
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //posledni eol
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX; //eof
+            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfFile) return ERROR_CODE_SYN;
             return ERROR_CODE_OK;
     }
@@ -228,13 +231,16 @@ int Telo_programu() {
             if ((allDeclaredAreDefined) != ERROR_CODE_OK)
                 return ERROR_CODE_SEM;
             inScope = true;
+/*
+            if (((symTableSearch(&glSymTable, functionName)) != NULL)) {
+                glNode = symTableSearch(&glSymTable, functionName);
+                paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
+                for (int i = 0; i < paramsToDeclare; i++) {
+                    symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
 
-            glNode = symTableSearch(&glSymTable, functionName);
-            paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
-            for (int i = 0; i < paramsToDeclare; i++) {
-                symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
-                i++;
+                }
             }
+            */
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
 
@@ -277,8 +283,15 @@ int Definice_fce() {
             comingFromDefinition = 1;
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
+            if ((symTableSearch(&glSymTable, functionName)) != NULL) {
+                node = symTableSearch(&glSymTable, functionName);
+                if (((tDataFunction *) node->Data)->parameters.length != paramIndex)
+                    return ERROR_CODE_SEM_COMP;
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             result = Telo_funkce();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
@@ -355,20 +368,34 @@ int Hlavicka_fce() {
             switch (aktualni_token.type) {
                 case tInteger:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sInteger)
-                        return ERROR_CODE_SEM;
+                        return ERROR_CODE_SEM_COMP;
                     break;
 
                 case tDouble:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sDouble)
-                        return ERROR_CODE_SEM;
+                        return ERROR_CODE_SEM_COMP;
                     break;
 
                 case tString:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sString)
-                        return ERROR_CODE_SEM;
+                        return ERROR_CODE_SEM_COMP;
                     break;
 
             }
+
+        } else {
+            switch (aktualni_token.type) {
+                case tInteger:
+                    ((tDataFunction *) node->Data)->returnDataType = sInteger;
+                    break;
+                case tDouble:
+                    ((tDataFunction *) node->Data)->returnDataType = sDouble;
+                    break;
+                case tString:
+                    ((tDataFunction *) node->Data)->returnDataType = sString;
+                    break;
+            }
+
         }
     } else {
         switch (aktualni_token.type) {
@@ -382,8 +409,8 @@ int Hlavicka_fce() {
                 ((tDataFunction *) node->Data)->returnDataType = sString;
                 break;
         }
-
     }
+
     declRecently = false;
     return ERROR_CODE_OK;
 
@@ -508,10 +535,9 @@ int Telo_funkce() {
     paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
     for (int i = 0; i < paramsToDeclare; i++) {
         symTableInsertVariable(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
-        i++;
     }
     inFunctionBody = true;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    //if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Deklarace_prom_a_prikazy();
     if (result != ERROR_CODE_OK) return result;
     inFunctionBody = false;
@@ -676,6 +702,9 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
+            //
+            if (inFunctionBody == false)
+                return ERROR_CODE_SYN;
             //V hlavnim tele scope nemuze return byt
             if (inScope == true)
                 return ERROR_CODE_SEM;
@@ -811,6 +840,7 @@ int Dalsi_vyrazy() {
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     switch (aktualni_token.type) {
         //<Dalsi_vyrazy> -> <Vyraz> <;><Dalsi_vyrazy>
+        case sMinus:
         case sIdentificator:
         case sInteger:
         case sDouble:
