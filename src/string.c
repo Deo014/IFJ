@@ -60,6 +60,15 @@ int stringAddChar(string *str, char c) {
     return ERROR_CODE_OK;
 }
 
+int stringAddChars(string *str, char* c) {
+    int result_code;
+    for (int i = 0; i < strlen(c); i++) {
+        result_code = stringAddChar(str, c[i]);
+    }
+    return result_code;
+}
+
+
 void stringUpdateLastChar(string *str, char c) {
     if (str->length > 0) {
         str->value[str->length-1] = c;
@@ -110,8 +119,8 @@ char stringGetLastChar(string *str) {
 int stringIsKeyWord(string *str) {
     char *keywords[] = {
             "as\0" , "asc\0" , "declare\0" , "dim\0" , "do\0" , "double\0" , "else\0" , "end\0", "chr\0",
-            "function\0", "if\0", "input\0", "integer\0", "length\0", "loop\0", "print\0", "return\0",
-            "scope\0", "string\0", "substr\0", "then\0" , "while\0"
+            "function\0", "if\0", "input\0", "integer\0", /*"length\0",*/ "loop\0", "print\0", "return\0",
+            "scope\0", "string\0",/* "substr\0",*/ "then\0" , "while\0"
     };
     unsigned int keywordsLength = sizeof(keywords) / sizeof(keywords[0]); // pocet prvku v poli keywords
     // porovnani tokenu s klicovymi slovy
