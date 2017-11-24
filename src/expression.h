@@ -14,7 +14,8 @@
 #define IFJ_EXPRESSION_H
 
 #define PT_SIZE 17
-#include "instList.h"
+
+#include "instlist.h"
 #include "scanner.h"
 #include "stack.h"
 #include "error_code.h"
