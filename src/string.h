@@ -25,6 +25,7 @@ typedef struct {
 
 int stringInit(string *);
 int stringAddChar(string *, char);
+int stringAddChars(string *str, char* c);
 void stringUpdateLastChar(string *, char);
 void stringDeleteLastChar(string *);
 int stringAddFirstChar(string *, char);
