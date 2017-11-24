@@ -586,14 +586,14 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 
 /* OPRAVIT*/
 ERROR_CODE checkResultType(ptrStack *expression_stack){
-    if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack)->token_type != sDouble){
+    if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sDouble){
         /*TODO přetypovat proměnnou výsledku*/
     }
-    else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack)->token_type != sInteger){
+    else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sInteger){
         /*TODO přetypovat proměnnou výsledku*/
     }
-    else if(( ((Exp_element*)expression_stack->top_of_stack)->token_type != sString && sString == operation_type_global) ||
-            (((Exp_element*)expression_stack->top_of_stack)->token_type == sString && sString != operation_type_global))
+    else if(( ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sString && sString == operation_type_global) ||
+            (((Exp_element*)expression_stack->top_of_stack->value)->token_type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
     return ERROR_CODE_OK;
 }
