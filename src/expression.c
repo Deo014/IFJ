@@ -1,3 +1,4 @@
+
 /*
  * Předmět  :   IFJ / IAL
  * Soubor   :   expression.c
@@ -67,78 +68,80 @@ ERROR_CODE expression(tToken first_token,int operation_type){
         SDispose(&expression_stack);
     }
     return result;
-    }
+}
 
 
 //Hlavní funkce analyzující výraz
 ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
     ERROR_CODE error_type;
-        //Inicializace stacku
-        initExpressionStack(expression_stack);
+    //Inicializace stacku
+    initExpressionStack(expression_stack);
 
 
-        char sign;
-        next_exp_token = first_token;
-        //Analýza výrazu
-        while (1){
+    char sign;
+    next_exp_token = first_token;
+    //Analýza výrazu
+    while (1){
 
-            //Jestli je na vstupu token s lex. errorem, končím
-            if(next_exp_token.type == sLexError){
-                return ERROR_CODE_LEX;
-            }
-
-            //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
-            if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-                return ERROR_CODE_OK;
-            }
-
-            if(strcmp(next_exp_token.atr.value,"then") != 0  && next_exp_token.type == sKeyWord){
-                return ERROR_CODE_LEX;
-            }
-
-            //Zjistíme se známénko z tabulky
-            sign = getSignFromTable();
-
-
-            if(sign == '=') {  //Uplatňujeme pravidlo pro redukci závorek
-                SPush(expression_stack, newElementToStack(next_exp_token.atr, convertTokenToIndex(next_exp_token.type),
-                                                          next_exp_token.type));
-
-                if (exp_function == true) {
-                    if ((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK) {
-                        return error_type;
-                    }
-                } else {
-                    if ((error_type = reducePars(expression_stack)) != ERROR_CODE_OK) {
-                        return error_type;
-                    }
-
-
-                }
-                //printf("%d,",operation);
-                next_exp_token = getNextToken();
-            }
-            else if (sign == '<') {     //Pushujeme na zábosobník
-
-                if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
-                    return error_type;
-                }
-                else
-                next_exp_token = getNextToken();
-            }
-            else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
-
-                if((error_type = useRule(expression_stack)) != ERROR_CODE_OK){
-                    return error_type;
-                }
-                //printf("%d,",operation);
-            }
-            else {      //Pokud nastane nepovolený stav
-                return ERROR_CODE_SYN;
-            }
-
+        //Jestli je na vstupu token s lex. errorem, končím
+        if(next_exp_token.type == sLexError){
+            return ERROR_CODE_LEX;
         }
+
+        //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
+        if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
+            if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
+                return error_type;
+            return ERROR_CODE_OK;
+        }
+
+        if(strcmp(next_exp_token.atr.value,"then") != 0  && next_exp_token.type == sKeyWord){
+            return ERROR_CODE_LEX;
+        }
+
+        //Zjistíme se známénko z tabulky
+        sign = getSignFromTable();
+
+
+        if(sign == '=') {  //Uplatňujeme pravidlo pro redukci závorek
+            SPush(expression_stack, newElementToStack(next_exp_token.atr, convertTokenToIndex(next_exp_token.type),
+                                                      next_exp_token.type));
+
+            if (exp_function == true) {
+                if ((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK) {
+                    return error_type;
+                }
+            } else {
+                if ((error_type = reducePars(expression_stack)) != ERROR_CODE_OK) {
+                    return error_type;
+                }
+
+
+            }
+            //printf("%d,",operation);
+            next_exp_token = getNextToken();
+        }
+        else if (sign == '<') {     //Pushujeme na zábosobník
+
+            if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
+                return error_type;
+            }
+            else
+                next_exp_token = getNextToken();
+        }
+        else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
+
+            if((error_type = useRule(expression_stack)) != ERROR_CODE_OK){
+                return error_type;
+            }
+            //printf("%d,",operation);
+        }
+        else {      //Pokud nastane nepovolený stav
+            return ERROR_CODE_SYN;
+        }
+
+    }
 }
 
 //Inicializace stacku vlozi jako prvni znak dollar
@@ -197,7 +200,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     else
                         return ERROR_CODE_SEM;
                 }
-                    //Pokud se jedná o proměnnou
+                //Pokud se jedná o proměnnou
                 if (element_id->nodeDataType == ndtVariable) {
                     tDataVariable *variable = ((tDataVariable *) (element_id->Data));
                     if(!exp_function) {
@@ -216,7 +219,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     }
                     else{
                         //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
-                        if((error_type = checkParams(variable)) != ERROR_CODE_OK)
+                        if((error_type = checkParams(variable->dataType)) != ERROR_CODE_OK)
                             return error_type;
                     }
                 }
@@ -254,6 +257,8 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
             }
 
             //Pushne se znak na vrchol stacku, který je zároveň nejvyšší terminál
+            if(exp_function)
+                checkParams(new_element->token_type);
             SPush(expression_stack,new_element);
             first_terminal = expression_stack->top_of_stack;
             return ERROR_CODE_OK;
@@ -304,7 +309,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eDivideI:
 
                 if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
-                        return error_type;
+                    return error_type;
                 //operation = eDivideI;
                 break;
 
@@ -439,8 +444,8 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
             //Ze zásobníku se popnou 3 prvku
             for (int i = 0; i < 3; ++i) {
-                    SPop(expression_stack);
-                }
+                SPop(expression_stack);
+            }
 
             //Zpět pushneme uložený neterminál
             SPush(expression_stack,((Exp_element*) (tmp->value)));
@@ -488,21 +493,21 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
 }
 
 //Funkce kontroluj parametry funkce
-ERROR_CODE checkParams(tDataVariable *variable){
+ERROR_CODE checkParams(int variable){
 
     //Jestli má ještě stále co kontrolovat
     if(params[parameter_index] != '\0') {
         switch (params[parameter_index]) {
             case 'i':
-                if (variable->dataType != sInteger)
+                if (variable != sInteger)
                     return ERROR_CODE_SEM_COMP;
                 break;
             case 'd':
-                if (variable->dataType != sDouble)
+                if (variable != sDouble)
                     return ERROR_CODE_SEM_COMP;
                 break;
             case 's':
-                if (variable->dataType != sString)
+                if (variable != sString)
                     return ERROR_CODE_SEM_COMP;
                 break;
         }
@@ -535,7 +540,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             return ERROR_CODE_SEM_COMP;
     }
 
-    //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s log. operatorem
+        //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s log. operatorem
     else if(operator == ePlus || (operator > eMinus && operator < eMoreEqual)){
 
         //Pokud je jeden z operandů string a druhý nikoliv, je to sem. chyba
@@ -543,7 +548,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             (operand_type_l->token_type != sString && operand_type_r->token_type == sString)){
             return ERROR_CODE_SEM_COMP;
         }
-        //Jestli je jeden z operandů double, druhý se přetypuje na double
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
         else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
             operand_type_l->token_type = sDouble;
             operand_type_r->token_type = sDouble;
@@ -551,14 +556,14 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
         //Jinak máme v operaci dva stringy...
     }
 
-    //Jestli se provádí operace *,/,-
+        //Jestli se provádí operace *,/,-
     else if(operator == eMultiply || operator == eMinus || operator == eDivideD){
 
         //Jestli je jeden z operandů string, je to sem. chyba
         if (operand_type_l->token_type == sString || operand_type_r->token_type == sString){
             return ERROR_CODE_SEM_COMP;
         }
-        //Jestli je jeden z operandů double, druhý se přetypuje na double
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
         else if(operand_type_l->token_type == sDouble || operand_type_r->token_type == sDouble) {
             operand_type_l->token_type = sDouble;
             operand_type_r->token_type = sDouble;
@@ -573,13 +578,16 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 }
 
 
-ERROR_CODE checkRestultType(ptrStack *expression_stack){
+ERROR_CODE checkResultType(ptrStack *expression_stack){
     if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack)->token_type != sDouble){
         /*TODO přetypovat proměnnou výsledku*/
     }
     else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack)->token_type != sInteger){
         /*TODO přetypovat proměnnou výsledku*/
     }
+    else if((operation_type_global != sString && ((Exp_element*)expression_stack->top_of_stack)->token_type == sString)||
+            (operation_type_global == sString && ((Exp_element*)expression_stack->top_of_stack)->token_type != sString))
+        return ERROR_CODE_SEM_COMP;
     return ERROR_CODE_OK;
 }
 
