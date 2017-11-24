@@ -69,7 +69,7 @@ ERROR_CODE checkBinary(ptrStack*,int);
 ERROR_CODE reducePars(ptrStack*);
 ERROR_CODE reduceFunction(ptrStack*);
 ERROR_CODE checkSemAConv(Exp_element*, int, Exp_element*);
-ERROR_CODE checkParams(tDataVariable*);
+ERROR_CODE checkParams(int);
 ERROR_CODE checkResultType(ptrStack*);
 Exp_element *newElementToStack(string, int, int);
 char getSignFromTable();
