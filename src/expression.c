@@ -91,8 +91,8 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
         //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
         if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-            if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
-                return error_type;
+            /*if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
+                return error_type;*/
             return ERROR_CODE_OK;
         }
 
@@ -255,10 +255,13 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                 }
 
             }
+            else if(exp_function && (sString == new_element->token_type || sDouble == new_element->token_type || sInteger == new_element->token_type)){
+                if((error_type = checkParams(new_element->token_type)) != ERROR_CODE_OK)
+                    return error_type;
+            }
+
 
             //Pushne se znak na vrchol stacku, který je zároveň nejvyšší terminál
-            if(exp_function)
-                checkParams(new_element->token_type);
             SPush(expression_stack,new_element);
             first_terminal = expression_stack->top_of_stack;
             return ERROR_CODE_OK;
@@ -577,7 +580,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
     return ERROR_CODE_OK;
 }
 
-
+/* OPRAVIT*/
 ERROR_CODE checkResultType(ptrStack *expression_stack){
     if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack)->token_type != sDouble){
         /*TODO přetypovat proměnnou výsledku*/
