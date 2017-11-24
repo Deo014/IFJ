@@ -91,8 +91,12 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
         //Jestli máme na vrcholu stacku dollar a na vstupu ukončující vstup, je to OK
         if(((Exp_element*)(first_terminal->value))->pt_index == eDollar && convertTokenToIndex(next_exp_token.type) == eDollar) {
-            if((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
-                return error_type;
+            //Pokud se neřeší podmínka nebo print
+            if (operation_type_global != -1) {
+                //Zkontroluje se typ výsledku
+                if ((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
+                    return error_type;
+            }
             return ERROR_CODE_OK;
         }
 
