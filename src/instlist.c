@@ -10,7 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 
-#include "instList.h"
+#include "instlist.h"
 #include "string.h"
 #include <stdio.h>
 #include <stdlib.h>

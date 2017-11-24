@@ -604,6 +604,7 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             expectedValue = -1;
             result = Vyraz();
+            if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
             result = Dalsi_vyrazy();
@@ -670,6 +671,8 @@ int Prikaz() {
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
