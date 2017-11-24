@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "parser.h"
 #include "scanner.h"
+#include "string.h"
 
 //TODO eoly pred scopem
 extern tSymtable glSymTable;
@@ -282,6 +283,11 @@ int Definice_fce() {
             comingFromDefinition = 1;
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
+            if ((symTableSearch(&glSymTable, functionName)) != NULL) {
+                node = symTableSearch(&glSymTable, functionName);
+                if (((tDataFunction *) node->Data)->parameters.length != paramIndex)
+                    return ERROR_CODE_SEM_COMP;
+            }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -391,7 +397,20 @@ int Hlavicka_fce() {
             }
 
         }
+    } else {
+        switch (aktualni_token.type) {
+            case tInteger:
+                ((tDataFunction *) node->Data)->returnDataType = sInteger;
+                break;
+            case tDouble:
+                ((tDataFunction *) node->Data)->returnDataType = sDouble;
+                break;
+            case tString:
+                ((tDataFunction *) node->Data)->returnDataType = sString;
+                break;
+        }
     }
+
     declRecently = false;
     return ERROR_CODE_OK;
 
@@ -447,15 +466,15 @@ int Parametry() {
                             //  stringAddChar(,'a');
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'i')
 
-                                return ERROR_CODE_SEM_COMP;
+                                return ERROR_CODE_SEM;
                             break;
                         case tDouble:
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'd')
-                                return ERROR_CODE_SEM_COMP;
+                                return ERROR_CODE_SEM;
                             break;
                         case tString:
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 's')
-                                return ERROR_CODE_SEM_COMP;
+                                return ERROR_CODE_SEM;
                             break;
                     }
 
@@ -683,6 +702,9 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
+            //
+            if (inFunctionBody == false)
+                return ERROR_CODE_SYN;
             //V hlavnim tele scope nemuze return byt
             if (inScope == true)
                 return ERROR_CODE_SEM;

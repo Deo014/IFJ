@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     /*----------inicializace----------*/
     symTableInit(&glSymTable); // globalni tabulka symbolu
     symTableInit(&table);
-    DLInitList(&instList);  // instrukcni paska
+    //DLInitList(&instList);  // instrukcni paska
 
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    //!!!Zapoznamkovano, SIGABRT
-    //symTableDispose(&glSymTable); // globalni tabulka symbolu
+    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    symTableDispose(&table);
     //DLDisposeList(&instList); // insturkcni paska
 
 
