@@ -10,6 +10,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include "parser.h"
+#include "string.h"
 
 extern tSymtable glSymTable;
 extern tSymtable table;
@@ -594,6 +595,21 @@ int Telo_funkce() {
     for (int i = 0; i < paramsToDeclare; i++) {
         //Jmena parametru, ktere ma funkce v globalni tabulce zkopiruju jako lokalni promenne do tabluky od funkce
         symTableInsertVariable(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
+        node = symTableSearch(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
+        switch (((tDataFunction *) glNode->Data)->parameters.value[i]) {
+
+            case 'i':
+                ((tDataVariable *) node->Data)->dataType = sInteger;
+                break;
+            case 'd':
+                ((tDataVariable *) node->Data)->dataType = sDouble;
+                break;
+            case 's':
+                ((tDataVariable *) node->Data)->dataType = sString;
+                break;
+        }
+
+
     }
     inFunctionBody = true;
     result = Deklarace_prom_a_prikazy();
@@ -713,13 +729,15 @@ int Prikaz() {
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = Line();
+            if (result != ERROR_CODE_OK) return result;
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;

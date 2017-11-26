@@ -11,8 +11,6 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
-#include "stack.h"
-#include "scanner.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit funkce nebo proměnná
@@ -110,7 +108,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
         }
 
         if(strcmp(next_exp_token.atr.value,"then") != 0  && next_exp_token.type == sKeyWord){
-            return ERROR_CODE_LEX;
+            return ERROR_CODE_SYN;
         }
 
         //Zjistíme se známénko z tabulky
@@ -160,7 +158,10 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
             //printf("%d,",operation);
         }
         else {      //Pokud nastane nepovolený stav
-            return ERROR_CODE_SYN;
+            if (((Exp_element *) expression_stack->top_of_stack->value)->pt_index == eFunction)
+                return ERROR_CODE_SEM;
+            else
+                return ERROR_CODE_SYN;
         }
 
     }
@@ -489,7 +490,7 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
         tStack *stack_item = expression_stack->top_of_stack;
         tStack *tmp = expression_stack->top_of_stack->left; //Dočasné úložiště pro neterminál mezi závorkami
 
-        if(((Exp_element*)(stack_item->left->value))->terminal == false &&
+        if (((Exp_element *) (stack_item->left->value))->terminal == false &&
            ((Exp_element*)(stack_item->left->left->value))->pt_index == eLeftPar){
 
             //Ze zásobníku se popnou 3 prvku
@@ -602,7 +603,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
     }
 
         //Jestli se provádí operace +, která může i konkatenovat dva stringy, nebo operace s log. operatorem
-    else if(operator == ePlus || (operator > eMinus && operator < eMoreEqual)){
+    else if (operator == ePlus || (operator > eMinus && operator <= eMoreEqual)) {
 
         //Pokud je jeden z operandů string a druhý nikoliv, je to sem. chyba
         if ((operand_type_l->token_type == sString && operand_type_r->token_type != sString) ||
