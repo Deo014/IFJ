@@ -549,6 +549,7 @@ int Parametry() {
                     }
                 }
             }
+            //Pri pristim pruchodu se bude resit dalsi parametr v poradi, takze inkrementurju jeho index
             paramIndex++;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
@@ -556,6 +557,7 @@ int Parametry() {
             return ERROR_CODE_OK;
             //<Parametry> -> e
         case sRightPar:
+            //Prava zavorka, takze jsou vsechny parametry zpracovane, nuluju index
             paramIndex = 0;
             return ERROR_CODE_OK;
 
@@ -568,6 +570,7 @@ int Dalsi_parametry() {
     switch (aktualni_token.type) {
         //<Dalsi_parametry> -> <,><Parametry><Dalsi_parametry>
         case sComma:
+            //Carka, takze bude dalsi parametr
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Parametry();
             if (result != ERROR_CODE_OK) return result;
@@ -582,16 +585,20 @@ int Dalsi_parametry() {
 int Telo_funkce() {
     //<Telo_fce> -> <Deklarace_promennych_a _prikazy>
     int result;
+    //Jdu do tela funkce, vytvorim lokalni tabulku symbolu
     symTableInit(&table);
+    //V globalni tabulce si najdu funkci do ktere vstupuju
     glNode = symTableSearch(&glSymTable, functionName);
+//Podivam se, kolik ma funkce do ktere vstupuju parametru v globalni tabulce
     paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
     for (int i = 0; i < paramsToDeclare; i++) {
+        //Jmena parametru, ktere ma funkce v globalni tabulce zkopiruju jako lokalni promenne do tabluky od funkce
         symTableInsertVariable(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
     }
     inFunctionBody = true;
-    //if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     result = Deklarace_prom_a_prikazy();
     if (result != ERROR_CODE_OK) return result;
+    //Opoustim telo funkce, zmenim promennou ktera to indikuje
     inFunctionBody = false;
     return ERROR_CODE_OK;
 }
@@ -632,17 +639,14 @@ int Prikazy() {
         case sReturn:
             result = Prikaz();
             if (result != ERROR_CODE_OK) return result;
-            if (result != ERROR_CODE_OK) return result;
-            ///if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Prikazy();
-            //<Prikazy> -> ed
+            //<Prikazy> -> e
         case sEndOfLine:
         case sElse:
         case sLoop:
         case sEnd:
         case sDim:
         case sScope:
-            //if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
     }
 
@@ -655,6 +659,8 @@ int Prikaz() {
         //<Prikaz> -> <Print><Vyraz><;><Dalsi_vyrazy><EOL>
         case sPrint:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            //Tisknout muzu jakykoliv typ vyrazu bez kontroly, nastavim promennou na -1 jako signal expressionu,
+            //ze ho nemusi kontrolovat
             expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
@@ -670,17 +676,19 @@ int Prikaz() {
         case sInput:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-            //Promenna musi byt v tabulce symbolu
+            //Promenna musi byt v tabulce symbolu abychom do ni mohli neco prirazovat
             if (!inScope) {
+                //Nejsem ve scope, takze se divam do lokalni tabulky
                 if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
                 node = symTableSearch(&table, aktualni_token.atr);
 
             } else {
+                //Jsem ve scope, divam se do globalni tabulky
                 if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
                 node = symTableSearch(&glSymTable, aktualni_token.atr);
             }
 
-            //Overeni ze klic co jsme nasli je promenna a ne funkce
+            //Overeni ze klic co jsme nasli je promenna a ne funkce, protze do funkce nic prirazovat nechci
             if (node->nodeDataType != ndtVariable)
                 return ERROR_CODE_SEM;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -691,11 +699,14 @@ int Prikaz() {
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            //Pokud je aktualni token integer, nastavim promennou na integer
             if (aktualni_token.type == sInteger)
                 expectedValue = sInteger;
+                //Pokud je aktualni token double, nastavim promennou na double
             else if (aktualni_token.type == sDouble)
                 expectedValue = sDouble;
             else
+                //Pokud to neni ani integer ani double nebudu to kontrolovat
                 expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
@@ -724,7 +735,14 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            expectedValue = -1;
+            //Pokud je aktualni token integer, nastavim promennou na integer
+            if (aktualni_token.type == sInteger)
+                expectedValue = sInteger;
+                //Pokud je aktualni token double, nastavim promennou na double
+            else if (aktualni_token.type == sDouble)
+                expectedValue = sDouble;
+            else
+                expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -742,13 +760,19 @@ int Prikaz() {
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
             if (!inScope) {
+                //Budu prirazovat do promenne a jsem ve funkci, podivam se jestli je v lokalni tabulce
                 if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
                 node = symTableSearch(&table, aktualni_token.atr);
+                //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
+                //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
 
             } else {
+                //Budu prirazovat do promenne a jsem ve scopu, podivam se jestli je v globalni tabulce
                 if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
                 node = symTableSearch(&glSymTable, aktualni_token.atr);
+                //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
+                //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -769,10 +793,11 @@ int Prikaz() {
             //V hlavnim tele scope nemuze return byt
             if (inScope == true)
                 return ERROR_CODE_SEM;
-
-
+//Podivam se do globalni tabulky na typ funkce ze ktere chci provest return at vim jakeho typu ma byt vyraz za returnem
             if (((symTableSearch(&glSymTable, functionName)) == NULL)) return ERROR_CODE_SEM;
             node = symTableSearch(&glSymTable, functionName);
+            //Podle typu funkce nastavim pro expression promennou at vi s cim porovnavat vyhodnoceny typ vyrazu a pripadne
+            //muze zahlasit ze to nelze
             expectedValue = ((tDataFunction *) node->Data)->returnDataType;
 
 
@@ -796,14 +821,14 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
 
-            //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
             if (inScope) {
+                //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
                 if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
                 //Nebyla, vlozime ju
                 symTableInsertVariable(&glSymTable, aktualni_token.atr);
                 node = symTableSearch(&glSymTable, aktualni_token.atr);
             } else {
-
+                //Jsem ve funkci a chci vkladat promennou, podivam se jestli uz neni v lokalni tabulce
                 if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
                 //Nebyla, vlozime ju
                 symTableInsertVariable(&table, aktualni_token.atr);
@@ -814,7 +839,7 @@ int Deklarace_promenne() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
-            //uprava typu do tabulky na typ scanneru
+            //Nastavim typ promenne
             switch (aktualni_token.type) {
                 case tInteger:
                     ((tDataVariable *) node->Data)->dataType = sInteger;
@@ -827,6 +852,7 @@ int Deklarace_promenne() {
                     break;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            //Rovnou si ulozim jeji typ i do promenne pro expression, kdyby se do ni hned prirazovalo
             expectedValue = ((tDataVariable *) node->Data)->dataType;
             switch (aktualni_token.type) {
                 case sAssignment:
@@ -922,9 +948,13 @@ int Dalsi_vyrazy() {
 
 int Vyraz() {
     int result;
+    //Zavolam funkci, ktera vyhodnoti vyraz s aktualnim tokenem a hodnotou, do ktere se vyraz pripadne bude ukladat
     result = expression(aktualni_token, expectedValue);
+    //Nastavim si promennou, ktera docasne povoli upravu typu tokenu, kdyby expression pouzival jine typy
     exprAdjust = true;
+    //Do aktualniho tokenu si nactu ten, se kterym naposledy exprssion pracoval
     aktualni_token = next_exp_token;
+    //Pokud je to potreba upravim jeho typ
     aktualni_token.type = adjustTokenType(aktualni_token);
     return result;
 }
