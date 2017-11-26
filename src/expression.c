@@ -67,6 +67,8 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
         exp_function = false;
+        exprEnd = false;
+        shift_saved_token = false;
         parameter_index = 0;
         SDispose(&expression_stack);
     }
@@ -636,7 +638,7 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
     else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sInteger){
         /*TODO přetypovat proměnnou výsledku*/
     }
-    
+
     if(( ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sString && sString == operation_type_global) ||
             (((Exp_element*)expression_stack->top_of_stack->value)->token_type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
