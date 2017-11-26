@@ -444,14 +444,29 @@ int Parametry() {
                 switch (aktualni_token.type) {
                     case tInteger:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tDouble:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tString:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                 }
@@ -485,14 +500,29 @@ int Parametry() {
                         case tInteger:
                             //  stringAddChar(,'a');
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tDouble:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tString:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                     }
@@ -581,6 +611,7 @@ int Prikazy() {
         case sReturn:
             result = Prikaz();
             if (result != ERROR_CODE_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             ///if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Prikazy();
             //<Prikazy> -> ed
@@ -639,7 +670,12 @@ int Prikaz() {
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            expectedValue = -1;
+            if (aktualni_token.type == sInteger)
+                expectedValue = sInteger;
+            else if (aktualni_token.type == sDouble)
+                expectedValue = sDouble;
+            else
+                expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
