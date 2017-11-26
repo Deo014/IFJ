@@ -220,13 +220,13 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                                 next_exp_token = fun_or_var;
                                 shift_saved_token = true;
                             }
-                            else {
+                            else {shift_saved_token = true;
                                 next_exp_token = fun_or_var;
                                 exprEnd = true;
                             }
-                        }
-                        if(element_id->nodeDataType != ndtVariable){
-                            return ERROR_CODE_SEM;
+                        } else {
+                            next_exp_token = fun_or_var;
+                            shift_saved_token = true;
                         }
                     }
                 }
