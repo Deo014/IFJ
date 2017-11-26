@@ -11,7 +11,7 @@
  */
 #include "string.h"
 #include "error_code.h"
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 int stringInit(string *str) {
@@ -118,7 +118,7 @@ char stringGetLastChar(string *str) {
 
 int stringIsKeyWord(string *str) {
     char *keywords[] = {
-            "as\0" , "asc\0" , "declare\0" , "dim\0" , "do\0" , "double\0" , "else\0" , "end\0", "chr\0",
+            "as\0", /*"asc\0" ,*/ "declare\0", "dim\0", "do\0", "double\0", "else\0", "end\0",/* "chr\0",*/
             "function\0", "if\0", "input\0", "integer\0", /*"length\0",*/ "loop\0", "print\0", "return\0",
             "scope\0", "string\0",/* "substr\0",*/ "then\0" , "while\0"
     };

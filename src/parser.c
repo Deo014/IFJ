@@ -14,7 +14,6 @@
 #include "scanner.h"
 #include "string.h"
 
-//TODO eoly pred scopem
 extern tSymtable glSymTable;
 extern tSymtable table;
 tDLListInstruction list;
@@ -41,7 +40,6 @@ string functionName;
 int paramsToDeclare;
 bool inFunctionBody = false;
 int expectedValue;
-string processing;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -286,7 +284,7 @@ int Definice_fce() {
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
                 node = symTableSearch(&glSymTable, functionName);
                 if (((tDataFunction *) node->Data)->parameters.length != paramIndex)
-                    return ERROR_CODE_SEM_COMP;
+                    return ERROR_CODE_SEM;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -368,17 +366,17 @@ int Hlavicka_fce() {
             switch (aktualni_token.type) {
                 case tInteger:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sInteger)
-                        return ERROR_CODE_SEM_COMP;
+                        return ERROR_CODE_SEM;
                     break;
 
                 case tDouble:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sDouble)
-                        return ERROR_CODE_SEM_COMP;
+                        return ERROR_CODE_SEM;
                     break;
 
                 case tString:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sString)
-                        return ERROR_CODE_SEM_COMP;
+                        return ERROR_CODE_SEM;
                     break;
 
             }
@@ -446,14 +444,29 @@ int Parametry() {
                 switch (aktualni_token.type) {
                     case tInteger:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tDouble:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tString:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                        for (int i = 0; i < paramIndex; i++) {
+                            if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                return ERROR_CODE_SEM;
+
+                        }
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                 }
@@ -467,14 +480,17 @@ int Parametry() {
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'i')
 
                                 return ERROR_CODE_SEM;
+                            ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tDouble:
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'd')
                                 return ERROR_CODE_SEM;
+                            ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tString:
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 's')
                                 return ERROR_CODE_SEM;
+                            ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                     }
 
@@ -484,14 +500,29 @@ int Parametry() {
                         case tInteger:
                             //  stringAddChar(,'a');
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tDouble:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tString:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                            for (int i = 0; i < paramIndex; i++) {
+                                if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
+                                    return ERROR_CODE_SEM;
+
+                            }
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                     }
@@ -580,6 +611,7 @@ int Prikazy() {
         case sReturn:
             result = Prikaz();
             if (result != ERROR_CODE_OK) return result;
+            if (result != ERROR_CODE_OK) return result;
             ///if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return Prikazy();
             //<Prikazy> -> ed
@@ -638,7 +670,12 @@ int Prikaz() {
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            expectedValue = -1;
+            if (aktualni_token.type == sInteger)
+                expectedValue = sInteger;
+            else if (aktualni_token.type == sDouble)
+                expectedValue = sDouble;
+            else
+                expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
@@ -737,6 +774,7 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+
             //Kontrola, zda jiz promenna s timto ID nebyla deklarovana
             if (inScope) {
                 if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
@@ -768,7 +806,7 @@ int Deklarace_promenne() {
                     break;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-
+            expectedValue = ((tDataVariable *) node->Data)->dataType;
             switch (aktualni_token.type) {
                 case sAssignment:
                     result = Prirazeni_hodnoty();

@@ -30,16 +30,26 @@ int main(int argc, char **argv)
 {
     char f1[] = "length";
     char f2[] = "substr";
+    char f3[] = "asc";
+    char f4[] = "chr";
     string length;
     string substr;
+    string asc;
+    string chr;
     string paramLength;
     string paramSubstr;
+    string paramAsc;
+    string paramChr;
     tBSTNodePtr node;
     stringInit(&paramLength);
     stringInit(&paramSubstr);
+    stringInit(&paramAsc);
+    stringInit(&paramChr);
     stringInit(&length);
     stringInit(&substr);
-    freopen("test1.txt", "r", stdin);
+    stringInit(&asc);
+    stringInit(&chr);
+    //freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -83,6 +93,31 @@ int main(int argc, char **argv)
     stringClear(&paramSubstr);
     ((tDataFunction *) node->Data)->returnDataType = sString;
 
+
+    stringAddChars(&asc, f3);
+    symTableInsertFunction(&glSymTable, asc);
+    node = symTableSearch(&glSymTable, asc);
+    ((tDataFunction *) node->Data)->declared = true;
+    ((tDataFunction *) node->Data)->defined = true;
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+    stringAddChar(&paramAsc, 's');
+    ((tDataFunction *) node->Data)->paramName[0] = paramAsc;
+    stringClear(&paramAsc);
+    ((tDataFunction *) node->Data)->returnDataType = sInteger;
+
+    stringAddChars(&chr, f4);
+    symTableInsertFunction(&glSymTable, chr);
+    node = symTableSearch(&glSymTable, chr);
+    ((tDataFunction *) node->Data)->declared = true;
+    ((tDataFunction *) node->Data)->defined = true;
+    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+    stringAddChar(&paramChr, 'i');
+    ((tDataFunction *) node->Data)->paramName[0] = paramChr;
+    stringClear(&paramChr);
+    ((tDataFunction *) node->Data)->returnDataType = sString;
+
+
     //DLInitList(&instList);  // instrukcni paska
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
@@ -120,9 +155,9 @@ int main(int argc, char **argv)
         printInstructionList(&instList);
 
     /*----------uvolneni alokovane pameti----------*/
-    //symTableDispose(&glSymTable); // globalni tabulka symbolu
-    //symTableDispose(&table);
-    //DLDisposeList(&instList); // insturkcni paska
+    symTableDispose(&glSymTable); // globalni tabulka symbolu
+    symTableDispose(&table);
+    DLDisposeList(&instList); // insturkcni paska
 
 
     return result_code;
