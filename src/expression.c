@@ -265,7 +265,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                     }
                     else{
                         //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
-                        if((error_type = checkParams(variable->dataType)) != ERROR_CODE_OK)
+                        if((error_type = checkParams(new_element,variable->dataType)) != ERROR_CODE_OK)
                             return error_type;
                     }
                 }
@@ -303,7 +303,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
             }
                 //Kontrola parametru, pokud parametr není proměnná
             else if(exp_function && (sString == new_element->token_type || sDouble == new_element->token_type || sInteger == new_element->token_type)){
-                if((error_type = checkParams(new_element->token_type)) != ERROR_CODE_OK)
+                if((error_type = checkParams(new_element,new_element->token_type)) != ERROR_CODE_OK)
                     return error_type;
             }
 
@@ -543,18 +543,28 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
 }
 
 //Funkce kontroluj parametry funkce
-ERROR_CODE checkParams(int variable){
+ERROR_CODE checkParams(Exp_element *element,int variable){
 
     //Jestli má ještě stále co kontrolovat
     if(params[parameter_index] != '\0') {
         switch (params[parameter_index]) {
             case 'i':
-                if (variable != sInteger)
-                    return ERROR_CODE_SEM_COMP;
+                if (variable != sInteger) {
+                    if(variable == sDouble){
+                        element->token_type = sInteger;
+                    }
+                    else
+                        return ERROR_CODE_SEM_COMP;
+                }
                 break;
             case 'd':
-                if (variable != sDouble)
-                    return ERROR_CODE_SEM_COMP;
+                if (variable != sDouble) {
+                    if (variable == sInteger) {
+                        element->token_type = sDouble;
+                    } else
+                        return ERROR_CODE_SEM_COMP;
+                }
+
                 break;
             case 's':
                 if (variable != sString)
