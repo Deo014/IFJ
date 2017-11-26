@@ -9,10 +9,7 @@
  *            xvalus02, Ondřej Valušek
  *            xrutad00, Dominik Ruta
  */
-#include <stdlib.h>
 #include "parser.h"
-#include "scanner.h"
-#include "string.h"
 
 extern tSymtable glSymTable;
 extern tSymtable table;
@@ -25,7 +22,7 @@ extern tToken next_exp_token;
 bool comingFromDefinition;
 //V tele programu se nastavi na true
 bool inScope;
-//Promenna, ktera povoluje zavolat adjustTokenType po navratu z vyrazu
+//Promenna, ktera povoluje zavolat adjustTokenType po navratu z vyrazu aby se spravil tokenType
 bool exprAdjust = false;
 //Pomocna promenna, pro zjisteni, zda vsechny deklarovane funkce byly i definovane
 int allDeclaredAreDefined = ERROR_CODE_OK;
@@ -37,12 +34,16 @@ bool declRecently = false;
 string paramName;
 //pomocna promenna pro zapis funkce do tabluky
 string functionName;
+//Promenna, ktera urcuje, kolik parametru se zapise do tabulky pri prechodu z globalni
 int paramsToDeclare;
+//Pomocna promenna znacici ze se nachazime v tele funkce
 bool inFunctionBody = false;
+//Promenna, ktera rika expressionu, jakeho typu by mel byt vyhodnocovany vyraz
 int expectedValue;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
+    //Upravujeme pouze pokud to mame povoleno nebo ze scanneru prisel stav klicove slovo
     if ((tok.type == 3) || (exprAdjust == true)) {
         exprAdjust = false;
         if (tok.type != 0) {
@@ -88,11 +89,11 @@ int adjustTokenType(tToken tok) {
 }
 
 //Funkce projde tabulku a zkontroluje jestli byly vsechny deklarovane funkce i definovane
-void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) { /* vykresli sktrukturu binarniho stromu */
+void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) {
     if (TempTree != NULL) {
-
         checkDefinitionsOfDeclarations(TempTree->RPtr);
         if (TempTree->nodeDataType == ndtFunction) {
+            //Pokud nejaka funkce ma zaznam a nebyla deklarovana definovana pred vstupem do scopu je to semanticka chyba
             if (!((((tDataFunction *) TempTree->Data)->defined) && (((tDataFunction *) TempTree->Data)->declared)))
                 allDeclaredAreDefined = ERROR_CODE_SEM;
         }
@@ -100,7 +101,7 @@ void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) { /* vykresli sktruktu
     }
 }
 
-//Funkce nacte dalsi token a aktualizuje jeho typ
+//Funkce nacte dalsi token a upravi jeho typ pokud ze scanneru prisel stav klicove slovo
 int dalsiToken() {
     aktualni_token = getNextToken();
     if (aktualni_token.type != sLexError) {
@@ -111,10 +112,9 @@ int dalsiToken() {
 }
 
 int parse() {
-    //inicializace tabulky symbolů a instrukčního listu
     int result;
+    //Nacteni prvniho tokenu
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    //pokud hned prvni token je chybny
     if (aktualni_token.type == sLexError)
         result = ERROR_CODE_LEX;
     else
@@ -123,6 +123,7 @@ int parse() {
     return result;
 }
 
+//Funkce na "pozirani" EOLU
 int Line() {
     int result;
     switch (aktualni_token.type) {
@@ -140,14 +141,17 @@ int Program() {
     //<Program> -> <Deklarace_funkci_definice_funkci><Telo_programu><EOF>
     int result;
     switch (aktualni_token.type) {
+        //Jeste nez bude prvni deklarace, definice, nebo scope mohou byt prazdne radky
         case sEndOfLine:
             result = Line();
             if (result != ERROR_CODE_OK) return result;
         case sDeclare:
         case sFuntion:
         case sScope:
+            //Pred scopem muzou byt deklarace a definice funkci
             result = Deklarace_fci_definice_fci();
             if (result != ERROR_CODE_OK) return result;
+            //Vstup do tela programu
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -193,7 +197,7 @@ int Nekolik_deklaraci_fce() {
             if (result != ERROR_CODE_OK) return result;
 
             return Nekolik_deklaraci_fce();
-//<Nekolik_Deklaraci_fce> -> e
+            //<Nekolik_Deklaraci_fce> -> e
         case sFuntion:
         case sScope:
             return ERROR_CODE_OK;
@@ -224,26 +228,17 @@ int Telo_programu() {
     int result;
     switch (aktualni_token.type) {
         case sScope:
-            //Pred vstupem do tela zkontrolujeme jestli vsechny deklarovane funkce byly i definovany
+            //Pred vstupem do tela programu zkontrolujeme jestli vsechny deklarovane funkce byly i definovany
             checkDefinitionsOfDeclarations(glSymTable.root);
             if ((allDeclaredAreDefined) != ERROR_CODE_OK)
                 return ERROR_CODE_SEM;
+            //Pomocnou promennou nastavime ze jsme ve scopu
             inScope = true;
-/*
-            if (((symTableSearch(&glSymTable, functionName)) != NULL)) {
-                glNode = symTableSearch(&glSymTable, functionName);
-                paramsToDeclare = ((tDataFunction *) glNode->Data)->parameters.length;
-                for (int i = 0; i < paramsToDeclare; i++) {
-                    symTableInsertVariable(&glSymTable, ((tDataFunction *) glNode->Data)->paramName[i]);
-
-                }
-            }
-            */
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            //Ve scope budou dekalrace promennych a prikazy
             result = Deklarace_prom_a_prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
@@ -261,7 +256,9 @@ int Deklarace_fce() {
         case sDeclare:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
+            //Pomocnou promennou si nastavime ze jdeme z deklarace ne z definice
             comingFromDefinition = false;
+            //A jdeme do hlavicky fce
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -278,18 +275,24 @@ int Definice_fce() {
     int result;
     switch (aktualni_token.type) {
         case sFuntion:
+            //Pomocnou promennou si nastavime ze jdeme z definice ne z deklarace
             comingFromDefinition = 1;
+            //A jdeme do hlavicky
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
+            //Vlozime funkci do globalni tabulky symbolu
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
                 node = symTableSearch(&glSymTable, functionName);
+                //Pokud uz tam je, zkontrolujeme pocet parametru s deklaraci
                 if (((tDataFunction *) node->Data)->parameters.length != paramIndex)
+                    //Pocet parametru v definici neni stejny jako v deklaraci, takze error
                     return ERROR_CODE_SEM;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            //Jdeme do tela funkce
             result = Telo_funkce();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
@@ -311,8 +314,9 @@ int Hlavicka_fce() {
     if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
     //Jedna se o definici nebo deklaraci?
     if (comingFromDefinition == true) {
-        //Pokus o definici
-        //Podivame se jestli je fce vubec v tabulce
+        //Pokus o definici fce
+        //Podivame se jestli je uz fce v tabulce
+        //Uchovame si v promenne jmeno definovane funkce
         functionName = aktualni_token.atr;
         if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) {
             //V tabulce uz je o teto funkci nejaky zaznam
@@ -321,14 +325,15 @@ int Hlavicka_fce() {
                 //Uz byla definovana, pokus o redefinici -> error
                 return ERROR_CODE_SEM;
             } else {
-                //Byla deklarovana, nastavim ze uz bude i definovana
+                //Byla deklarovana, nastavime ze uz bude i definovana
                 ((tDataFunction *) node->Data)->defined = true;
             }
         } else {
-            //Neni v tabulce, vlozim a reknu ze je od ted definovana a deklarovana
+            //Neni v tabulce, a jdu z definice, vlozim a reknu ze je od ted definovana a deklarovana
             symTableInsertFunction(&glSymTable, aktualni_token.atr);
             node = symTableSearch(&glSymTable, aktualni_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
+            //Kvuli kontrole parametru si ulozim do promenne ze byla ted deklarovana/definovana
             declRecently = true;
             ((tDataFunction *) node->Data)->defined = true;
 
@@ -343,16 +348,17 @@ int Hlavicka_fce() {
             node = symTableSearch(&glSymTable, aktualni_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
             declRecently = true;
+            //Jdu z deklarace, takze to, ze je definovana nastavim na false
             ((tDataFunction *) node->Data)->defined = false;
         }
 
     }
-
-
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
+    //Vynuluju index parametru pro kontrolu nebo vkladani
     paramIndex = 0;
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    //Jdu do parametru
     result = Parametry();
     if (result != ERROR_CODE_OK)return result;
     if (aktualni_token.type != sRightPar)return ERROR_CODE_SYN;
@@ -361,27 +367,33 @@ int Hlavicka_fce() {
     if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK)return result;
+    //Jeste se musi zaznamenat navratovy typ fce
     if (comingFromDefinition == 1) {
         if (declRecently != true) {
+            //Jdu z definice a funkce byla kdysi deklarovana, takze zkontoluju parametry v definici s temi v drivejsi deklaraci
             switch (aktualni_token.type) {
                 case tInteger:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sInteger)
+                        //Parametr nesouhlasi, takze chyba
                         return ERROR_CODE_SEM;
                     break;
 
                 case tDouble:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sDouble)
+                        //Parametr nesouhlasi, takze chyba
                         return ERROR_CODE_SEM;
                     break;
 
                 case tString:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sString)
+                        //Parametr nesouhlasi, takze chyba
                         return ERROR_CODE_SEM;
                     break;
 
             }
 
         } else {
+            //Funkci prave definuji, takze musim zaznamenat i jeji navratovy typ
             switch (aktualni_token.type) {
                 case tInteger:
                     ((tDataFunction *) node->Data)->returnDataType = sInteger;
@@ -396,6 +408,7 @@ int Hlavicka_fce() {
 
         }
     } else {
+        //Jdu z deklarace, tudiz funkce jeste nebyla definovana, takze rovnou zaznamenam jeji navratovy typ
         switch (aktualni_token.type) {
             case tInteger:
                 ((tDataFunction *) node->Data)->returnDataType = sInteger;
@@ -408,7 +421,7 @@ int Hlavicka_fce() {
                 break;
         }
     }
-
+//"Vynuluju" promennou, ktera rika ze jsem funkci ted definoval/deklaroval
     declRecently = false;
     return ERROR_CODE_OK;
 
@@ -422,8 +435,10 @@ int Typ() {
         case tInteger:
         case tDouble:
         case tString:
+            //Pokud je token integer,double nebo string, je to ok
             return ERROR_CODE_OK;
     }
+    //Je to neco jineho, takze chyba
     return ERROR_CODE_SYN;
 }
 
@@ -432,7 +447,6 @@ int Parametry() {
     switch (aktualni_token.type) {
         //<Parametry> -> <Id><As><Typ><Dalsi_parametry>
         case sIdentificator:
-            //Nebyla, vlozime ju
             paramName = aktualni_token.atr;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
@@ -440,19 +454,22 @@ int Parametry() {
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
             if (comingFromDefinition == 0) {
-                //Jdu z deklarace, parametry nekontroluju jen zapisu
+                //Jdu z deklarace, parametry nekontroluju jen zapisu, protoze zadny zaznam o funkci jeste neni
                 switch (aktualni_token.type) {
                     case tInteger:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                        //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                         for (int i = 0; i < paramIndex; i++) {
                             if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                 return ERROR_CODE_SEM;
 
                         }
+                        //Jmeno je ok, vlozim ho
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tDouble:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                        //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                         for (int i = 0; i < paramIndex; i++) {
                             if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                 return ERROR_CODE_SEM;
@@ -462,6 +479,7 @@ int Parametry() {
                         break;
                     case tString:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                        //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                         for (int i = 0; i < paramIndex; i++) {
                             if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                 return ERROR_CODE_SEM;
@@ -500,6 +518,7 @@ int Parametry() {
                         case tInteger:
                             //  stringAddChar(,'a');
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
+                            //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                             for (int i = 0; i < paramIndex; i++) {
                                 if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                     return ERROR_CODE_SEM;
@@ -509,6 +528,7 @@ int Parametry() {
                             break;
                         case tDouble:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'd');
+                            //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                             for (int i = 0; i < paramIndex; i++) {
                                 if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                     return ERROR_CODE_SEM;
@@ -518,6 +538,7 @@ int Parametry() {
                             break;
                         case tString:
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
+                            //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
                             for (int i = 0; i < paramIndex; i++) {
                                 if (stringCompare(&((tDataFunction *) node->Data)->paramName[i], &paramName) == true)
                                     return ERROR_CODE_SEM;

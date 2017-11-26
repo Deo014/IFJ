@@ -11,15 +11,9 @@
  */
 
 #include <stdio.h>
-//#include <stdlib.h>
 #include "error_code.h"
 #include "instlist.h"
-#include "symtable.h"
 #include "parser.h"
-#include "string.h"
-#include "bintree.h"
-#include "expression.h"
-#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
