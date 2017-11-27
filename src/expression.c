@@ -219,11 +219,9 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                         //fun_or_var = getNextToken();
 
                         //Jestli se něco našlo a následující token není závorka, máme proměnnou
-                        if ((symTableSearch(&table, new_element->value) != NULL)/* &&
-
-                            convertTokenToIndex(fun_or_var.type) != eLeftPar*/) {
+                        if ((symTableSearch(&table, new_element->value) != NULL)) {
                             return ERROR_CODE_SEM;
-                            /*
+/*
                             //Uložíme si ji teda jako element identifikátoru
                             element_id = symTableSearch(&table,new_element->value);
                             //Pokud následující token neznačí konec výrazu
@@ -238,11 +236,11 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                                 next_exp_token = fun_or_var;
                                 exprEnd = true;
                             }
-                        } else {    //Musíme zajistit, aby se shiftovala závorka v dalším "kole"
+                        */} /*else {    //Musíme zajistit, aby se shiftovala závorka v dalším "kole"
                             next_exp_token = fun_or_var;
                             shift_saved_token = true;
-                        }
-                    }*/
+                        }*/
+                    }
                 }
                 //Pokud jsme nenašli v GL tabulce identifikator
                 else {
