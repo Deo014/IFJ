@@ -28,7 +28,7 @@ extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo fu
 int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
 //bool shift_saved_token = false;
-/bool exprEnd = false;
+//bool exprEnd = false;
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
