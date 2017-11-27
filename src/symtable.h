@@ -10,12 +10,41 @@
  *            xrutad00, Dominik Ruta
  */
 
-#include "bintree.h"
 #include <stdbool.h>
 #include "string.h"
 
 #ifndef IFJ_SYMTABLE_H
 #define IFJ_SYMTABLE_H
+
+/* ----------------------------------------BINARNIH VYHLEDAVACI STROM-------------------------------------------------*/
+
+
+typedef enum {
+    ndtVariable,     /* nodeDataTypeVariable */
+    ndtFunction,     /* nodeDataTypeFunction */
+} tNodeDataType;
+
+/*
+ * Uzel strom
+ */
+typedef struct tBSTNode {
+    char* Key;			                             /* klic */
+    tNodeDataType nodeDataType;                      /* typ dat, ktera uzel uchovava (funkce, promenna) */
+    void* Data;                                      /* uzitecny obsah uzlu */
+    struct tBSTNode * LPtr;                          /* ukazatel na levy podstrom */
+    struct tBSTNode * RPtr;                          /* ukazatel na pravy podstrom */
+} *tBSTNodePtr;
+
+/*
+ * Prototypy funkci
+ */
+void BSTInit   (tBSTNodePtr *);
+tBSTNodePtr BSTSearch (tBSTNodePtr, char*);
+void BSTInsert (tBSTNodePtr *, char*, void*, tNodeDataType);
+void BSTDelete (tBSTNodePtr *, char*);
+void BSTDispose(tBSTNodePtr *);
+
+/* ----------------------------------------FUNKCE PRO PRACI SE SYMTABLE-----------------------------------------------*/
 
 typedef struct variable {
     int dataType; /* sInteger, sDouble, sString */
@@ -33,26 +62,35 @@ typedef struct symtable {
     tBSTNodePtr root;
 } tSymtable;
 
-/* --------------------inicialiace symtable-------------------- */
+/*
+ * Inicialiace symtable
+ */
 void symTableInit(tSymtable*);
 
 
-//void symtableInsert(tSymtable* Table, string Key, void* dataPtr);
-
-/* --------------------vlozeni dat o funkci do symtable--------------------*/
+/*
+ * Vlozeni dat o funkci do symtable
+ */
 void symTableInsertFunction(tSymtable*, string);
-//tDataFunction *createDataFunction();
 
-/* --------------------vlozeni dat o promenne do symtable--------------------*/
+/*
+ * Vlozeni dat o promenne do symtable
+ */
 void symTableInsertVariable(tSymtable*, string);
-//tDataVariable *createDataVariable();
 
-/* --------------------vyhledani prvku v symtable--------------------*/
+/*
+ * Vyhledani prvku v symtable
+ */
 tBSTNodePtr symTableSearch(tSymtable*, string);
 
-/* --------------------smazani prvku v symtable--------------------*/
+/*
+ * Smazani prvku ze symtable
+ */
 void symTableDelete(tSymtable*, string);
 
-/* --------------------smazani cele symtable--------------------*/
+/*
+ * Smazani cele symtable
+ */
 void symTableDispose(tSymtable*);
+
 #endif //IFJ_SYMTABLE_H
