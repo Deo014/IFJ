@@ -13,7 +13,9 @@
 #include "error_code.h"
 #include "scanner.h"
 
-
+/*
+ * Funkce vrati nasledujici token ze vstupniho souboru
+ */
 tToken getNextToken(){
     tToken token;
     tState state;

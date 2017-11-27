@@ -14,6 +14,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ * Inicializace stringu
+ */
 int stringInit(string *str) {
     // alokovani pameti
     if ( (str->value = (char*) malloc(INIT_ALLOC_SIZE * sizeof(char))) == NULL )
@@ -44,6 +47,9 @@ bool stringCompare(string *str1, string *str2){
         return true;
 }
 
+/*
+ * Vlozeni znaku na konec stringu
+ */
 int stringAddChar(string *str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
@@ -60,6 +66,9 @@ int stringAddChar(string *str, char c) {
     return ERROR_CODE_OK;
 }
 
+/*
+ * Vlozeni retezce na konec stringu
+ */
 int stringAddChars(string *str, char* c) {
     int result_code;
     for (unsigned int i = 0; i < strlen(c); i++) {
@@ -68,18 +77,26 @@ int stringAddChars(string *str, char* c) {
     return result_code;
 }
 
-
+/*
+ * Zmena hodnoty posledniho znaku stringu
+ */
 void stringUpdateLastChar(string *str, char c) {
     if (str->length > 0) {
         str->value[str->length-1] = c;
     }
 }
 
+/*
+ * Odstraneni posledniho znaku stringu
+ */
 void stringDeleteLastChar(string *str) {
     str->value[str->length-1] = '\0';
     str->length -= 1;
 }
 
+/*
+ * Vlozeni znaku na zacatek stringu
+ */
 int stringAddFirstChar(string * str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
@@ -99,6 +116,9 @@ int stringAddFirstChar(string * str, char c) {
     return ERROR_CODE_OK;
 }
 
+/*
+ * Vyprazdneni stringu
+ */
 int stringClear(string *str) {
     // smaze znaky v retezci
     for (int i = 0; i < str->lengthAllocated; i++) {
@@ -109,6 +129,9 @@ int stringClear(string *str) {
     return ERROR_CODE_OK;
 }
 
+/*
+ * Vraceni posledniho znaku stringu
+ */
 char stringGetLastChar(string *str) {
     if (str->length > 0)
         return str->value[str->length-1];
@@ -116,6 +139,9 @@ char stringGetLastChar(string *str) {
         return -1;
 }
 
+/*
+ * Zjisteni, zda string je klicove slovo
+ */
 int stringIsKeyWord(string *str) {
     char *keywords[] = {
             "as\0", /*"asc\0" ,*/ "declare\0", "dim\0", "do\0", "double\0", "else\0", "end\0",/* "chr\0",*/
@@ -131,6 +157,9 @@ int stringIsKeyWord(string *str) {
     return ERROR_CODE_FALSE;
 }
 
+/*
+ * Zjisteni, zda string je rezervovane klicove slovo
+ */
 int stringIsResKeyWord(string *str) {
     char *resKeywords[] = {
             "and\0", "boolean\0", "continue\0", "elseif\0", "exit\0", "false\0", "for\0", "next\0",
@@ -145,6 +174,9 @@ int stringIsResKeyWord(string *str) {
     return ERROR_CODE_FALSE;
 }
 
+/*
+ * Prevod stringu na mala pismena
+ */
 void stringToLowercase(string *str) {
     // prevod na lowercase
     for (int i=0; i<str->length; i++) {
@@ -154,11 +186,18 @@ void stringToLowercase(string *str) {
     }
 }
 
-// FUNKCE PRO PRACI SE ZNAKY
+/* ----------------------------------------FUNKCE PRO PRACI SE ZNAKY--------------------------------------------------*/
+
+/*
+ * Vrati znak do stdin
+ */
 void charUndo(char c) {
     ungetc(c, stdin);
 }
 
+/*
+ * Zjisteni, jestli znak je mezera
+ */
 int charIsSpace(char c) {
     if (c == ' ')
         return ERROR_CODE_TRUE;
@@ -166,6 +205,9 @@ int charIsSpace(char c) {
         return ERROR_CODE_FALSE;
 }
 
+/*
+ * Zjisteni, jestli znak je tabulator
+ */
 int charIsTab(char c) {
     if ( c == '\t' )
         return ERROR_CODE_TRUE;
@@ -173,6 +215,9 @@ int charIsTab(char c) {
         return ERROR_CODE_FALSE;
 }
 
+/*
+ * Zjisteni, jestli znak je cislice
+ */
 int charIsDigit(char c) {
     if (c >= '0' && c <= '9')
         return ERROR_CODE_TRUE;
@@ -180,6 +225,9 @@ int charIsDigit(char c) {
         return ERROR_CODE_FALSE;
 }
 
+/*
+ * Zjisteni, jestli znak je pismeno
+ */
 int charIsLetter(char c) {
     if ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
         return ERROR_CODE_TRUE;
@@ -187,10 +235,16 @@ int charIsLetter(char c) {
         return ERROR_CODE_FALSE;
 }
 
+/*
+ * Vraci ascii hodnotu znaku
+ */
 int charToDec(char c) {
     return c-48;
 }
 
+/*
+ * Vraci znak s ascii hodnotou 'c'
+ */
 char decToChar(int c) {
     return c+48;
 }
