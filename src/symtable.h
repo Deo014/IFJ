@@ -10,12 +10,39 @@
  *            xrutad00, Dominik Ruta
  */
 
-#include "bintree.h"
 #include <stdbool.h>
 #include "string.h"
 
 #ifndef IFJ_SYMTABLE_H
 #define IFJ_SYMTABLE_H
+
+/* ----------------------------------------BINARNIH VYHLEDAVACI STROM-------------------------------------------------*/
+
+
+typedef enum {
+    ndtVariable,     /* nodeDataTypeVariable */
+    ndtFunction,     /* nodeDataTypeFunction */
+} tNodeDataType;
+
+/*
+ * Uzel strom
+ */
+typedef struct tBSTNode {
+    char* Key;			                             /* klic */
+    tNodeDataType nodeDataType;                      /* typ dat, ktera uzel uchovava (funkce, promenna) */
+    void* Data;                                      /* uzitecny obsah uzlu */
+    struct tBSTNode * LPtr;                          /* ukazatel na levy podstrom */
+    struct tBSTNode * RPtr;                          /* ukazatel na pravy podstrom */
+} *tBSTNodePtr;
+
+/*
+ * Prototypy funkci
+ */
+void BSTInit   (tBSTNodePtr *);
+tBSTNodePtr BSTSearch (tBSTNodePtr, char*);
+void BSTInsert (tBSTNodePtr *, char*, void*, tNodeDataType);
+void BSTDelete (tBSTNodePtr *, char*);
+void BSTDispose(tBSTNodePtr *);
 
 /* ----------------------------------------FUNKCE PRO PRACI SE SYMTABLE-----------------------------------------------*/
 
@@ -65,7 +92,5 @@ void symTableDelete(tSymtable*, string);
  * Smazani cele symtable
  */
 void symTableDispose(tSymtable*);
-
-
 
 #endif //IFJ_SYMTABLE_H
