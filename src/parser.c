@@ -465,6 +465,9 @@ int Parametry() {
                                 return ERROR_CODE_SEM;
 
                         }
+                        //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                        if (symTableSearch(&glSymTable, paramName) != NULL)
+                            return ERROR_CODE_SEM;
                         //Jmeno je ok, vlozim ho
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
@@ -476,6 +479,9 @@ int Parametry() {
                                 return ERROR_CODE_SEM;
 
                         }
+                        //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                        if (symTableSearch(&glSymTable, paramName) != NULL)
+                            return ERROR_CODE_SEM;
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                     case tString:
@@ -486,6 +492,9 @@ int Parametry() {
                                 return ERROR_CODE_SEM;
 
                         }
+                        //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                        if (symTableSearch(&glSymTable, paramName) != NULL)
+                            return ERROR_CODE_SEM;
                         ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                         break;
                 }
@@ -525,6 +534,9 @@ int Parametry() {
                                     return ERROR_CODE_SEM;
 
                             }
+                            //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                            if (symTableSearch(&glSymTable, paramName) != NULL)
+                                return ERROR_CODE_SEM;
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tDouble:
@@ -535,6 +547,9 @@ int Parametry() {
                                     return ERROR_CODE_SEM;
 
                             }
+                            //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                            if (symTableSearch(&glSymTable, paramName) != NULL)
+                                return ERROR_CODE_SEM;
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                         case tString:
@@ -545,6 +560,9 @@ int Parametry() {
                                     return ERROR_CODE_SEM;
 
                             }
+                            //Kontrola, jestli se parametr nejmenuje stejne jako nejaka funkce
+                            if (symTableSearch(&glSymTable, paramName) != NULL)
+                                return ERROR_CODE_SEM;
                             ((tDataFunction *) node->Data)->paramName[paramIndex] = paramName;
                             break;
                     }
