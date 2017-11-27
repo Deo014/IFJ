@@ -29,8 +29,8 @@ extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo fu
 //int operation;
 int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
-bool shift_saved_token = false;
-bool exprEnd = false;
+//bool shift_saved_token = false;
+/bool exprEnd = false;
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
@@ -67,8 +67,8 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
         exp_function = false;
-        exprEnd = false;
-        shift_saved_token = false;
+        //exprEnd = false;
+        //shift_saved_token = false;
         parameter_index = 0;
         SDispose(&expression_stack);
     }
@@ -140,7 +140,8 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
             if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
                 return error_type;
             }
-
+            next_exp_token = getNextToken();
+            /*
             if(!exprEnd) {
                if (shift_saved_token == true) {
                    if ((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
@@ -150,7 +151,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                    shift_saved_token = false;
                } else
                    next_exp_token = getNextToken();
-            }
+            }*/
         }
         else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
@@ -209,26 +210,38 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
             if(sIdentificator == new_element->token_type){
                 tBSTNodePtr element_id = symTableSearch(&glSymTable,new_element->value);
 
+                //Musí se vyřešit možná kolize názvů funkce a lok. proměnné
                 if(element_id != NULL) {
-                    if(inFunctionBody) {
-                        fun_or_var = getNextToken();
-                        if ((symTableSearch(&table, new_element->value) != NULL) &&
-                            convertTokenToIndex(fun_or_var.type) != eLeftPar) {
-                            element_id = symTableSearch(&table,new_element->value);
 
+                    //Pokud jsme opravdu ve funkci
+                    if(inFunctionBody) {
+                        //fun_or_var = getNextToken();
+
+                        //Jestli se něco našlo a následující token není závorka, máme proměnnou
+                        if ((symTableSearch(&table, new_element->value) != NULL)/* &&
+
+                            convertTokenToIndex(fun_or_var.type) != eLeftPar*/) {
+                            return ERROR_CODE_SEM;
+                            /*
+                            //Uložíme si ji teda jako element identifikátoru
+                            element_id = symTableSearch(&table,new_element->value);
+                            //Pokud následující token neznačí konec výrazu
                             if(convertTokenToIndex(fun_or_var.type) < eDollar) {
+
+                                //Zajistíme, aby se tento token v dalším "kole" shiftoval
                                 next_exp_token = fun_or_var;
                                 shift_saved_token = true;
                             }
-                            else {shift_saved_token = true;
+                            //Jinak si zajistíme, že se nám nebude načítat další token
+                            else {
                                 next_exp_token = fun_or_var;
                                 exprEnd = true;
                             }
-                        } else {
+                        } else {    //Musíme zajistit, aby se shiftovala závorka v dalším "kole"
                             next_exp_token = fun_or_var;
                             shift_saved_token = true;
                         }
-                    }
+                    }*/
                 }
                 //Pokud jsme nenašli v GL tabulce identifikator
                 else {
@@ -550,6 +563,7 @@ ERROR_CODE checkParams(Exp_element *element,int variable){
         switch (params[parameter_index]) {
             case 'i':
                 if (variable != sInteger) {
+                    //Jestli je parametr double, přetypuje se na int
                     if(variable == sDouble){
                         element->token_type = sInteger;
                     }
@@ -559,6 +573,7 @@ ERROR_CODE checkParams(Exp_element *element,int variable){
                 break;
             case 'd':
                 if (variable != sDouble) {
+                    //Jestli je parametr int, přetypuje se na double
                     if (variable == sInteger) {
                         element->token_type = sDouble;
                     } else
@@ -649,6 +664,7 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
         /*TODO přetypovat proměnnou výsledku*/
     }
 
+    //Pokud je jeden z operandů string a druhý nikoliv, je to chyba
     if(( ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sString && sString == operation_type_global) ||
             (((Exp_element*)expression_stack->top_of_stack->value)->token_type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
