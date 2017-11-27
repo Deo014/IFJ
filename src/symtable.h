@@ -67,7 +67,6 @@ typedef struct symtable {
  */
 void symTableInit(tSymtable*);
 
-
 /*
  * Vlozeni dat o funkci do symtable
  */
@@ -92,5 +91,10 @@ void symTableDelete(tSymtable*, string);
  * Smazani cele symtable
  */
 void symTableDispose(tSymtable*);
+
+/*
+ * Vlozeni vestavenych funkci do symtable
+ */
+void symTableInsertBuiltInFunctions(tSymtable*);
 
 #endif //IFJ_SYMTABLE_H

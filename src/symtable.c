@@ -11,6 +11,7 @@
  */
 
 #include "symtable.h"
+#include "scanner.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -215,4 +216,94 @@ void symTableDelete(tSymtable* Table, string Key) {
  */
 void symTableDispose(tSymtable* Table) {
     BSTDispose(&(Table->root));
+}
+
+/*
+ * Vlozeni vestavenych funkci do symtable
+ */
+void symTableInsertBuiltInFunctions(tSymtable* Table) {
+    tBSTNodePtr node;
+    tDataFunction* data;
+
+    /* --------------------Vestavena funkce length--------------------*/
+    string length;
+    stringInit(&length);
+
+    // vlozeni funkce
+    stringAddChars(&length, "length");
+    symTableInsertFunction(Table, length);
+
+    // vyhledani funkce
+    node = symTableSearch(Table, length);
+    data = (tDataFunction*)(node->Data);
+
+    // inicializace
+    data->declared = true; // deklarace
+    data->defined = true; // definice
+    stringAddChar(&(data->parameters), 's'); // parametry
+    stringInit(&(data->paramName[0])); stringAddChar(&(data->paramName[0]), 's');
+    data->returnDataType = sInteger; // navratova hodnota
+
+
+    /* --------------------Vestavena funkce substr--------------------*/
+    string substr;
+    stringInit(&substr);
+
+    // vlozeni funkce
+    stringAddChars(&substr, "substr"); // nazev vestavene funkce
+    symTableInsertFunction(Table, substr); // vlozeni vestavene funkce substr
+
+    // vyhledani funkce
+    node = symTableSearch(Table, substr);
+    data = (tDataFunction*)(node->Data);
+
+    // inicializace
+    data->declared = true;
+    data->defined = true;
+    stringAddChars(&(data->parameters), "sii");
+    stringInit(&(data->paramName[0])); stringAddChar(&(data->paramName[0]), 's');
+    stringInit(&(data->paramName[1])); stringAddChar(&(data->paramName[1]), 'i');
+    stringInit(&(data->paramName[2])); stringAddChar(&(data->paramName[2]), 'n');
+    data->returnDataType = sString;
+
+
+    /* --------------------Vestavena funkce asc--------------------*/
+    string asc;
+    stringInit(&asc);
+
+    // vlozeni funkce
+    stringAddChars(&asc, "asc");
+    symTableInsertFunction(Table, asc);
+
+    // vyhledani funkce
+    node = symTableSearch(Table, asc);
+    data = (tDataFunction*)(node->Data);
+
+    // inicializace
+    data->declared = true;
+    data->defined = true;
+    stringAddChars(&(data->parameters), "si");
+    stringInit(&(data->paramName[0])); stringAddChar(&(data->paramName[0]), 's');
+    stringInit(&(data->paramName[1])); stringAddChar(&(data->paramName[1]), 'i');
+    data->returnDataType = sInteger;
+
+
+    /* --------------------Vestavena funkce chr--------------------*/
+    string chr;
+    stringInit(&chr);
+
+    // vlozeni funkce
+    stringAddChars(&chr, "chr");
+    symTableInsertFunction(Table, chr);
+
+    // vyhledani funkce
+    node = symTableSearch(Table, chr);
+    data = (tDataFunction*)(node->Data);
+
+    // inicializace
+    data->declared = true;
+    data->defined = true;
+    stringAddChar(&(data->parameters), 'i');
+    stringInit(&(data->paramName[0])); stringAddChar(&(data->paramName[0]), 'i');
+    data->returnDataType = sString;
 }
