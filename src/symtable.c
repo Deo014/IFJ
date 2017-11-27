@@ -15,16 +15,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* --------------------inicialiace symtable-------------------- */
+/* ----------------------------------------FUNKCE PRO PRACI SE SYMTABLE-----------------------------------------------*/
+
+/*
+ * Inicialiace symtable
+ */
 void symTableInit(tSymtable* Table) {
     BSTInit(&(Table->root));
 }
 
-//void symtableInsert(tSymtable* Table, string Key, void* dataPtr) {
-//    BSTInsert(&(Table->root), Key.value, dataPtr);
-//}
 
-/* --------------------vlozeni dat o funkci do symtable--------------------*/
+/*
+ * Vlozeni dat o funkci do symtable
+ */
 void symTableInsertFunction(tSymtable* Table, string Key) { // vlozi do symtable zaznam s klicem Key a data dataPtr
     // alokovani pameti pro data
     tDataFunction * dataPtr;
@@ -42,7 +45,9 @@ void symTableInsertFunction(tSymtable* Table, string Key) { // vlozi do symtable
     BSTInsert(&(Table->root), Key.value, dataPtr, ndtFunction);
 }
 
-/* --------------------vlozeni dat o promenne do symtable--------------------*/
+/*
+ * Vlozeni dat o promenne do symtable
+ */
 void symTableInsertVariable(tSymtable* Table, string Key) { // vlozi do symtable zaznam s klicem Key a data dataPtr
     // alokovani pameti pro data
     tDataVariable * dataPtr;
@@ -54,17 +59,23 @@ void symTableInsertVariable(tSymtable* Table, string Key) { // vlozi do symtable
     BSTInsert(&(Table->root), Key.value, dataPtr, ndtVariable);
 }
 
-/* --------------------vyhledani prvku v symtable--------------------*/
+/*
+ * Vyhledani prvku v symtable
+ */
 tBSTNodePtr symTableSearch(tSymtable* Table, string Key) { // vraci ukazatel na hledany uzel, pokud nenajde vraci NULL
     return BSTSearch(Table->root, Key.value);
 }
 
-/* --------------------smazani prvku v symtable--------------------*/
+/*
+ * Smazani prvku ze symtable
+ */
 void symTableDelete(tSymtable* Table, string Key) {
     BSTDelete(&(Table->root), Key.value);
 }
 
-/* --------------------smazani cele symtable--------------------*/
+/*
+ * Smazani cele symtable
+ */
 void symTableDispose(tSymtable* Table) {
     BSTDispose(&(Table->root));
 }
