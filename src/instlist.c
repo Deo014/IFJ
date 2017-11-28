@@ -43,8 +43,14 @@ void writeInstructionNoOperand(tDLListInstruction *L, int instType){
 }
 
 void writeInstructionOneOperand(tDLListInstruction *L, int instType, tInstrOperand element1){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type;bool tmp_operand1_isTMP = element1.isTMP; bool tmp_operand1_isScope = element1.isScope; bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
-    operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
+    char *operand1;
+    char *tmp_operand1 = element1.value.value;
+    int tmp_operand1_type = element1.type;
+    bool tmp_operand1_isTMP = element1.isTMP;
+    bool tmp_operand1_isScope = element1.isScope;
+    bool tmp_operand1_isLabel = element1.isLabel;
+    FRAME tmp_operand1_frame = element1.frame;
+    operand1 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator) {
         // Operand je pomocná proměnná
@@ -83,8 +89,13 @@ void writeInstructionOneOperand(tDLListInstruction *L, int instType, tInstrOpera
 }
 
 void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type; bool tmp_operand1_isTMP = element1.isTMP;bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
-    operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
+    char *operand1;
+    char *tmp_operand1 = element1.value.value;
+    int tmp_operand1_type = element1.type;
+    bool tmp_operand1_isTMP = element1.isTMP;
+    bool tmp_operand1_isLabel = element1.isLabel;
+    FRAME tmp_operand1_frame = element1.frame;
+    operand1 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator)
         if (tmp_operand1_isTMP == true)
@@ -116,8 +127,14 @@ void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOper
         strcat(operand1, tmp_operand1);
     }
 
-    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.type; bool tmp_operand2_isTMP = element2.isTMP;bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame; INPUTTYPE tmp_operand2_inputtype = element2.inputType;
-    operand2 = malloc((strlen(operand2)+strlen(tmp_operand2)));
+    char *operand2;
+    char *tmp_operand2 = element2.value.value;
+    int tmp_operand2_type = element2.type;
+    bool tmp_operand2_isTMP = element2.isTMP;
+    bool tmp_operand2_isLabel = element2.isLabel;
+    FRAME tmp_operand2_frame = element2.frame;
+    INPUTTYPE tmp_operand2_inputtype = element2.inputType;
+    operand2 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
         if (tmp_operand2_isTMP == true)
@@ -160,8 +177,13 @@ void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOper
 }
 
 void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2, tInstrOperand element3){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type; bool tmp_operand1_isTMP = element1.isTMP;bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
-    operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
+    char *operand1;
+    char *tmp_operand1 = element1.value.value;
+    int tmp_operand1_type = element1.type;
+    bool tmp_operand1_isTMP = element1.isTMP;
+    bool tmp_operand1_isLabel = element1.isLabel;
+    FRAME tmp_operand1_frame = element1.frame;
+    operand1 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator)
         if (tmp_operand1_isTMP == true)
@@ -193,8 +215,13 @@ void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOp
         strcat(operand1, tmp_operand1);
     }
 
-    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.type; bool tmp_operand2_isTMP = element2.isTMP;bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame;
-    operand2 = malloc((strlen(operand2)+strlen(tmp_operand2)));
+    char *operand2;
+    char *tmp_operand2 = element2.value.value;
+    int tmp_operand2_type = element2.type;
+    bool tmp_operand2_isTMP = element2.isTMP;
+    bool tmp_operand2_isLabel = element2.isLabel;
+    FRAME tmp_operand2_frame = element2.frame;
+    operand2 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
         if (tmp_operand2_isTMP == true)
@@ -226,8 +253,13 @@ void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOp
         strcat(operand2, tmp_operand2);
     }
 
-    char *operand3 = ""; char *tmp_operand3 = element3.value.value; int tmp_operand3_type = element3.type; bool tmp_operand3_isTMP = element3.isTMP;bool tmp_operand3_isLabel = element3.isLabel; FRAME tmp_operand3_frame = element3.frame;
-    operand3 = malloc((strlen(operand3)+strlen(tmp_operand3)));
+    char *operand3;
+    char *tmp_operand3 = element3.value.value;
+    int tmp_operand3_type = element3.type;
+    bool tmp_operand3_isTMP = element3.isTMP;
+    bool tmp_operand3_isLabel = element3.isLabel;
+    FRAME tmp_operand3_frame = element3.frame;
+    operand3 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand3_type == sIdentificator)
         if (tmp_operand3_isTMP == true)

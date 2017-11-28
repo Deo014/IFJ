@@ -319,19 +319,20 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
             //Řeší redukci pro ID (operand)
             case eOperand:
+
+
                 //Aktuální el. nastavíme jako neterminál a u dalšího prvku, který je nejbližší terminál, zrušíme zarážku
                 ((Exp_element *) (stack_item->value))->terminal = false;
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
                 first_terminal = (stack_item->left);
-                //if(operation_type_global != -1) {
-                    operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false,
-                                           I_DEFAULT);
-                    operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                           ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
-                                           false, I_DEFAULT);
-                    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-                //}
+
+                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+
 
                 //operation = eOperand;
                 return ERROR_CODE_OK;
@@ -340,6 +341,12 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
+                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+
                 //operation = eMultiply;
                 break;
                 //Řeší redukci dělení
@@ -363,11 +370,21 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
                 //##
-                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value, ((Exp_element *) (stack_item->left->left->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
-                    operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
+                //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                //operand2 = initOperand(operand2, "a", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+                //operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
+                //writeInstructionThreeOperands(&instList, I_ADD, operand1, operand1, operand1);
 
+                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                //operand2 = initOperand(operand2, "bfdsafs", ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false, false, false, I_DEFAULT);
+                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value,
+                                       ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
+                                       false, false, I_DEFAULT);
+                operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       false, I_DEFAULT);
                 writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+
                 //operation = ePlus;
                 break;
 

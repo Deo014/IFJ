@@ -54,7 +54,7 @@ int stringAddChar(string *str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
         // realokace pameti: navyseni o INIT_ALLOC_SIZE
-        if ( (str->value = (char*)realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE)) == NULL )
+        if ((str->value = (char *) realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE * sizeof(char))) == NULL)
             return ERROR_CODE_INTERNAL;
         str->lengthAllocated = str->lengthAllocated + INIT_ALLOC_SIZE;
     }
@@ -101,7 +101,7 @@ int stringAddFirstChar(string * str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
         // realokace pameti: navyseni o INIT_ALLOC_SIZE
-        if ( (str->value = (char*)realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE)) == NULL )
+        if ((str->value = (char *) realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE * sizeof(char))) == NULL)
             return ERROR_CODE_INTERNAL;
         str->lengthAllocated = str->lengthAllocated + INIT_ALLOC_SIZE;
     }
