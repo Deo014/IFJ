@@ -10,7 +10,9 @@
  *            xrutad00, Dominik Ruta
  */
 #include "parser.h"
+#include "instlist.h"
 #include "string.h"
+#include "scanner.h"
 
 extern tSymtable glSymTable;
 extern tSymtable table;
@@ -41,6 +43,8 @@ int paramsToDeclare;
 bool inFunctionBody = false;
 //Promenna, ktera rika expressionu, jakeho typu by mel byt vyhodnocovany vyraz
 int expectedValue;
+tToken varToSet;
+tToken tmpToken;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -239,12 +243,21 @@ int Telo_programu() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // Generování $$scope
+            operand1 = initOperand(operand1, "", sKeyWord, F_DEFAULT, false, false, true, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            writeInstructionNoOperand(&instList, I_CREATEFRAME);
+            writeInstructionNoOperand(&instList, I_PUSHFRAME);
             //Ve scope budou dekalrace promennych a prikazy
             result = Deklarace_prom_a_prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
+            // generování $endscope
+            writeInstructionNoOperand(&instList, I_POPFRAME);
+            operand1 = initOperand(operand1, "%endscope", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -695,8 +708,13 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Tisknout muzu jakykoliv typ vyrazu bez kontroly, nastavim promennou na -1 jako signal expressionu,
             //ze ho nemusi kontrolovat
+
+
             expectedValue = -1;
             result = Vyraz();
+            //print
+            operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
@@ -802,6 +820,7 @@ int Prikaz() {
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
+                varToSet = aktualni_token;
 
             } else {
                 //Budu prirazovat do promenne a jsem ve scopu, podivam se jestli je v globalni tabulce
@@ -810,12 +829,17 @@ int Prikaz() {
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
+               varToSet = aktualni_token;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             result = Vyraz();
+            // z tmp do varToSet
+            operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false,  I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -856,6 +880,7 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            string actualVar = aktualni_token.atr;
 
             if (inScope) {
                 //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
@@ -887,6 +912,10 @@ int Deklarace_promenne() {
                     ((tDataVariable *) node->Data)->dataType = sString;
                     break;
             }
+            // Vypsání vytvoření proměnné
+            operand1 = initOperand(operand1, actualVar.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Rovnou si ulozim jeji typ i do promenne pro expression, kdyby se do ni hned prirazovalo
             expectedValue = ((tDataVariable *) node->Data)->dataType;

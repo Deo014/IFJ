@@ -12,6 +12,8 @@
  */
 #include "expression.h"
 #include "stack.h"
+#include "string.h"
+#include "scanner.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit funkce nebo proměnná
@@ -22,6 +24,8 @@ extern tSymtable glSymTable;            //GL tabulka symbolů
 extern tSymtable table;                 //Lokální tabulka
 extern tDLListInstruction instList;     //List instrukcí
 extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo funkce
+extern tToken varToSet;
+extern tToken tmpToken;
 
 //str_element result_element;
 
@@ -336,6 +340,15 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 ((Exp_element *) (stack_item->value))->handle = false;
                 ((Exp_element *) (stack_item->left->value))->handle = false;
                 first_terminal = (stack_item->left);
+                //if(operation_type_global != -1) {
+                    operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false,
+                                           I_DEFAULT);
+                    operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
+                                           ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                           false, I_DEFAULT);
+                    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                //}
+
                 //operation = eOperand;
                 return ERROR_CODE_OK;
 
@@ -365,7 +378,13 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case ePlus:
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
+                //##
+                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value, ((Exp_element *) (stack_item->left->left->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
+                if()
+                    operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value, sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
 
+                writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
                 //operation = ePlus;
                 break;
 
@@ -650,6 +669,7 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
     if(( ((Exp_element*)expression_stack->top_of_stack->value)->token_type != sString && sString == operation_type_global) ||
             (((Exp_element*)expression_stack->top_of_stack->value)->token_type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
+    tmpToken.type=((Exp_element*)expression_stack->top_of_stack->value)->token_type;
     return ERROR_CODE_OK;
 }
 
