@@ -329,7 +329,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                 operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                        false, I_DEFAULT);
                 writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
@@ -341,9 +341,9 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, F_DEFAULT);
                 operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                        false, I_DEFAULT);
                 writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
@@ -381,7 +381,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                                        ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
                                        false, false, I_DEFAULT);
                 operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                        false, I_DEFAULT);
                 writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
 

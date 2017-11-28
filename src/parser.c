@@ -293,6 +293,11 @@ int Definice_fce() {
             comingFromDefinition = 1;
             //A jdeme do hlavicky
             result = Hlavicka_fce();
+            operand1 = initOperand(operand1, functionName.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            writeInstructionNoOperand(&instList, I_PUSHFRAME);
+            operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
             if (result != ERROR_CODE_OK) return result;
             //Vlozime funkci do globalni tabulky symbolu
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
@@ -628,7 +633,6 @@ int Telo_funkce() {
         symTableInsertVariable(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
         node = symTableSearch(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
         switch (((tDataFunction *) glNode->Data)->parameters.value[i]) {
-
             case 'i':
                 ((tDataVariable *) node->Data)->dataType = sInteger;
                 break;
@@ -743,6 +747,9 @@ int Prikaz() {
             //Overeni ze klic co jsme nasli je promenna a ne funkce, protze do funkce nic prirazovat nechci
             if (node->nodeDataType != ndtVariable)
                 return ERROR_CODE_SEM;
+            operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false, F_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,  ((tDataVariable *) node->Data)->dataType);
+            writeInstructionTwoOperands(&instList, I_READ,operand1, operand2);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -847,7 +854,11 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
-            //
+            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_RETURN);
+
             if (inFunctionBody == false)
                 return ERROR_CODE_SYN;
             //V hlavnim tele scope nemuze return byt

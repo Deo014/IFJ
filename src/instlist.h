@@ -23,10 +23,10 @@ typedef enum {
 }FRAME;
 
 typedef enum {
-    INPUT_INT,
-    INPUT_DOUBLE,
-    INPUT_STRING,
-    I_DEFAULT
+    INPUT_INT = 4,
+    INPUT_DOUBLE = 5,
+    INPUT_STRING = 10,
+    I_DEFAULT = 1
 }INPUTTYPE;
 
 typedef struct instr_operand{
