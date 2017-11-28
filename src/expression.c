@@ -27,8 +27,8 @@ extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo fu
 //int operation;
 int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
-bool shift_saved_token = false;
-bool exprEnd = false;
+//bool shift_saved_token = false;
+//bool exprEnd = false;
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
@@ -65,8 +65,8 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
         exp_function = false;
-        exprEnd = false;
-        shift_saved_token = false;
+        // exprEnd = false;
+        //shift_saved_token = false;
         parameter_index = 0;
         SDispose(&expression_stack);
     }
@@ -138,7 +138,8 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
             if((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
                 return error_type;
             }
-
+            next_exp_token = getNextToken();
+/*
             if(!exprEnd) {
                if (shift_saved_token == true) {
                    if ((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
@@ -149,6 +150,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                } else
                    next_exp_token = getNextToken();
             }
+            */
         }
         else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
@@ -212,9 +214,10 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
 
                 if(element_id != NULL) {
                     if(inFunctionBody) {
-                        fun_or_var = getNextToken();
-                        if ((symTableSearch(&table, new_element->value) != NULL) &&
-                            convertTokenToIndex(fun_or_var.type) != eLeftPar) {
+                        // fun_or_var = getNextToken();
+                        if ((symTableSearch(&table, new_element->value) != NULL)) {
+                            return ERROR_CODE_SEM;
+                            /*
                             element_id = symTableSearch(&table,new_element->value);
 
                             if(convertTokenToIndex(fun_or_var.type) < eDollar) {
@@ -224,11 +227,11 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
                             else {shift_saved_token = true;
                                 next_exp_token = fun_or_var;
                                 exprEnd = true;
-                            }
-                        } else {
+                            }*/
+                        } /*else {
                             next_exp_token = fun_or_var;
                             shift_saved_token = true;
-                        }
+                        }*/
                     }
                 }
                 //Pokud jsme nenašli v GL tabulce identifikator
