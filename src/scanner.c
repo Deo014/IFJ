@@ -404,7 +404,7 @@ tToken getNextToken(){
                 else if ( charIsDigit(c) && (escapeCounter == 2) ) {
                     escapeValue += charToDec(c); // prevod znaku na ciselnou hodnotu a pricteni do escapeValue, treti cislice je v radu jednotek
 
-                    if ( !((escapeValue >= 0) && (escapeValue <= 255)) ) { // zjisteni, jestli je escape sekvence platna
+                    if ( !((escapeValue > 0) && (escapeValue <= 255)) ) { // zjisteni, jestli je escape sekvence platna
                         token.type = sLexError;
                     }
                     // zapsani escape sekvence do stringu
