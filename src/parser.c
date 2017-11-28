@@ -293,6 +293,14 @@ int Definice_fce() {
             comingFromDefinition = 1;
             //A jdeme do hlavicky
             result = Hlavicka_fce();
+            operand1 = initOperand(operand1, functionName.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            writeInstructionNoOperand(&instList, I_CREATEFRAME);
+            writeInstructionNoOperand(&instList, I_PUSHFRAME);
+            operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
+
             if (result != ERROR_CODE_OK) return result;
             //Vlozime funkci do globalni tabulky symbolu
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
@@ -316,6 +324,12 @@ int Definice_fce() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+
+            char *endfunc_name = ""; endfunc_name = malloc((strlen("%endfunction_")+strlen(functionName.value)));
+            strcpy(endfunc_name, "%endfunction_");
+            strcat(endfunc_name, functionName.value);
+            operand1 = initOperand(operand1, endfunc_name, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -867,6 +881,12 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+
+            operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_POPFRAME);
+            writeInstructionNoOperand(&instList, I_RETURN);
             break;
     }
     return result;

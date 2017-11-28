@@ -18,7 +18,7 @@
 
 #define SCOPE "$$scope"
 #define TMP "GF@tmp"
-#define LABELSYMBOL "$"
+#define LABELSYMBOL "$%"
 #define FRAMELF "LF@"
 #define FRAMETF "TF@"
 #define TYPEINT "int@"

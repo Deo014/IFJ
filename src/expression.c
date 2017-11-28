@@ -381,9 +381,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //##
                 operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                 operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value, ((Exp_element *) (stack_item->left->left->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
-                if()
-                    operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value, sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
-
+                operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value, sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
                 writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
                 //operation = ePlus;
                 break;
