@@ -11,15 +11,9 @@
  */
 
 #include <stdio.h>
-//#include <stdlib.h>
 #include "error_code.h"
 #include "instlist.h"
-#include "symtable.h"
 #include "parser.h"
-#include "string.h"
-#include "bintree.h"
-#include "expression.h"
-#include "scanner.h"
 
 
 tSymtable glSymTable; // globalni tabulka symbolu
@@ -28,18 +22,7 @@ tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukc
 
 int main(int argc, char **argv)
 {
-    char f1[] = "length";
-    char f2[] = "substr";
-    string length;
-    string substr;
-    string paramLength;
-    string paramSubstr;
-    tBSTNodePtr node;
-    stringInit(&paramLength);
-    stringInit(&paramSubstr);
-    stringInit(&length);
-    stringInit(&substr);
-    freopen("test1.txt", "r", stdin);
+    //freopen("test1.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/
@@ -49,47 +32,18 @@ int main(int argc, char **argv)
     }
 
     /*----------inicializace----------*/
-    symTableInit(&glSymTable); // globalni tabulka symbolu
-    symTableInit(&table);
-
-    stringAddChars(&length, f1);
-    symTableInsertFunction(&glSymTable, length);
-    node = symTableSearch(&glSymTable, length);
-    ((tDataFunction *) node->Data)->declared = true;
-    ((tDataFunction *) node->Data)->defined = true;
-    stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
-    stringAddChar(&paramLength, 's');
-    ((tDataFunction *) node->Data)->paramName[0] = paramLength;
-    stringClear(&paramLength);
-    ((tDataFunction *) node->Data)->returnDataType = sInteger;
-
-
-    stringAddChars(&substr, f2);
-    symTableInsertFunction(&glSymTable, substr);
-    node = symTableSearch(&glSymTable, substr);
-    ((tDataFunction *) node->Data)->declared = true;
-    ((tDataFunction *) node->Data)->defined = true;
-    stringAddChar(&((tDataFunction *) node->Data)->parameters, 's');
-    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
-    stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
-    stringAddChar(&paramSubstr, 's');
-    ((tDataFunction *) node->Data)->paramName[0] = paramSubstr;
-    stringClear(&paramSubstr);
-    stringAddChar(&paramSubstr, 'i');
-    ((tDataFunction *) node->Data)->paramName[1] = paramSubstr;
-    stringClear(&paramSubstr);
-    stringAddChar(&paramSubstr, 'n');
-    ((tDataFunction *) node->Data)->paramName[2] = paramSubstr;
-    stringClear(&paramSubstr);
-    ((tDataFunction *) node->Data)->returnDataType = sString;
-
-    //DLInitList(&instList);  // instrukcni paska
+    symTableInit(&glSymTable); /* globalni tabulka symbolu */
+    symTableInit(&table); /* lokalni tabulka symbolu */
+    DLInitList(&instList);  /* instrukcni paska */
+    symTableInsertBuiltInFunctions(&glSymTable); /* vlozeni vestavenych funkci do globalni tabulky symbolu */
 
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     result_code = parse();
 
     //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
+    if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
+        printInstructionList(&instList);
 
     //*******************************************
     /*
@@ -116,14 +70,10 @@ int main(int argc, char **argv)
     //generateInstruction(&instList, I_DEFVAR, &test_element1, NULL, NULL);
 
 
-    if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
-        printInstructionList(&instList);
-
     /*----------uvolneni alokovane pameti----------*/
-    //symTableDispose(&glSymTable); // globalni tabulka symbolu
-    //symTableDispose(&table);
-    //DLDisposeList(&instList); // insturkcni paska
-
+    symTableDispose(&glSymTable); /* globalni tabulka symbolu */
+    symTableDispose(&table); /* lokalni tabulka symbolu */
+    DLDisposeList(&instList); /* insturkcni paska */
 
     return result_code;
 }

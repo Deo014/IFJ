@@ -1,6 +1,6 @@
 #
 # Předmět  :   IFJ / IAL
-# Soubor   :   main.c
+# Soubor   :   Makefile
 # Projekt  :   Implementace překladače imperativního jazyka IFJ17
 # Tým č    :   21
 # Varianta :   1
@@ -9,9 +9,9 @@
 #            xvalus02, Ondřej Valušek
 #            xrutad00, Dominik Ruta
 #
+
 PROJ=proj
-#FILES=symtable.c symtable.h main.c
-FILES=main.c scanner.c string.c symtable.c stack.c instList.c expression.c bintree.c parser.c
+FILES=main.c scanner.c string.c symtable.c stack.c instlist.c expression.c parser.c
 CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -pthread
 CC=gcc
 RM=rm -f
