@@ -13,7 +13,6 @@
 #include "expression.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
-tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit funkce nebo proměnná
 tStack *first_terminal; //Nejvyšší terminál na stacku
 
 
@@ -22,13 +21,10 @@ extern tSymtable table;                 //Lokální tabulka
 extern tDLListInstruction instList;     //List instrukcí
 extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo funkce
 
-//str_element result_element;
 
 //int operation;
 int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
-//bool shift_saved_token = false;
-//bool exprEnd = false;
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
@@ -65,8 +61,6 @@ ERROR_CODE expression(tToken first_token,int operation_type){
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
         exp_function = false;
-        //exprEnd = false;
-        //shift_saved_token = false;
         parameter_index = 0;
         SDispose(&expression_stack);
     }
@@ -84,7 +78,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
     char sign;
 
-    fun_or_var = first_token;
     next_exp_token = first_token;
     //Analýza výrazu
     while (1){
@@ -139,17 +132,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                 return error_type;
             }
             next_exp_token = getNextToken();
-            /*
-            if(!exprEnd) {
-               if (shift_saved_token == true) {
-                   if ((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
-                       return error_type;
-                   }
-                   next_exp_token = getNextToken();
-                   shift_saved_token = false;
-               } else
-                   next_exp_token = getNextToken();
-            }*/
         }
         else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
@@ -216,30 +198,10 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack){
 
                     //Pokud jsme opravdu ve funkci
                     if(inFunctionBody) {
-                        //fun_or_var = getNextToken();
 
                         //Jestli se něco našlo a následující token není závorka, máme proměnnou
                         if ((symTableSearch(&table, new_element->value) != NULL)) {
                             return ERROR_CODE_SEM;
-/*
-                            //Uložíme si ji teda jako element identifikátoru
-                            element_id = symTableSearch(&table,new_element->value);
-                            //Pokud následující token neznačí konec výrazu
-                            if(convertTokenToIndex(fun_or_var.type) < eDollar) {
-
-                                //Zajistíme, aby se tento token v dalším "kole" shiftoval
-                                next_exp_token = fun_or_var;
-                                shift_saved_token = true;
-                            }
-                            //Jinak si zajistíme, že se nám nebude načítat další token
-                            else {
-                                next_exp_token = fun_or_var;
-                                exprEnd = true;
-                            }
-                        */} /*else {    //Musíme zajistit, aby se shiftovala závorka v dalším "kole"
-                            next_exp_token = fun_or_var;
-                            shift_saved_token = true;
-                        }*/
                     }
                 }
                 //Pokud jsme nenašli v GL tabulce identifikator
