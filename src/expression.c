@@ -11,6 +11,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
+#include "stack.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit funkce nebo proměnná
@@ -104,6 +105,10 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                 if ((error_type = checkResultType(expression_stack)) != ERROR_CODE_OK)
                     return error_type;
             }
+            else {
+                if (((Exp_element *) expression_stack->top_of_stack->value)->pt_index == eDollar)
+                    return ERROR_CODE_SYN;
+            }
             return ERROR_CODE_OK;
         }
 
@@ -139,18 +144,7 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
                 return error_type;
             }
             next_exp_token = getNextToken();
-/*
-            if(!exprEnd) {
-               if (shift_saved_token == true) {
-                   if ((error_type = shiftToStack(expression_stack)) != ERROR_CODE_OK) {
-                       return error_type;
-                   }
-                   next_exp_token = getNextToken();
-                   shift_saved_token = false;
-               } else
-                   next_exp_token = getNextToken();
-            }
-            */
+
         }
         else if(sign == '>'){       //Uplatňujeme pravidla pro redukci binárních operátorů
 
