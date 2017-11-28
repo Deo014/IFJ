@@ -17,156 +17,246 @@
 #include <string.h>
 
 #define SCOPE "$$scope"
+#define TMP "GF@tmp"
 #define LABELSYMBOL "$"
 #define FRAMELF "LF@"
 #define FRAMETF "TF@"
 #define TYPEINT "int@"
 #define TYPEBOOL "bool@"
 #define TYPESTRING "string@"
-#define TYPEDOUBLE "double@"
+#define TYPEDOUBLE "float@"
 
 
-/* ----------------------------------------FUNKCE PRO PRACI S INSTRUKCEMI---------------------------------------------*/
+tInstrOperand initOperand(tInstrOperand operand, char* value, int type, FRAME frame, bool isTMP, bool isLabel, bool isScope, INPUTTYPE inputType){
+    operand.value.value = value;
+    operand.type = type;
+    operand.frame = frame;
+    operand.isTMP = isTMP;
+    operand.isLabel = isLabel;
+    operand.isScope = isScope;
+    operand.inputType = inputType;
+    return operand;
+}
+
 void writeInstructionNoOperand(tDLListInstruction *L, int instType){
     generateInstruction(L, instType, NULL, NULL, NULL);
 }
 
-void writeInstructionOneOperand(tDLListInstruction *L, int instType, Instr_element element1){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.token_type; bool tmp_operand1_isScope = element1.isScope; bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
+void writeInstructionOneOperand(tDLListInstruction *L, int instType, tInstrOperand element1){
+    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type;bool tmp_operand1_isTMP = element1.isTMP; bool tmp_operand1_isScope = element1.isScope; bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
     operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
     // Operand je proměnná
-    if(tmp_operand1_type == sIdentificator)
-        if (tmp_operand1_frame == F_LF)
+    if(tmp_operand1_type == sIdentificator) {
+        // Operand je pomocná proměnná
+        if (tmp_operand1_isTMP == true)
+            operand1 = TMP;
+        else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand1, tmp_operand1);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand1, FRAMETF);
-    // Operand je konstanta
-    else if(tmp_operand1_type == sInteger)
+            strcat(operand1, tmp_operand1);
+        }
+    }
+        // Operand je konstanta
+    else if(tmp_operand1_type == sInteger){
         strcpy(operand1, TYPEINT);
-    else if(tmp_operand1_type == sDouble)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sDouble){
         strcpy(operand1, TYPEDOUBLE);
-    else if(tmp_operand1_type == sString)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sString){
         strcpy(operand1, TYPESTRING);
-    strcat(operand1, tmp_operand1);
+        strcat(operand1, tmp_operand1);
+    }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
         strcpy(operand1, LABELSYMBOL);
         strcat(operand1, tmp_operand1);
-        if (tmp_operand1_isScope == true)
-            operand1 = SCOPE;
     }
+    if (tmp_operand1_isScope == true)
+        operand1 = SCOPE;
     generateInstruction(L, instType, operand1, NULL, NULL);
 }
 
-void writeInstructionTwoOperands(tDLListInstruction *L, int instType, Instr_element element1, Instr_element element2){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.token_type; bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
+void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2){
+    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type; bool tmp_operand1_isTMP = element1.isTMP;bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
     operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator)
-        if (tmp_operand1_frame == F_LF)
+        if (tmp_operand1_isTMP == true)
+            operand1 = TMP;
+        else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand1, tmp_operand1);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand1, FRAMETF);
-    // Operand je konstanta
-    else if(tmp_operand1_type == sInteger)
+            strcat(operand1, tmp_operand1);
+        }
+        // Operand je konstanta
+    else if(tmp_operand1_type == sInteger) {
         strcpy(operand1, TYPEINT);
-    else if(tmp_operand1_type == sDouble)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sDouble){
         strcpy(operand1, TYPEDOUBLE);
-    else if(tmp_operand1_type == sString)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sString){
         strcpy(operand1, TYPESTRING);
-    strcat(operand1, tmp_operand1);
+        strcat(operand1, tmp_operand1);
+    }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
         strcpy(operand1, LABELSYMBOL);
         strcat(operand1, tmp_operand1);
     }
 
-    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.token_type; bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame;
+    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.type; bool tmp_operand2_isTMP = element2.isTMP;bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame; INPUTTYPE tmp_operand2_inputtype = element2.inputType;
     operand2 = malloc((strlen(operand2)+strlen(tmp_operand2)));
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
-        if (tmp_operand2_frame == F_LF)
+        if (tmp_operand2_isTMP == true)
+            operand2 = TMP;
+        else if (tmp_operand2_frame == F_LF) {
             strcpy(operand2, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand2, tmp_operand2);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand2, FRAMETF);
-     // Operand je konstanta
-    else if(tmp_operand2_type == sInteger)
+            strcat(operand2, tmp_operand2);
+        }
+        // Operand je konstanta
+    else if(tmp_operand2_type == sInteger) {
         strcpy(operand2, TYPEINT);
-    else if(tmp_operand2_type == sDouble)
+        strcat(operand2, tmp_operand2);
+    }
+    else if(tmp_operand2_type == sDouble){
         strcpy(operand2, TYPEDOUBLE);
-    else if(tmp_operand2_type == sString)
+        strcat(operand2, tmp_operand2);
+    }
+    else if(tmp_operand2_type == sString){
         strcpy(operand2, TYPESTRING);
-    strcat(operand2, tmp_operand2);
+        strcat(operand2, tmp_operand2);
+    }
     // Operand je návěští
     if(tmp_operand2_isLabel == true) {
         strcpy(operand2, LABELSYMBOL);
         strcat(operand2, tmp_operand2);
     }
+    // Operand je typ vstupní hodnoty
+    if(tmp_operand2_inputtype == INPUT_INT)
+        operand2 = "int";
+    else if(tmp_operand2_inputtype == INPUT_DOUBLE)
+        operand2 = "float";
+    else if(tmp_operand2_inputtype == INPUT_STRING)
+        operand2 = "string";
 
     generateInstruction(L, instType, operand1, operand2, NULL);
 }
 
-void writeInstructionThreeOperands(tDLListInstruction *L, int instType, Instr_element element1, Instr_element element2, Instr_element element3){
-    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.token_type; bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
+void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2, tInstrOperand element3){
+    char *operand1 = ""; char *tmp_operand1 = element1.value.value; int tmp_operand1_type = element1.type; bool tmp_operand1_isTMP = element1.isTMP;bool tmp_operand1_isLabel = element1.isLabel; FRAME tmp_operand1_frame = element1.frame;
     operand1 = malloc((strlen(operand1)+strlen(tmp_operand1)));
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator)
-        if (tmp_operand1_frame == F_LF)
+        if (tmp_operand1_isTMP == true)
+            operand1 = TMP;
+        else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand1, tmp_operand1);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand1, FRAMETF);
+            strcat(operand1, tmp_operand1);
+        }
         // Operand je konstanta
-    else if(tmp_operand1_type == sInteger)
+    else if(tmp_operand1_type == sInteger) {
         strcpy(operand1, TYPEINT);
-    else if(tmp_operand1_type == sDouble)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sDouble){
         strcpy(operand1, TYPEDOUBLE);
-    else if(tmp_operand1_type == sString)
+        strcat(operand1, tmp_operand1);
+    }
+    else if(tmp_operand1_type == sString){
         strcpy(operand1, TYPESTRING);
-    strcat(operand1, tmp_operand1);
+        strcat(operand1, tmp_operand1);
+    }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
         strcpy(operand1, LABELSYMBOL);
         strcat(operand1, tmp_operand1);
     }
 
-    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.token_type; bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame;
+    char *operand2 = ""; char *tmp_operand2 = element2.value.value; int tmp_operand2_type = element2.type; bool tmp_operand2_isTMP = element2.isTMP;bool tmp_operand2_isLabel = element2.isLabel; FRAME tmp_operand2_frame = element2.frame;
     operand2 = malloc((strlen(operand2)+strlen(tmp_operand2)));
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
-        if (tmp_operand2_frame == F_LF)
+        if (tmp_operand2_isTMP == true)
+            operand2 = TMP;
+        else if (tmp_operand2_frame == F_LF) {
             strcpy(operand2, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand2, tmp_operand2);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand2, FRAMETF);
+            strcat(operand2, tmp_operand2);
+        }
         // Operand je konstanta
-    else if(tmp_operand2_type == sInteger)
+    else if(tmp_operand2_type == sInteger) {
         strcpy(operand2, TYPEINT);
-    else if(tmp_operand2_type == sDouble)
+        strcat(operand2, tmp_operand2);
+    }
+    else if(tmp_operand2_type == sDouble){
         strcpy(operand2, TYPEDOUBLE);
-    else if(tmp_operand2_type == sString)
+        strcat(operand2, tmp_operand2);
+    }
+    else if(tmp_operand2_type == sString){
         strcpy(operand2, TYPESTRING);
-    strcat(operand2, tmp_operand2);
+        strcat(operand2, tmp_operand2);
+    }
     // Operand je návěští
     if(tmp_operand2_isLabel == true) {
         strcpy(operand2, LABELSYMBOL);
         strcat(operand2, tmp_operand2);
     }
 
-    char *operand3 = ""; char *tmp_operand3 = element3.value.value; int tmp_operand3_type = element3.token_type; bool tmp_operand3_isLabel = element3.isLabel; FRAME tmp_operand3_frame = element3.frame;
+    char *operand3 = ""; char *tmp_operand3 = element3.value.value; int tmp_operand3_type = element3.type; bool tmp_operand3_isTMP = element3.isTMP;bool tmp_operand3_isLabel = element3.isLabel; FRAME tmp_operand3_frame = element3.frame;
     operand3 = malloc((strlen(operand3)+strlen(tmp_operand3)));
     // Operand je proměnná
     if(tmp_operand3_type == sIdentificator)
-        if (tmp_operand3_frame == F_LF)
+        if (tmp_operand3_isTMP == true)
+            operand3 = TMP;
+        else if (tmp_operand3_frame == F_LF) {
             strcpy(operand3, FRAMELF);
-        else /* při práci s proměnnou na Temporary frame */
+            strcat(operand3, tmp_operand3);
+        }
+        else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand3, FRAMETF);
+            strcat(operand3, tmp_operand3);
+        }
         // Operand je konstanta
-    else if(tmp_operand3_type == sInteger)
+    else if(tmp_operand3_type == 42){
+        strcpy(operand3, TYPEBOOL);
+        strcat(operand3, tmp_operand3);
+    }
+    else if(tmp_operand3_type == sInteger) {
         strcpy(operand3, TYPEINT);
-    else if(tmp_operand3_type == sDouble)
+        strcat(operand3, tmp_operand3);
+    }
+    else if(tmp_operand3_type == sDouble){
         strcpy(operand3, TYPEDOUBLE);
-    else if(tmp_operand3_type == sString)
+        strcat(operand3, tmp_operand3);
+    }
+    else if(tmp_operand3_type == sString){
         strcpy(operand3, TYPESTRING);
-    strcat(operand3, tmp_operand3);
+        strcat(operand3, tmp_operand3);
+    }
     // Operand je návěští
     if(tmp_operand3_isLabel == true) {
         strcpy(operand3, LABELSYMBOL);
@@ -202,18 +292,18 @@ void printInstructionList(tDLListInstruction *L) {
             case I_RETURN:          printf("RETURN\n");            break;
 
 
-            // prace s datovym zasobnikem
+                // prace s datovym zasobnikem
             case I_PUSHS:           printf("PUSHS %s\n",           (char *)currentInst.addr1);       break;
             case I_POPS:            printf("POPS %s\n",            (char *)currentInst.addr1);       break;
             case I_CLEARS:          printf("CLEARS\n");            break;
 
 
-            // aritmeticke, relacni, booleovske a konverzni instrukce
+                // aritmeticke, relacni, booleovske a konverzni instrukce
             case I_ADD:             printf("ADD %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_SUB:             printf("SUB %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_MUL:             printf("MUL %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_DIV:             printf("DIV %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            // zásobníkové verze
+                // zásobníkové verze
             case I_ADDS:             printf("ADDS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_SUBS:             printf("SUBS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_MULS:             printf("MULS %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
@@ -229,7 +319,7 @@ void printInstructionList(tDLListInstruction *L) {
             case I_AND:             printf("AND %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_OR:              printf("OR %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_NOT:             printf("NOT %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            // zasobnikove verze
+                // zasobnikove verze
             case I_ANDS:            printf("ANDS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_ORS:             printf("ORS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_NOTS:            printf("NOTS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
@@ -240,7 +330,7 @@ void printInstructionList(tDLListInstruction *L) {
             case I_FLOAT2R2OINT:    printf("FLOAT2R2OINT %s %s\n",(char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_INT2CHAR:        printf("INT2CHAR %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_STRI2INT:        printf("STRI2INT %s %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            // zasobnikove verze
+                // zasobnikove verze
             case I_INT2FLOATS:      printf("INT2FLOATS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
             case I_FLOAT2INTS:      printf("FLOAT2INTS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
             case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
@@ -249,33 +339,33 @@ void printInstructionList(tDLListInstruction *L) {
             case I_STRI2INTS:       printf("STRI2INTS %s %s %s\n",  (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
 
 
-            // vstupne-vystupni instrukce
+                // vstupne-vystupni instrukce
             case I_READ:            printf("READ %s %s\n",          (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
             case I_WRITE:           printf("WRITE %s\n",            (char *)currentInst.addr1);                                 break;
 
 
-            // prace s retezci
+                // prace s retezci
             case I_CONCAT:          printf("CONCAT %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
             case I_STRLEN:          printf("STRLEN %s %s\n",        (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
             case I_GETCHAR:         printf("GETCHAR %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
             case I_SETCHAR:         printf("SETCHAR %s %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
 
 
-            // prace s type
+                // prace s type
             case I_TYPE:            printf("TYPE %s %s\n",          (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
 
 
-            // instrukce pro rizeni toku programu
+                // instrukce pro rizeni toku programu
             case I_LABEL:           printf("LABEL %s\n",            (char *)currentInst.addr1);         break;
             case I_JUMP:            printf("JUMP %s\n",             (char *)currentInst.addr1);         break;
             case I_JUMPIFEQ:        printf("JUMPIFEQ %s %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
             case I_JUMPIFNEQ:       printf("JUMPIFNEQ %s %s %s\n",  (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
-            // zasobnikove verze
+                // zasobnikove verze
             case I_JUMPIFEQS:       printf("JUMPIFEQS %s\n",        (char *)currentInst.addr1);         break;
             case I_JUMPIFNEQS:      printf("JUMPIFNEQS %s\n",       (char *)currentInst.addr1);         break;
 
 
-            // ladici instrukce
+                // ladici instrukce
             case I_BREAK:           printf("BREAK\n");                                      break;
             case I_DPRINT:          printf("DPRINT %s\n", (char *)currentInst.addr1);       break;
         }
@@ -532,4 +622,199 @@ void DLPred (tDLListInstruction *L) {
 
 int DLActive (tDLListInstruction *L) {
     return(L->Act != NULL);
+}
+
+// Vestavěné funkce
+void writeLenght(tInstrOperand tmp_operand1, tInstrOperand tmp_operand2){
+    writeInstructionTwoOperands(&instList, I_STRLEN, tmp_operand1, tmp_operand2);
+    return;
+}
+
+void writeAsc(tInstrOperand retezec, tInstrOperand index){
+    writeInstructionNoOperand(&instList, I_CREATEFRAME);
+    operand1 = initOperand(operand1, "@%ascretval", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "s", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "i", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "s", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, retezec.value.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "i", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, index.value.value, sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    writeInstructionNoOperand(&instList, I_PUSHFRAME);
+    operand1 = initOperand(operand1, "s_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "s_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "s", sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%asc_error", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "s_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%asc_error", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%ascretval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "s", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_STRI2INT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%asc_end", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_JUMP, operand1);
+    operand1 = initOperand(operand1, "%asc_error", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "%ascretval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "0", sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%asc_end", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    writeInstructionNoOperand(&instList, I_POPFRAME);
+    return;
+}
+
+void writeChr(tInstrOperand hodnota){
+    writeInstructionNoOperand(&instList, I_CREATEFRAME);
+    operand1 = initOperand(operand1, "@%chrretval", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "i", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "i", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, hodnota.value.value, sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    writeInstructionNoOperand(&instList, I_PUSHFRAME);
+    operand1 = initOperand(operand1, "@%chrretval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_INT2CHAR, operand1, operand2);
+    writeInstructionNoOperand(&instList, I_POPFRAME);
+    return;
+}
+
+void writeSubstr(tInstrOperand retezec, tInstrOperand index, tInstrOperand shift){
+    writeInstructionNoOperand(&instList, I_CREATEFRAME);
+    operand1 = initOperand(operand1, "@%substrretval", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "@%substrretval", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sString, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "substr_string", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "substr_len", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "substr_char", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+    operand1 = initOperand(operand1, "substr_string", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, retezec.value.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, index.value.value, sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, shift.value.value, sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "substr_len", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
+    operand1 = initOperand(operand1, "substr_len", sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_len", sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_index", sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_TF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_len", sIdentificator, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_TF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%endsubstrwithshift0", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_TF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%substr", sIdentificator, F_TF, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_JUMP, operand1);
+    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_len", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_index", sIdentificator, F_TF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    writeInstructionNoOperand(&instList, I_PUSHFRAME);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "\\00", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%do_substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "substr_char", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GETCHAR, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_char", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_CONCAT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%do_substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFNEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%substrretval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_JUMP, operand1);
+    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "%substrretval", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    writeInstructionNoOperand(&instList, I_POPFRAME);
+    operand1 = initOperand(operand1, "%endsubstrwithshift0", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    return;
 }

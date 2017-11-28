@@ -18,20 +18,31 @@
 
 typedef enum {
     F_LF,
-    F_TF
+    F_TF,
+    F_DEFAULT
 }FRAME;
 
-typedef struct instr_element{
+typedef enum {
+    INPUT_INT,
+    INPUT_DOUBLE,
+    INPUT_STRING,
+    I_DEFAULT
+}INPUTTYPE;
+
+typedef struct instr_operand{
     string value;
-    int token_type;
+    int type;
     FRAME frame;
+    bool isTMP;
     bool isLabel;
     bool isScope;
-}Instr_element;
+    INPUTTYPE inputType;
+}tInstrOperand;
 
 typedef enum {
     // prace s ramci, volani funkci
-    I_HEADER,
+            I_HEADER,
+    I_TMP,
     I_MOVE,             //  <var> <symb>
     I_CREATEFRAME,
     I_PUSHFRAME,
@@ -42,18 +53,18 @@ typedef enum {
 
 
     // prace s datovym zasobnikem
-    I_PUSHS,            //  <symb>
+            I_PUSHS,            //  <symb>
     I_POPS,             //  <var>
     I_CLEARS,
 
 
     // aritmeticke, relacni, booleovske a konverzni instrukce
-    I_ADD,              //  <var> <symb1> <symb2>
+            I_ADD,              //  <var> <symb1> <symb2>
     I_SUB,              //  <var> <symb1> <symb2>
     I_MUL,              //  <var> <symb1> <symb2>
     I_DIV,              //  <var> <symb1> <symb2>
     // zásobníkové verze
-    I_ADDS,             //  <var> <symb1> <symb2>
+            I_ADDS,             //  <var> <symb1> <symb2>
     I_SUBS,             //  <var> <symb1> <symb2>
     I_MULS,             //  <var> <symb1> <symb2>
     I_DIVS,             //  <var> <symb1> <symb2>
@@ -69,7 +80,7 @@ typedef enum {
     I_OR,               //  <var> <symb1> <symb2>
     I_NOT,              //  <var> <symb1> <symb2>
     // zasobnikove verze
-    I_ANDS,             //  <var> <symb1> <symb2>
+            I_ANDS,             //  <var> <symb1> <symb2>
     I_ORS,              //  <var> <symb1> <symb2>
     I_NOTS,             //  <var> <symb1> <symb2>
 
@@ -80,7 +91,7 @@ typedef enum {
     I_INT2CHAR,         //  <var> <symb>
     I_STRI2INT,         //  <var> <symb1> <symb2>
     // zasobnikove verze
-    I_INT2FLOATS,       //  <var> <symb>
+            I_INT2FLOATS,       //  <var> <symb>
     I_FLOAT2INTS,       //  <var> <symb>
     I_FLOAT2R2EINTS,    //  <var> <symb>
     I_FLOAT2R2OINTS,    //  <var> <symb>
@@ -89,33 +100,33 @@ typedef enum {
 
 
     // vstupne-vystupni instrukce
-    I_READ,             //  <var> <type>
+            I_READ,             //  <var> <type>
     I_WRITE,            //  <symb>
 
 
     // prace s retezci
-    I_CONCAT,           //  <var> <symb1> <symb2>
+            I_CONCAT,           //  <var> <symb1> <symb2>
     I_STRLEN,           //  <var> <symb>
     I_GETCHAR,          //  <var> <symb1> <symb2>
     I_SETCHAR,          //  <var> <symb1> <symb2>
 
 
     // prace s type
-    I_TYPE,             //  <var> <symb>
+            I_TYPE,             //  <var> <symb>
 
 
     // instrukce pro rizeni toku programu
-    I_LABEL,            //  <label>
+            I_LABEL,            //  <label>
     I_JUMP,             //  <label>
     I_JUMPIFEQ,         //  <label> <symb1> <symb2>
     I_JUMPIFNEQ,        //  <label> <symb1> <symb2>
     // zasobnikove verze
-    I_JUMPIFEQS,        //  <label>
+            I_JUMPIFEQS,        //  <label>
     I_JUMPIFNEQS,       //  <label>
 
 
     // ladici instrukce
-    I_BREAK,
+            I_BREAK,
     I_DPRINT,           //  <symb>
 
 } INSTR;
@@ -160,12 +171,22 @@ void DLSucc (tDLListInstruction *);
 void DLPred (tDLListInstruction *);
 int DLActive (tDLListInstruction *);
 
+//tInstrOperand initOperand(tInstrOperand);
+tInstrOperand initOperand(tInstrOperand , char* , int , FRAME , bool , bool , bool , INPUTTYPE);
 void writeInstructionNoOperand(tDLListInstruction *,int);
-void writeInstructionOneOperand(tDLListInstruction *,int, Instr_element);
-void writeInstructionTwoOperands(tDLListInstruction *,int, Instr_element, Instr_element);
-void writeInstructionThreeOperands(tDLListInstruction *,int, Instr_element, Instr_element, Instr_element);
+void writeInstructionOneOperand(tDLListInstruction *,int, tInstrOperand);
+void writeInstructionTwoOperands(tDLListInstruction *,int, tInstrOperand, tInstrOperand);
+void writeInstructionThreeOperands(tDLListInstruction *,int, tInstrOperand, tInstrOperand, tInstrOperand);
 void generateInstruction (tDLListInstruction *, int, void*, void*, void*); // vygeneruje instrukci do instrucni pasky
 
 void printInstructionList (tDLListInstruction *);
+// Vestavěné funkce
+void writeLenght(tInstrOperand , tInstrOperand );
+void writeAsc(tInstrOperand , tInstrOperand );
+void writeChr(tInstrOperand );
+void writeSubstr(tInstrOperand , tInstrOperand , tInstrOperand );
+
+tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3; // Globální proměnné pro operandy instrukcí
+tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
 
 #endif //IFJ_INSTLIST_H
