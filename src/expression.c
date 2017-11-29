@@ -38,6 +38,7 @@ int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
 tDataFunction *function;
+bool concat_move_done = false;
 
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    F     ,     $
@@ -79,6 +80,7 @@ ERROR_CODE expression(tToken first_token,int operation_type){
             writeInstructionOneOperand(&instList, I_POPS, operand1);
         }
         exp_function = false;
+        concat_move_done = false;
         SDispose(&expression_stack);
     }
     return result;
@@ -347,6 +349,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 first_terminal = (stack_item->left);
 
                 if(!exp_function) {
+
                     operand1 = initOperand(operand1, ((Exp_element *) (stack_item->value))->value.value,
                                            ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                            false, I_DEFAULT);
@@ -379,14 +382,38 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
                     return error_type;
                 //operation = eDivideI;
+
                 writeInstructionNoOperand(&instList, I_DIVS);
+                writeInstructionNoOperand(&instList,I_FLOAT2INTS);
                 break;
 
                 //Řeší redukci sčítání
             case ePlus:
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
-                writeInstructionNoOperand(&instList, I_ADDS);
+                if(((Exp_element*)(expression_stack->top_of_stack->value))->type == sString){
+                    //###
+                    if(!concat_move_done) {
+                        operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                        operand2 = initOperand(operand2,
+                                               ((Exp_element *) (expression_stack->top_of_stack->left->left->value))->value.value,
+                                               ((Exp_element *) (expression_stack->top_of_stack->left->left->value))->token_type,
+                                               F_LF, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                        concat_move_done = true;
+                    }
+                    // concat dvou stringů
+                    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                    operand2 = initOperand(operand3, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+                    operand3 = initOperand(operand2, ((Exp_element*)(expression_stack->top_of_stack->value))->value.value, ((Exp_element*)(expression_stack->top_of_stack->value))->token_type, F_LF, false, false, false, I_DEFAULT);
+                    writeInstructionThreeOperands(&instList, I_CONCAT, operand1, operand2, operand3);
+                    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                    writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+                    /*if(((Exp_element*)expression_stack->top_of_stack->left->left->value)->token_type == sString)
+                        stringAddChars(&((Exp_element*)expression_stack->top_of_stack->left->left->value)->value,((Exp_element*)(expression_stack->top_of_stack->value))->value.value);
+*/
+                } else
+                    writeInstructionNoOperand(&instList, I_ADDS);
 
                 //operation = ePlus;
                 break;
@@ -403,6 +430,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eEqual)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_EQS);
                 //operation = eEqual;
                 break;
 
@@ -410,6 +438,8 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eNotEqual:
                 if((error_type = checkBinary(expression_stack, eNotEqual)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_EQS);
+                writeInstructionNoOperand(&instList, I_NOTS);
                 //operation = eNotEqual;
                 break;
 
@@ -417,6 +447,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eLess:
                 if((error_type = checkBinary(expression_stack, eLess)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_LTS);
                 //operation = eLess;
                 break;
 
@@ -424,6 +455,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMore:
                 if((error_type = checkBinary(expression_stack, eMore)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_GTS);
                 //operation = eMore;
                 break;
 
@@ -431,6 +463,8 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eLessEqual:
                 if((error_type = checkBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_GTS);
+                writeInstructionNoOperand(&instList, I_NOTS);
                 //operation = eLessEqual;
                 break;
 
@@ -438,6 +472,8 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMoreEqual:
                 if((error_type = checkBinary(expression_stack, eMoreEqual)) != ERROR_CODE_OK)
                     return error_type;
+                writeInstructionNoOperand(&instList, I_LTS);
+                writeInstructionNoOperand(&instList, I_NOTS);
                 //operation = eMoreEqual;
                 break;
 
@@ -617,8 +653,37 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
     if(operator == eDivideI){
         //Pokud není ani jeden z operandů string, oba se přetypují na int
         if (operand_type_l->type != sString && operand_type_r->type != sString){
-            operand_type_l->type = sInteger;
-            operand_type_r->type = sInteger;
+            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+            if(operand_type_r->type == sDouble){
+
+                operand_type_r->type = sInteger;
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+                writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand2,operand2);
+
+            }
+            else
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+
+            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
+            if(operand_type_l->type == sDouble){
+                operand_type_l->type = sInteger;
+
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+                writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand1,operand1);
+
+            } else
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+
+
+            writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
+            writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
+
+            writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+            writeInstructionOneOperand(&instList, I_PUSHS, operand2);
+
         }
         else
             return ERROR_CODE_SEM_COMP;

@@ -42,6 +42,7 @@ typedef struct instr_operand{
 typedef enum {
     // prace s ramci, volani funkci
             I_HEADER,
+    I_COMMENT,
     I_TMP,
     I_MOVE,             //  <var> <symb>
     I_CREATEFRAME,

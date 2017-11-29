@@ -315,6 +315,7 @@ void printInstructionList(tDLListInstruction *L) {
         // vypsani typu instrukce
         switch (currentInst.instType) {
             case I_HEADER:          printf(".IFJcode17\n");        break;
+            case I_COMMENT:         printf("# %s\n",          (char *)currentInst.addr1);       break;
             case I_MOVE:            printf("MOVE %s %s\n",         (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_CREATEFRAME:     printf("CREATEFRAME\n");       break;
             case I_PUSHFRAME:       printf("PUSHFRAME\n");         break;
@@ -344,17 +345,17 @@ void printInstructionList(tDLListInstruction *L) {
             case I_LT:              printf("LT %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_GT:              printf("GT %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_EQ:              printf("EQ %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            case I_LTS:             printf("LTS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            case I_GTS:             printf("GTS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            case I_EQS:             printf("EQS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_LTS:             printf("LTS\n");        break;
+            case I_GTS:             printf("GTS\n");        break;
+            case I_EQS:             printf("EQS\n");        break;
 
             case I_AND:             printf("AND %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_OR:              printf("OR %s %s %s\n",       (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
             case I_NOT:             printf("NOT %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
                 // zasobnikove verze
-            case I_ANDS:            printf("ANDS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            case I_ORS:             printf("ORS %s %s %s\n",      (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
-            case I_NOTS:            printf("NOTS %s %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
+            case I_ANDS:            printf("ANDS\n");        break;
+            case I_ORS:             printf("ORS\n");        break;
+            case I_NOTS:            printf("NOTS \n"  );        break;
 
             case I_INT2FLOAT:       printf("INT2FLOAT %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_FLOAT2INT:       printf("FLOAT2INT %s %s\n",   (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
@@ -363,12 +364,12 @@ void printInstructionList(tDLListInstruction *L) {
             case I_INT2CHAR:        printf("INT2CHAR %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_STRI2INT:        printf("STRI2INT %s %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);        break;
                 // zasobnikove verze
-            case I_INT2FLOATS:      printf("INT2FLOATS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
-            case I_FLOAT2INTS:      printf("FLOAT2INTS %s %s\n",    (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
-            case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
-            case I_FLOAT2R2OINTS:   printf("FLOAT2R2OINTS %s %s\n", (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
-            case I_INT2CHARS:       printf("INT2CHARS %s %s\n",     (char *)currentInst.addr1, (char *)currentInst.addr2);      break;
-            case I_STRI2INTS:       printf("STRI2INTS %s %s %s\n",  (char *)currentInst.addr1, (char *)currentInst.addr2, (char *)currentInst.addr3);      break;
+            case I_INT2FLOATS:      printf("INT2FLOATS\n");      break;
+            case I_FLOAT2INTS:      printf("FLOAT2INTS\n");      break;
+            case I_FLOAT2R2EINTS:   printf("FLOAT2R2EINTS\n");      break;
+            case I_FLOAT2R2OINTS:   printf("FLOAT2R2OINTS\n");      break;
+            case I_INT2CHARS:       printf("INT2CHARS\n");      break;
+            case I_STRI2INTS:       printf("STRI2INTS\n");      break;
 
 
                 // vstupne-vystupni instrukce
@@ -416,7 +417,11 @@ void DLInitList (tDLListInstruction *L) {
     L->Act = NULL;
     generateInstruction(L, I_HEADER, NULL, NULL, NULL);
     generateInstruction(L, I_DEFVAR, "GF@tmp", NULL, NULL);
+    generateInstruction(L, I_DEFVAR, "GF@tmp_type", NULL, NULL);
     generateInstruction(L, I_JUMP, "$$scope", NULL, NULL);
+    generateInstruction(L, I_COMMENT, "zacatek generovani vestavenych funkci", NULL, NULL);
+    // TODO vygenerování definic vestavěných funkcí
+    generateInstruction(L, I_COMMENT, "konec generovani vestavench funkci", NULL, NULL);
 }
 
 void DLDisposeList (tDLListInstruction *L) {

@@ -786,6 +786,11 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // výraz je false, skočí na else
+            operand1 = initOperand(operand1, "else1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            operand3 = initOperand(operand3, "false", 42, F_TF, false, false, false, I_DEFAULT);
+            writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
@@ -793,6 +798,11 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // výraz je true, provedly se příkazy za then, else se přeskočí
+            operand1 = initOperand(operand1, "endif1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_JUMP, operand1);
+            operand1 = initOperand(operand1, "else1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
@@ -802,10 +812,16 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // vygeneruje labl endifu
+            operand1 = initOperand(operand1, "endif1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
             cisloLabelu++;
+            // vygenerování labelu dowhile
+            operand1 = initOperand(operand1, "dowhile1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -817,12 +833,19 @@ int Prikaz() {
                 expectedValue = sDouble;
             else
                 expectedValue = -1;
+
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // Vygenerování podmíněné skoku na konec cyklu
+            operand1 = initOperand(operand1, "loop1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            operand3 = initOperand(operand3, "false", 42, F_TF, false, false, false, I_DEFAULT);
+            writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
@@ -830,6 +853,11 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // vygenerování labelu loop
+            operand1 = initOperand(operand1, "dowhile1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_JUMP, operand1);
+            operand1 = initOperand(operand1, "loop1", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
