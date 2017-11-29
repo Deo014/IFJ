@@ -316,6 +316,9 @@ void printInstructionList(tDLListInstruction *L) {
         switch (currentInst.instType) {
             case I_HEADER:          printf(".IFJcode17\n");        break;
             case I_COMMENT:         printf("# %s\n",          (char *)currentInst.addr1);       break;
+            case I_QUESTIONMARK:
+                printf("?");
+                break;
             case I_MOVE:            printf("MOVE %s %s\n",         (char *)currentInst.addr1, (char *)currentInst.addr2);        break;
             case I_CREATEFRAME:     printf("CREATEFRAME\n");       break;
             case I_PUSHFRAME:       printf("PUSHFRAME\n");         break;

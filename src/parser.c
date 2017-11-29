@@ -753,6 +753,10 @@ int Prikaz() {
             //Overeni ze klic co jsme nasli je promenna a ne funkce, protze do funkce nic prirazovat nechci
             if (node->nodeDataType != ndtVariable)
                 return ERROR_CODE_SEM;
+
+            operand1 = initOperand(operand1, "?\\032", sString, F_LF, false, false, false, F_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
             operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false, F_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,  ((tDataVariable *) node->Data)->dataType);
             writeInstructionTwoOperands(&instList, I_READ,operand1, operand2);
@@ -933,7 +937,7 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
-            string actualVar = aktualni_token.atr;
+            varToSet = aktualni_token;
 
             if (inScope) {
                 //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
@@ -966,7 +970,7 @@ int Deklarace_promenne() {
                     break;
             }
             // Vypsání vytvoření proměnné
-            operand1 = initOperand(operand1, actualVar.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -1030,6 +1034,9 @@ int Prirazeni_hodnoty() {
         case sAssignment:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
+            operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             return result;
             //<Prirazeni_hodnoty> -> e
         case sEndOfLine:
