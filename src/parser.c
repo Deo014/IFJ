@@ -296,8 +296,8 @@ int Definice_fce() {
             operand1 = initOperand(operand1, functionName.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
             writeInstructionNoOperand(&instList, I_PUSHFRAME);
-            operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, true, false, I_DEFAULT);
-            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+            //operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
             if (result != ERROR_CODE_OK) return result;
             //Vlozime funkci do globalni tabulky symbolu
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
@@ -719,6 +719,7 @@ int Prikaz() {
             //print
             operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
@@ -845,7 +846,7 @@ int Prikaz() {
             result = Vyraz();
             // z tmp do varToSet
             operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
-            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false,  I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
             writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
@@ -854,10 +855,7 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
-            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-            writeInstructionNoOperand(&instList, I_RETURN);
+
 
             if (inFunctionBody == false)
                 return ERROR_CODE_SYN;
@@ -875,6 +873,10 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
+            //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_RETURN);
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;

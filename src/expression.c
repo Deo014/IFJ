@@ -37,6 +37,7 @@ bool exp_function;          //Pokud se řeší funkce je true
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
+tDataFunction *function;
 
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    F     ,     $
@@ -69,10 +70,15 @@ ERROR_CODE expression(tToken first_token,int operation_type){
         return ERROR_CODE_SYN;
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
-        exp_function = false;
+
         // exprEnd = false;
         //shift_saved_token = false;
         parameter_index = 0;
+        if(!exp_function) {
+            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_POPS, operand1);
+        }
+        exp_function = false;
         SDispose(&expression_stack);
     }
     return result;
@@ -253,11 +259,14 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                             //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
                         if ((error_type = checkParams(new_element, variable->dataType)) != ERROR_CODE_OK)
                             return error_type;
+                        operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
+                        operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
                         }
                     }
                         //Pokud se jedná o funkci
                 else if (element_id->nodeDataType == ndtFunction) {
-                    tDataFunction *function = ((tDataFunction *) (element_id->Data));
+                    function = ((tDataFunction *) (element_id->Data));
                     if ((function->returnDataType != sString && sString == operation_type_global) ||
                         (function->returnDataType == sString && sString != operation_type_global))
                         return ERROR_CODE_SEM_COMP;
@@ -279,8 +288,15 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                         new_element->pt_index = eFunction;      //V tabulce budeme hledat funkci
                         exp_function = true;                    //Řešíme funkci
                         params = function->parameters.value;    //params drží parametry funkce
-
                         param_length = (int) strlen(function->parameters.value);     //Počet parametrů
+                        //volání funkce
+                        writeInstructionNoOperand(&instList, I_CREATEFRAME);
+                        for(int i = 0; i < param_length; i++){
+                            operand1 = initOperand(operand1, function->paramName[i].value, sIdentificator, F_TF,false, false, false, I_DEFAULT);
+                            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+                        }
+
+
                     }
 
 
@@ -292,6 +308,9 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                                           sInteger == new_element->type)) {
                 if ((error_type = checkParams(new_element, new_element->type)) != ERROR_CODE_OK)
                     return error_type;
+                operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
+                operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             }
 
 
@@ -327,12 +346,12 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 ((Exp_element *) (stack_item->left->value))->handle = false;
                 first_terminal = (stack_item->left);
 
-                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
-                                       false, I_DEFAULT);
-                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-
+                if(!exp_function) {
+                    operand1 = initOperand(operand1, ((Exp_element *) (stack_item->value))->value.value,
+                                           ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
+                                           false, I_DEFAULT);
+                    writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+                }
 
                 //operation = eOperand;
                 return ERROR_CODE_OK;
@@ -375,7 +394,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 //operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
                 //writeInstructionThreeOperands(&instList, I_ADD, operand1, operand1, operand1);
 
-                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+                /*operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                 //operand2 = initOperand(operand2, "bfdsafs", ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false, false, false, I_DEFAULT);
                 operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value,
                                        ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
@@ -383,7 +402,17 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,
                                        ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                        false, I_DEFAULT);
-                writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+                writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);*/
+
+                /*operand1 = initOperand(operand1, ((Exp_element *) (stack_item->left->left->value))->value.value,
+                                       ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
+                                       false, false, I_DEFAULT);
+                writeInstructionOneOperand(&instList, I_PUSHS,operand1);
+                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
+                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
+                                       false, I_DEFAULT);
+                writeInstructionOneOperand(&instList, I_PUSHS,operand2);*/
+                writeInstructionNoOperand(&instList, I_ADDS);
 
                 //operation = ePlus;
                 break;
@@ -554,6 +583,10 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
         ((Exp_element*)expression_stack->top_of_stack->value)->handle = false;
         ((Exp_element*)expression_stack->top_of_stack->value)->terminal = false;
         first_terminal = expression_stack->top_of_stack->left;
+
+        operand1 = initOperand(operand1, ((Exp_element*)expression_stack->top_of_stack->value)->value.value,  sIdentificator, F_LF, false, true, false, I_DEFAULT);
+        writeInstructionOneOperand(&instList, I_CALL, operand1);
+        writeInstructionNoOperand(&instList, I_POPFRAME);
         return ERROR_CODE_OK;
     }
 
