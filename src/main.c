@@ -22,7 +22,7 @@ tSymtable table;
 
 int main(int argc, char **argv)
 {
-    freopen("test1.txt", "r", stdin);
+    freopen("test3.txt", "r", stdin);
     ERROR_CODE result_code = ERROR_CODE_OK; // vysledny kod programu (pokud preklad probehne v poradku, hodnota bude ERROR_CODE_OK)
 
     /*----------kontrola poctu argumentu----------*/

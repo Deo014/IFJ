@@ -360,11 +360,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-                operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, F_DEFAULT);
-                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
-                                       false, I_DEFAULT);
-                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                writeInstructionNoOperand(&instList, I_MULS);
 
                 //operation = eMultiply;
                 break;
@@ -374,6 +370,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
                     return error_type;
                 //operation = eDivideD;
+                writeInstructionNoOperand(&instList, I_DIVS);
                 break;
 
                 //Řeší redukci celočíselného dělení
@@ -382,36 +379,13 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
                     return error_type;
                 //operation = eDivideI;
+                writeInstructionNoOperand(&instList, I_DIVS);
                 break;
 
                 //Řeší redukci sčítání
             case ePlus:
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
-                //##
-                //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-                //operand2 = initOperand(operand2, "a", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-                //operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,((Exp_element *) (stack_item->value))->token_type, F_DEFAULT, false, false, false, I_DEFAULT);
-                //writeInstructionThreeOperands(&instList, I_ADD, operand1, operand1, operand1);
-
-                /*operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-                //operand2 = initOperand(operand2, "bfdsafs", ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false, false, false, I_DEFAULT);
-                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->left->left->value))->value.value,
-                                       ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
-                                       false, false, I_DEFAULT);
-                operand3 = initOperand(operand3, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
-                                       false, I_DEFAULT);
-                writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);*/
-
-                /*operand1 = initOperand(operand1, ((Exp_element *) (stack_item->left->left->value))->value.value,
-                                       ((Exp_element *) (stack_item->left->left->value))->token_type, F_LF, false,
-                                       false, false, I_DEFAULT);
-                writeInstructionOneOperand(&instList, I_PUSHS,operand1);
-                operand2 = initOperand(operand2, ((Exp_element *) (stack_item->value))->value.value,
-                                       ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
-                                       false, I_DEFAULT);
-                writeInstructionOneOperand(&instList, I_PUSHS,operand2);*/
                 writeInstructionNoOperand(&instList, I_ADDS);
 
                 //operation = ePlus;
@@ -421,8 +395,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
             case eMinus:
                 if((error_type = checkBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
                     return error_type;
-                //generateInstruction(&instList,I_SUB,)
-                //operation = eMinus;
+                writeInstructionNoOperand(&instList, I_SUBS);
                 break;
 
                 //Řeší redukci rovnosti

@@ -13,6 +13,7 @@
 #include "instlist.h"
 #include "string.h"
 #include "scanner.h"
+#include <stdlib.h>
 
 extern tSymtable glSymTable;
 extern tSymtable table;
@@ -45,6 +46,9 @@ bool inFunctionBody = false;
 int expectedValue;
 tToken varToSet;
 tToken tmpToken;
+int cisloLabelu;
+string label;
+
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -117,6 +121,7 @@ int dalsiToken() {
 }
 
 int parse() {
+
     int result;
     //Nacteni prvniho tokenu
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -758,8 +763,14 @@ int Prikaz() {
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
+            cisloLabelu++;
+            stringAddChars(&label,"if");
+            stringAddChar(&label,decToChar(cisloLabelu));
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Pokud je aktualni token integer, nastavim promennou na integer
+            // vypsání unikátního ifu
+            operand1 = initOperand(operand1, label.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             if (aktualni_token.type == sInteger)
                 expectedValue = sInteger;
                 //Pokud je aktualni token double, nastavim promennou na double
@@ -794,6 +805,7 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
+            cisloLabelu++;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;

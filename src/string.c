@@ -248,3 +248,5 @@ int charToDec(char c) {
 char decToChar(int c) {
     return c+48;
 }
+
+
