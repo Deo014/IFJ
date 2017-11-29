@@ -1060,6 +1060,8 @@ int Dalsi_vyrazy() {
         case sString:
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
+            operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             //<Dalsi_vyrazy> -> e
