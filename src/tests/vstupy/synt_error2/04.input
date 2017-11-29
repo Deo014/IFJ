@@ -1,0 +1,5 @@
+/' functionS misto function '/
+declare functionS foo() as integer
+
+scope
+end scope 

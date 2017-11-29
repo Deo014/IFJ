@@ -1,0 +1,9 @@
+/' volani funkce '/
+function funkce1() as integer
+	return 1
+end function
+
+scope
+dim a as integer
+a = funkce1()
+end scope

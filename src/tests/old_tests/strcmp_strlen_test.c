@@ -11,7 +11,7 @@
  */
 
 #include <stdio.h>
-#include "../../src/string.c"
+#include "../../string.c"
 
 int main(){
     string str1; string str2;

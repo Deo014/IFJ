@@ -1,0 +1,12 @@
+/'  input ve funkci '/
+
+function funkce1() as integer
+	dim a as integer
+	input a
+	return a
+end function
+
+scope
+	dim a as integer = funkce1()
+	print a;
+end scope

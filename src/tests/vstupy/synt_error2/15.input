@@ -1,0 +1,10 @@
+/' bool neexistuje '/
+declare function funkce(a as string, b as string) as bool
+
+function funkce (a as string, b as string) as bool
+	
+end function
+
+
+scope
+end scopE

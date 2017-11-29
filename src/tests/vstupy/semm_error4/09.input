@@ -1,0 +1,7 @@
+/' prirazeni string do double '/
+
+scope
+
+dim a as double = chr(150);
+
+end scope

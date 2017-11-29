@@ -1,0 +1,9 @@
+/' << neexistuje '/
+scope
+	dim a as integer
+	dim b as integer
+	if a << b then
+		print !"ahoj";
+	else
+	end if
+end scopE

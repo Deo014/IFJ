@@ -1,6 +1,6 @@
-#include "../../../src/scanner.h"
-#include "../../../src/string.c"
-#include "../../../src/string.h"
+#include "../../../scanner.h"
+#include "../../../string.c"
+#include "../../../string.h"
 #include <string.h>
 
 #define POCET_TOKENU_TEST_1 6

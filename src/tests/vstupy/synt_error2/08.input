@@ -1,0 +1,5 @@
+/' chybi else '/
+scope
+	if 1 < 5 then
+	end if
+end scopE

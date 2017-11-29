@@ -1,0 +1,13 @@
+/' prirazeni string do double '/
+
+scope
+
+/'ok'/
+dim a as integer
+a = length(!"ahoj\001")
+
+/'chyba'/
+dim b as double
+b = substr(!"ahoj\020", 0, 2)
+
+end scope

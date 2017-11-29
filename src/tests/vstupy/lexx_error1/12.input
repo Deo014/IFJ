@@ -1,0 +1,5 @@
+scope
+	dim ahoj as string = !"ahoj"
+	print ahoj;
+	&
+end scope
