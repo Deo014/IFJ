@@ -813,7 +813,7 @@ int Prikaz() {
 
             operand1 = initOperand(operand1, "?\\032", sString, F_LF, false, false, false, F_DEFAULT);
             writeInstructionOneOperand(&instList, I_WRITE, operand1);
-
+ 
             operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false,
                                    F_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,
