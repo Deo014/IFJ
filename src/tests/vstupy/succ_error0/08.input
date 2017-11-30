@@ -2,11 +2,12 @@
 
 scope
 	dim a as integer = 2
-	dim b as string = !"nahodny string %"
+	dim b as string = !" nahodny string"
 	
-	a = length(b)
-	b = substr(b, 0, a)
-	a = asc(b, 0)
-	b = chr(a)	
-	print a; b;
+	'a = length(b)
+	b = substr(!"123456789", 1, 2)
+	'a = asc(b, 2)
+	'b = chr(a)	
+	print b;
+	'print a; b;
 end scope
