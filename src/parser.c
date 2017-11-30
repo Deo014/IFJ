@@ -16,9 +16,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+extern tDLListInstruction instList;
 extern tSymtable glSymTable;
 extern tSymtable table;
-tDLListInstruction list;
 tToken aktualni_token;
 tBSTNodePtr node;
 tBSTNodePtr glNode;
@@ -771,8 +771,6 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Tisknout muzu jakykoliv typ vyrazu bez kontroly, nastavim promennou na -1 jako signal expressionu,
             //ze ho nemusi kontrolovat
-
-
             expectedValue = -1;
             result = Vyraz();
             //print
@@ -1028,7 +1026,11 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+
+
+            exprAdjust = true;
             varToSet = aktualni_token;
+            varToSet.type = adjustTokenType(varToSet);
 
             if (inScope) {
                 //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
@@ -1076,6 +1078,24 @@ int Deklarace_promenne() {
                     return ERROR_CODE_OK;
                 case sEndOfLine:
                     result = Line();
+                    if (expectedValue == sInteger) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    } else if (expectedValue == sDouble) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "0", sDouble, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    } else if (expectedValue == sString) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "\0", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    }
+
+
                     if (result != ERROR_CODE_OK) return result;
                     return ERROR_CODE_OK;
 

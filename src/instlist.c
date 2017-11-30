@@ -27,8 +27,7 @@
 #define TYPESTRING "string@"
 #define TYPEDOUBLE "float@"
 
-
-
+extern tDLListInstruction instList;
 
 tInstrOperand initOperand(tInstrOperand operand, char* value, int type, FRAME frame, bool isTMP, bool isLabel, bool isScope, INPUTTYPE inputType){
     operand.value.value = value;
@@ -461,7 +460,9 @@ void printInstructionList(tDLListInstruction *L) {
             case I_PUSHFRAME:       printf("PUSHFRAME\n");         break;
             case I_POPFRAME:        printf("POPFRAME\n");          break;
             case I_DEFVAR:          printf("DEFVAR %s\n",          (char *)currentInst.addr1);       break;
-            case I_CALL:            printf("CALL $$%s\n",            (char *)currentInst.addr1);       break;
+            case I_CALL:
+                printf("CALL %s\n", (char *) currentInst.addr1);
+                break;
             case I_RETURN:          printf("RETURN\n");            break;
 
 
@@ -812,7 +813,7 @@ int DLActive (tDLListInstruction *L) {
 
 // Vestavěné funkce
 void writeLength(){
-    operand1 = initOperand(operand1, "$$length", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "length", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
@@ -824,7 +825,7 @@ void writeLength(){
 }
 
 void writeAsc(){
-    operand1 = initOperand(operand1, "$$asc", sKeyWord, F_TF, false, true, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "asc", sKeyWord, F_TF, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
     operand1 = initOperand(operand1, "s_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
@@ -832,6 +833,12 @@ void writeAsc(){
     operand1 = initOperand(operand1, "s_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "s", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
+
+    operand1 = initOperand(operand1, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
@@ -870,7 +877,7 @@ void writeAsc(){
 }
 
 void writeChr(){
-    operand1 = initOperand(operand1, "$$chr", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "chr", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
     operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
@@ -882,9 +889,15 @@ void writeChr(){
 }
 
 void writeSubstr(){
-    operand1 = initOperand(operand1, "$$substr", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "substr", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
+/*
+    operand1 = initOperand(operand1, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+*/
     operand1 = initOperand(operand1, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
     operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
@@ -906,13 +919,20 @@ void writeSubstr(){
     operand2 = initOperand(operand2, "n", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+
     operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
-    operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+
+    operand1 = initOperand(operand1, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
@@ -950,6 +970,18 @@ void writeSubstr(){
     operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
+
+
+    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+
 
     operand1 = initOperand(operand1, "%substr", sIdentificator, F_LF, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_JUMP, operand1);
