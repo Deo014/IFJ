@@ -1,6 +1,9 @@
 #! /bin/sh
 
 proj=./proj
+interpreter=./ic17int
+test_output_file_path=./tests/tmp_test_output_file_ifjcode17
+
 inputs_succ_error0=./tests/vstupy/succ_error0/*
 inputs_lexx_error1=./tests/vstupy/lexx_error1/*
 inputs_synt_error2=./tests/vstupy/synt_error2/*
@@ -17,15 +20,21 @@ do
 	test_output=$(cat $f | ./$proj) # test output
 	return_value=$? # test result code
 	i=$(($i + 1)) # test number
-
     # VYPSANI TESTU
 	printf "%-02d  " "$i"
 	if [ "$return_value" -eq "0" ]; then
-	    printf "   OK:  "
+	    printf "   OK   "
 	else
-	    printf "ERROR:  "
+	    printf "ERROR   "
 	fi
-	printf "%-50s EXPECTED=0, RETURNED=$return_value\n" "$test_name"
+	printf "%-8s | EXPECTED=0, RETURNED=$return_value" "$test_name"
+	# POKUD BYL VRACEN CODE 0: VYHODNOCENI INTSTRUKCI INTERPRETEREM
+	if [ $return_value -eq 0 ]; then
+		printf "$test_output" > $test_output_file_path # vypsani ifjcode17 do tmp souboru
+		interpreter_output=$(./$interpreter $test_output_file_path 2>&1) # interpreter output
+		printf "\n$interpreter_output"	
+	fi
+	printf "\n"
 done
 
 echo "----------LEXXICAL ERROR TESTS 1----------"
@@ -41,11 +50,11 @@ do
     # VYPSANI TESTU
 	printf "%-02d  " "$i"
 	if [ "$return_value" -eq "1" ]; then
-	    printf "   OK:  "
+	    printf "   OK   "
 	else
-	    printf "ERROR:  "
+	    printf "ERROR   "
 	fi
-	printf "%-50s EXPECTED=1, RETURNED=$return_value\n" "$test_name"
+	printf "%-8s | EXPECTED=1, RETURNED=$return_value\n" "$test_name"
 done
 
 echo "----------SYNTAX ERROR TESTS 2----------"
@@ -61,11 +70,11 @@ do
     # VYPSANI TESTU
 	printf "%-02d  " "$i"
 	if [ "$return_value" -eq "2" ]; then
-	    printf "   OK:  "
+	    printf "   OK   "
 	else
-	    printf "ERROR:  "
+	    printf "ERROR   "
 	fi
-	printf "%-50s EXPECTED=2, RETURNED=$return_value\n" "$test_name"
+	printf "%-8s | EXPECTED=2, RETURNED=$return_value\n" "$test_name"
 
 done
 
@@ -82,11 +91,11 @@ do
     # VYPSANI TESTU
 	printf "%-02d  " "$i"
 	if [ "$return_value" -eq "3" ]; then
-	    printf "   OK:  "
+	    printf "   OK   "
 	else
-	    printf "ERROR:  "
+	    printf "ERROR   "
 	fi
-	printf "%-50s EXPECTED=3, RETURNED=$return_value\n" "$test_name"
+	printf "%-8s | EXPECTED=3, RETURNED=$return_value\n" "$test_name"
 
 done
 
@@ -103,11 +112,11 @@ do
     # VYPSANI TESTU
 	printf "%-02d  " "$i"
 	if [ "$return_value" -eq "4" ]; then
-	    printf "   OK:  "
+	    printf "   OK   "
 	else
-	    printf "ERROR:  "
+	    printf "ERROR   "
 	fi
-	printf "%-50s EXPECTED=4, RETURNED=$return_value\n" "$test_name"
+	printf "%-8s | EXPECTED=4, RETURNED=$return_value\n" "$test_name"
 
 done
 
