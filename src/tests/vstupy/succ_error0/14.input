@@ -1,9 +1,10 @@
 /' vypisy print '/
 
 scope
-	print 42;
-	print 2.2e2;
-	print !"fredy";
 	dim newline as string = !"\010"
+	print 42;
 	print newline;
+	print 2.2e2;
+	print newline;
+	print !"fredy";
 end scope

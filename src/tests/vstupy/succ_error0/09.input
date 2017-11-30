@@ -8,5 +8,6 @@ end function
 
 scope
 	dim a as integer = funkce1()
+	a = a*0
 	print a;
 end scope

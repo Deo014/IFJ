@@ -1,5 +1,9 @@
-/'  '/
-x
-scope
+/' nasobeni '/
 
+scope
+	dim a as double = 2.2e1
+	dim b as double = 0.2e1
+	dim c as double
+	c = a * b
+	print c;
 end scope

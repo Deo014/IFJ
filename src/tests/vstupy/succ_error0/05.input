@@ -6,5 +6,4 @@ function funkce1(a as integer, b as string) as integer
 end function
 
 scope
-
 end scope

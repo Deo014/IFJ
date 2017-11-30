@@ -8,4 +8,5 @@ scope
 	b = substr(b, 0, a)
 	a = asc(b, 0)
 	b = chr(a)	
+	print a; b;
 end scope

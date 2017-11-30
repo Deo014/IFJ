@@ -6,4 +6,5 @@ end function
 scope
 dim a as integer
 a = funkce1()
+print a;
 end scope

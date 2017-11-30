@@ -20,7 +20,7 @@ Scope 'Hlavni telo programu
 	Dim vysl As Integer
 	
 	Print !"Zadejte cislo pro vypocet faktorialu";
-	Input a
+	a=5
 	If a < 0 Then
 		Print !"\nFaktorial nelze spocitat\n";
 	Else
