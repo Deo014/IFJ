@@ -20,6 +20,7 @@ tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit
 tStack *first_terminal; //Nejvyšší terminál na stacku
 
 
+
 extern tSymtable glSymTable;            //GL tabulka symbolů
 extern tSymtable table;                 //Lokální tabulka
 extern tDLListInstruction instList;     //List instrukcí
