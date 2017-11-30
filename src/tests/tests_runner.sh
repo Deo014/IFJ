@@ -2,7 +2,9 @@
 
 proj=./proj
 interpreter=./ic17int
-test_output_file=./tests/tmp_file
+tmp_file_ifjcode17=./tests/tmp_file_ifjcode17
+tmp_file_interpreter=./tests/tmp_file_interpreter
+
 
 inputs_succ_error0=./tests/vstupy/succ_error0/*.input
 outputs_succ_error0_path=./tests/vstupy/succ_error0
@@ -25,9 +27,9 @@ do
     
 	# POKUD BYL VRACEN CODE 0: VYHODNOCENI INTSTRUKCI INTERPRETEREM
 	if [ $return_value -eq 0 ]; then
-		printf "$test_output" > $test_output_file # vypsani ifjcode17 do tmp souboru
-		./$interpreter $test_output_file > $test_output_file 2>&1 # vypsani interpreter output do tmp souboru
-		interpreter_result=$(diff $test_output_file $outputs_succ_error0_path/$test_name.output)
+		printf "%s" "$test_output" > "$tmp_file_ifjcode17" # vypsani ifjcode17 do tmp souboru
+		./$interpreter "$tmp_file_ifjcode17" > "$tmp_file_interpreter" 2>&1 # vypsani interpreter output do tmp souboru
+		interpreter_result=$(diff $tmp_file_interpreter $outputs_succ_error0_path/$test_name.output)
 	fi
 
     # VYPSANI TESTU
@@ -45,7 +47,7 @@ do
 			printf " INTERPRETER OUTPUT OK"
 		else
 			printf " INTERPRETER OUTPUT DIFFER\n"
-			cat $test_output_file
+			cat "$tmp_file_interpreter"
 		fi
 	fi
 	printf "\n"

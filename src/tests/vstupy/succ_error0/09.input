@@ -1,8 +1,8 @@
-/'  input ve funkci '/
+/' volani funkce '/
 
 function funkce1() as integer
 	dim a as integer
-	input a
+	a = 20
 	return a
 end function
 
