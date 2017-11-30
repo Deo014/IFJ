@@ -75,16 +75,16 @@ end function
 
 
 scope
-	print funkce1(1);
-	print funkce2(2);
-	print funkce3(3);
-	print funkce4(4);
-	print funkce5(5);
-	print funkce6(6);
-	print funkce7(7);
-	print funkce8(8);
-	print funkce6(9);
-	print funkce10(10);
-	print funkce11(11);
-	print funkce12(12);
+	print funkce1();
+	print funkce2();
+	print funkce3();
+	print funkce4();
+	print funkce5();
+	print funkce6();
+	print funkce7();
+	print funkce8();
+	print funkce9();
+	print funkce10();
+	print funkce11();
+	print funkce12();
 end scope

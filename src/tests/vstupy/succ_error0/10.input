@@ -14,4 +14,5 @@ end function
 scope
 	dim a as integer
 	a = funkce2(5)
+	print a;
 end scope
