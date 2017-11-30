@@ -33,6 +33,11 @@ int stringClear(string *);
 int stringLenght(string *);
 bool stringCompare(string *a, string *b);
 
+//Pomocne funkce pro generovani unikatnich navesti
+char stringGetCharOnIndex(string *, int);
+
+void stringUpdateCharOnIndex(string *str, char c, int index);
+
 void stringToLowercase(string *);
 
 /* ----------------------------------------POMOCNE FUNKCE PRO SCANNER-------------------------------------------------*/

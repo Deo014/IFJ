@@ -43,258 +43,336 @@ void writeInstructionNoOperand(tDLListInstruction *L, int instType){
 }
 
 void writeInstructionOneOperand(tDLListInstruction *L, int instType, tInstrOperand element1){
-    char *operand1;
-    char *tmp_operand1 = element1.value.value;
+    string operand1;
+    stringInit(&operand1);
+    string tmp_operand1;
+    stringInit(&tmp_operand1);
+    stringAddChars(&tmp_operand1, element1.value.value);
+
     int tmp_operand1_type = element1.type;
     bool tmp_operand1_isTMP = element1.isTMP;
     bool tmp_operand1_isScope = element1.isScope;
     bool tmp_operand1_isLabel = element1.isLabel;
     FRAME tmp_operand1_frame = element1.frame;
-    operand1 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator) {
         // Operand je pomocná proměnná
-        if (tmp_operand1_isTMP == true)
-            operand1 = TMP;
+        if (tmp_operand1_isTMP == true) {
+            stringClear(&operand1);
+            stringAddChars(&operand1, TMP);
+        }
         else if (tmp_operand1_frame == F_LF) {
-            strcpy(operand1, FRAMELF);
-            strcat(operand1, tmp_operand1);
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMELF);
+            stringAddChars(&operand1, tmp_operand1.value);
+
         }
         else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand1, FRAMETF);
-            strcat(operand1, tmp_operand1);
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMETF);
+            stringAddChars(&operand1, tmp_operand1.value);
         }
     }
         // Operand je konstanta
     else if(tmp_operand1_type == sInteger){
-        strcpy(operand1, TYPEINT);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEINT);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sDouble){
-        strcpy(operand1, TYPEDOUBLE);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEDOUBLE);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sString){
-        strcpy(operand1, TYPESTRING);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPESTRING);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
-        strcpy(operand1, LABELSYMBOL);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, LABELSYMBOL);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
-    if (tmp_operand1_isScope == true)
-        operand1 = SCOPE;
-    generateInstruction(L, instType, operand1, NULL, NULL);
+    if (tmp_operand1_isScope == true) {
+        stringClear(&operand1);
+        stringAddChars(&operand1, SCOPE);
+    }
+
+    generateInstruction(L, instType, operand1.value, NULL, NULL);
 }
 
 void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2){
-    char *operand1;
-    char *tmp_operand1 = element1.value.value;
+    string operand1;
+    stringInit(&operand1);
+    string tmp_operand1;
+    stringInit(&tmp_operand1);
+    stringAddChars(&tmp_operand1, element1.value.value);
+
     int tmp_operand1_type = element1.type;
     bool tmp_operand1_isTMP = element1.isTMP;
     bool tmp_operand1_isLabel = element1.isLabel;
     FRAME tmp_operand1_frame = element1.frame;
-    operand1 = (char *) malloc(1000);
+
     // Operand je proměnná
     if(tmp_operand1_type == sIdentificator)
-        if (tmp_operand1_isTMP == true)
-            operand1 = TMP;
+        if (tmp_operand1_isTMP == true) {
+            stringClear(&operand1);
+            stringAddChars(&operand1, TMP);
+        }
         else if (tmp_operand1_frame == F_LF) {
-            strcpy(operand1, FRAMELF);
-            strcat(operand1, tmp_operand1);
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMELF);
+            stringAddChars(&operand1, tmp_operand1.value);
         }
         else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand1, FRAMETF);
-            strcat(operand1, tmp_operand1);
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMETF);
+            stringAddChars(&operand1, tmp_operand1.value);
         }
         // Operand je konstanta
     else if(tmp_operand1_type == sInteger) {
-        strcpy(operand1, TYPEINT);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEINT);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sDouble){
-        strcpy(operand1, TYPEDOUBLE);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEDOUBLE);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sString){
-        strcpy(operand1, TYPESTRING);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPESTRING);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
-        strcpy(operand1, LABELSYMBOL);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, LABELSYMBOL);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
 
-    char *operand2;
-    char *tmp_operand2 = element2.value.value;
+    string operand2;
+    stringInit(&operand2);
+    string tmp_operand2;
+    stringInit(&tmp_operand2);
+    stringAddChars(&tmp_operand2, element2.value.value);
+
     int tmp_operand2_type = element2.type;
     bool tmp_operand2_isTMP = element2.isTMP;
     bool tmp_operand2_isLabel = element2.isLabel;
     FRAME tmp_operand2_frame = element2.frame;
     INPUTTYPE tmp_operand2_inputtype = element2.inputType;
-    operand2 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
-        if (tmp_operand2_isTMP == true)
-            operand2 = TMP;
+        if (tmp_operand2_isTMP == true) {
+            stringClear(&operand2);
+            stringAddChars(&operand2, TMP);
+        }
         else if (tmp_operand2_frame == F_LF) {
-            strcpy(operand2, FRAMELF);
-            strcat(operand2, tmp_operand2);
+            stringClear(&operand2);
+            stringAddChars(&operand2, FRAMELF);
+            stringAddChars(&operand2, tmp_operand2.value);
         }
         else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand2, FRAMETF);
-            strcat(operand2, tmp_operand2);
+            stringClear(&operand2);
+            stringAddChars(&operand2, FRAMETF);
+            stringAddChars(&operand2, tmp_operand2.value);
         }
         // Operand je konstanta
     else if(tmp_operand2_type == sInteger) {
-        strcpy(operand2, TYPEINT);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPEINT);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     else if(tmp_operand2_type == sDouble){
-        strcpy(operand2, TYPEDOUBLE);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPEDOUBLE);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     else if(tmp_operand2_type == sString){
-        strcpy(operand2, TYPESTRING);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPESTRING);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     // Operand je návěští
     if(tmp_operand2_isLabel == true) {
-        strcpy(operand2, LABELSYMBOL);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, LABELSYMBOL);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     // Operand je typ vstupní hodnoty
-    if(tmp_operand2_inputtype == INPUT_INT)
-        operand2 = "int";
-    else if(tmp_operand2_inputtype == INPUT_DOUBLE)
-        operand2 = "float";
-    else if(tmp_operand2_inputtype == INPUT_STRING)
-        operand2 = "string";
-
-    generateInstruction(L, instType, operand1, operand2, NULL);
+    if (tmp_operand2_inputtype == INPUT_INT) {
+        stringClear(&operand2);
+        stringAddChars(&operand2, "int");
+    } else if (tmp_operand2_inputtype == INPUT_DOUBLE) {
+        stringClear(&operand2);
+        stringAddChars(&operand2, "float");
+    } else if (tmp_operand2_inputtype == INPUT_STRING) {
+        stringClear(&operand2);
+        stringAddChars(&operand2, "string");
+    }
+    generateInstruction(L, instType, operand1.value, operand2.value, NULL);
 }
 
-void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2, tInstrOperand element3){
-    char *operand1;
-    char *tmp_operand1 = element1.value.value;
+void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOperand element1, tInstrOperand element2,
+                                   tInstrOperand element3) {
+    string operand1;
+    stringInit(&operand1);
+    string tmp_operand1;
+    stringInit(&tmp_operand1);
+    stringAddChars(&tmp_operand1, element1.value.value);
+
     int tmp_operand1_type = element1.type;
     bool tmp_operand1_isTMP = element1.isTMP;
     bool tmp_operand1_isLabel = element1.isLabel;
     FRAME tmp_operand1_frame = element1.frame;
-    operand1 = (char *) malloc(1000);
+
+
     // Operand je proměnná
-    if(tmp_operand1_type == sIdentificator)
-        if (tmp_operand1_isTMP == true)
-            operand1 = TMP;
-        else if (tmp_operand1_frame == F_LF) {
-            strcpy(operand1, FRAMELF);
-            strcat(operand1, tmp_operand1);
-        }
-        else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand1, FRAMETF);
-            strcat(operand1, tmp_operand1);
+    if (tmp_operand1_type == sIdentificator)
+        if (tmp_operand1_isTMP == true) {
+            stringClear(&operand1);
+            stringAddChars(&operand1, TMP);
+        } else if (tmp_operand1_frame == F_LF) {
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMELF);
+            stringAddChars(&operand1, tmp_operand1.value);
+        } else
+            /* při práci s proměnnou na Temporary frame */{
+            stringClear(&operand1);
+            stringAddChars(&operand1, FRAMETF);
+            stringAddChars(&operand1, tmp_operand1.value);
         }
         // Operand je konstanta
     else if(tmp_operand1_type == sInteger) {
-        strcpy(operand1, TYPEINT);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEINT);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sDouble){
-        strcpy(operand1, TYPEDOUBLE);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPEDOUBLE);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     else if(tmp_operand1_type == sString){
-        strcpy(operand1, TYPESTRING);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, TYPESTRING);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
     // Operand je návěští
     if(tmp_operand1_isLabel == true) {
-        strcpy(operand1, LABELSYMBOL);
-        strcat(operand1, tmp_operand1);
+        stringClear(&operand1);
+        stringAddChars(&operand1, LABELSYMBOL);
+        stringAddChars(&operand1, tmp_operand1.value);
     }
 
-    char *operand2;
-    char *tmp_operand2 = element2.value.value;
+    string operand2;
+    stringInit(&operand2);
+    string tmp_operand2;
+    stringInit(&tmp_operand2);
+    stringAddChars(&tmp_operand2, element2.value.value);
+
+
     int tmp_operand2_type = element2.type;
     bool tmp_operand2_isTMP = element2.isTMP;
     bool tmp_operand2_isLabel = element2.isLabel;
     FRAME tmp_operand2_frame = element2.frame;
-    operand2 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand2_type == sIdentificator)
-        if (tmp_operand2_isTMP == true)
-            operand2 = TMP;
+        if (tmp_operand2_isTMP == true) {
+            stringClear(&operand2);
+            stringAddChars(&operand2, TMP);
+        }
         else if (tmp_operand2_frame == F_LF) {
-            strcpy(operand2, FRAMELF);
-            strcat(operand2, tmp_operand2);
+            stringClear(&operand2);
+            stringAddChars(&operand2, FRAMELF);
+            stringAddChars(&operand2, tmp_operand2.value);
         }
         else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand2, FRAMETF);
-            strcat(operand2, tmp_operand2);
+            stringClear(&operand2);
+            stringAddChars(&operand2, FRAMETF);
+            stringAddChars(&operand2, tmp_operand2.value);
         }
         // Operand je konstanta
     else if(tmp_operand2_type == sInteger) {
-        strcpy(operand2, TYPEINT);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPEINT);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     else if(tmp_operand2_type == sDouble){
-        strcpy(operand2, TYPEDOUBLE);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPEDOUBLE);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     else if(tmp_operand2_type == sString){
-        strcpy(operand2, TYPESTRING);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, TYPESTRING);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
     // Operand je návěští
     if(tmp_operand2_isLabel == true) {
-        strcpy(operand2, LABELSYMBOL);
-        strcat(operand2, tmp_operand2);
+        stringClear(&operand2);
+        stringAddChars(&operand2, LABELSYMBOL);
+        stringAddChars(&operand2, tmp_operand2.value);
     }
 
-    char *operand3;
-    char *tmp_operand3 = element3.value.value;
+    string operand3;
+    stringInit(&operand3);
+    string tmp_operand3;
+    stringInit(&tmp_operand3);
+    stringAddChars(&tmp_operand3, element3.value.value);
+
     int tmp_operand3_type = element3.type;
     bool tmp_operand3_isTMP = element3.isTMP;
     bool tmp_operand3_isLabel = element3.isLabel;
     FRAME tmp_operand3_frame = element3.frame;
-    operand3 = (char *) malloc(1000);
     // Operand je proměnná
     if(tmp_operand3_type == sIdentificator)
-        if (tmp_operand3_isTMP == true)
-            operand3 = TMP;
+        if (tmp_operand3_isTMP == true) {
+            stringClear(&operand3);
+            stringAddChars(&operand3, TMP);
+        }
         else if (tmp_operand3_frame == F_LF) {
-            strcpy(operand3, FRAMELF);
-            strcat(operand3, tmp_operand3);
+            stringClear(&operand3);
+            stringAddChars(&operand3, FRAMELF);
+            stringAddChars(&operand3, tmp_operand3.value);
         }
         else /* při práci s proměnnou na Temporary frame */{
-            strcpy(operand3, FRAMETF);
-            strcat(operand3, tmp_operand3);
+            stringClear(&operand3);
+            stringAddChars(&operand3, FRAMETF);
+            stringAddChars(&operand3, tmp_operand3.value);
         }
         // Operand je konstanta
     else if(tmp_operand3_type == 42){
-        strcpy(operand3, TYPEBOOL);
-        strcat(operand3, tmp_operand3);
+        stringClear(&operand3);
+        stringAddChars(&operand3, TYPEBOOL);
+        stringAddChars(&operand3, tmp_operand3.value);
     }
     else if(tmp_operand3_type == sInteger) {
-        strcpy(operand3, TYPEINT);
-        strcat(operand3, tmp_operand3);
+        stringClear(&operand3);
+        stringAddChars(&operand3, TYPEINT);
+        stringAddChars(&operand3, tmp_operand3.value);
     }
     else if(tmp_operand3_type == sDouble){
-        strcpy(operand3, TYPEDOUBLE);
-        strcat(operand3, tmp_operand3);
+        stringClear(&operand3);
+        stringAddChars(&operand3, TYPEDOUBLE);
+        stringAddChars(&operand3, tmp_operand3.value);
     }
     else if(tmp_operand3_type == sString){
-        strcpy(operand3, TYPESTRING);
-        strcat(operand3, tmp_operand3);
+        stringClear(&operand3);
+        stringAddChars(&operand3, TYPESTRING);
+        stringAddChars(&operand3, tmp_operand3.value);
     }
     // Operand je návěští
     if(tmp_operand3_isLabel == true) {
-        strcpy(operand3, LABELSYMBOL);
-        strcat(operand3, tmp_operand3);
+        stringClear(&operand3);
+        stringAddChars(&operand3, LABELSYMBOL);
+        stringAddChars(&operand3, tmp_operand3.value);
     }
-    generateInstruction(L, instType, operand1, operand2, operand3);
+    generateInstruction(L, instType, operand1.value, operand2.value, operand3.value);
 }
 
 void generateInstruction(tDLListInstruction *L, int instType, void *addr1, void *addr2, void *addr3) {
