@@ -1,0 +1,17 @@
+/' funkce vola jinou funkci '/
+
+function funkce1() as integer
+	return 1
+end function
+
+function funkce2(a as integer) as integer
+	dim b as integer
+	b = funkce1()
+	b = b + a
+	return b
+end function
+
+scope
+	dim a as integer
+	a = funkce2(5)
+end scope

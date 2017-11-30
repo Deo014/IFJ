@@ -1,0 +1,4 @@
+/' chybi end scope '/
+scope
+declare endscope as integer
+endscope

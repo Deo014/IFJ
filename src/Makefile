@@ -21,7 +21,8 @@ all : $(PROJ)
 $(PROJ) : $(FILES)
 		$(CC) $(CFLAGS) -o $(PROJ) $(FILES) -lm
 
+test :
+	./tests/tests_runner.sh
+
 clean :
 	$(RM) *.o $(PROJ)
-
-

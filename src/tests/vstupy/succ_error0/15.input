@@ -1,0 +1,90 @@
+/' definice a vypis velkeho poctu funkci '/
+
+
+function funkce1() as integer
+	dim a as integer = 0
+	a = a + 1
+	return a
+end function
+
+function funkce2() as integer
+	dim a as integer = 0
+	a = a + 2
+	return a
+end function
+
+function funkce3() as integer
+	dim a as integer = 0
+	a = a + 3 
+	return a
+end function
+
+function funkce4() as integer
+	dim a as integer = 0
+	a = a + 4
+	return a
+end function
+
+function funkce5() as integer
+	dim a as integer = 0
+	a = a + 5
+	return a
+end function
+
+function funkce6() as integer
+	dim a as integer = 0
+	a = a + 6
+	return a
+end function
+
+function funkce7() as integer
+	dim a as integer = 0
+	a = a + 7
+	return a
+end function
+
+function funkce8() as integer
+	dim a as integer = 0
+	a = a + 8
+	return a
+end function
+
+function funkce9() as integer
+	dim a as integer = 0
+	a = a + 9
+	return a
+end function
+
+function funkce10() as integer
+	dim a as integer = 0
+	a = a + 10
+	return a
+end function
+
+function funkce11() as integer
+	dim a as integer = 0
+	a = a + 11
+	return a
+end function
+
+function funkce12() as integer
+	dim a as integer = 0
+	a = a + 12
+	return a
+end function
+
+
+scope
+	print funkce1(1);
+	print funkce2(2);
+	print funkce3(3);
+	print funkce4(4);
+	print funkce5(5);
+	print funkce6(6);
+	print funkce7(7);
+	print funkce8(8);
+	print funkce6(9);
+	print funkce10(10);
+	print funkce11(11);
+	print funkce12(12);
+end scope

@@ -1,0 +1,5 @@
+/' pouze scope '/
+scope
+/' zbytek neni
+print 1;
+EnD SCopE

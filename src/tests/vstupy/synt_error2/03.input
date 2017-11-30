@@ -1,0 +1,5 @@
+/' chybi end if '/
+scope
+	if 5 < 25 then
+	else
+end scopE

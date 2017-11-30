@@ -1,0 +1,5 @@
+/' porovnani bez if '/
+scope
+	dim cislo as integer
+	cislo < = 5
+end scopE
