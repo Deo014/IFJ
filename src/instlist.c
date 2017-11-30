@@ -919,6 +919,12 @@ void writeSubstr(){
     operand2 = initOperand(operand2, "n", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
 
+    //JUMPIFEQ $%substr LF@substr_index int@1
+    operand1 = initOperand(operand1, "$%substr ", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+
     operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);

@@ -53,12 +53,14 @@ string labelEndIf;
 string labelWhile;
 string labelLoop;
 string test;
-bool ifLabelSet = false;
-bool elseLabelSet = false;
-bool endIfLabelSet = false;
-bool whileLabelSet = false;
-bool loopLabelSet = false;
 
+int zanoreniCelkemIf = 0;
+int labelAktualniIf = 0;
+int zanoreniAktualniIf = 0;
+
+int zanoreniCelkemWhile = 0;
+int labelAktualniWhile = 0;
+int zanoreniAktualniWhile = 0;
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -108,7 +110,7 @@ int adjustTokenType(tToken tok) {
 }
 
 
-void zvysLabel(string actualLabel, char *type) {
+void zmenLabel(string actualLabel, char *type, bool inc, int kolik) {
     int value;
     string tmp;
     stringInit(&tmp);
@@ -118,7 +120,10 @@ void zvysLabel(string actualLabel, char *type) {
     while (*p) { // While there are more characters to process...
         if (isdigit(*p)) { // Upon finding a digit, ...
             value = strtol(p, &p, 10); // Read a number, ...
-            value++; // and print it.
+            if (inc)
+                value = kolik; // and print it.
+            else
+                value = kolik;
         } else { // Otherwise, move on to the next character.
             p++;
         }
@@ -808,12 +813,32 @@ int Prikaz() {
 
             operand1 = initOperand(operand1, "?\\032", sString, F_LF, false, false, false, F_DEFAULT);
             writeInstructionOneOperand(&instList, I_WRITE, operand1);
-
+ 
             operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false,
                                    F_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,
                                    ((tDataVariable *) node->Data)->dataType);
             writeInstructionTwoOperands(&instList, I_READ, operand1, operand2);
+
+/*
+            if (expectedValue == sInteger) {
+                operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                       I_DEFAULT);
+                operand2 = initOperand(operand2, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            } else if (expectedValue == sDouble) {
+                operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                       I_DEFAULT);
+                operand2 = initOperand(operand2, "0", sDouble, F_DEFAULT, false, false, false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            } else if (expectedValue == sString) {
+                operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                       I_DEFAULT);
+                operand2 = initOperand(operand2, "\0", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            }
+
+*/
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -821,24 +846,22 @@ int Prikaz() {
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
-            if (ifLabelSet)
-                zvysLabel(labelIf, "if");
-            else {
-                stringAddChars(&labelIf, "if0");
-                ifLabelSet = true;
+            if (zanoreniAktualniIf == 0) {
+                labelAktualniIf += zanoreniCelkemIf;
+                zmenLabel(labelIf, "if", true, zanoreniCelkemIf);
+                zmenLabel(labelElse, "else", true, zanoreniCelkemIf);
+                zmenLabel(labelEndIf, "endif", true, zanoreniCelkemIf);
             }
-            if (elseLabelSet)
-                zvysLabel(labelElse, "else");
-            else {
-                stringAddChars(&labelElse, "else0");
-                elseLabelSet = true;
-            }
-            if (endIfLabelSet)
-                zvysLabel(labelEndIf, "endif");
-            else {
-                stringAddChars(&labelEndIf, "endif0");
-                endIfLabelSet = true;
-            }
+            zanoreniAktualniIf++;
+            labelAktualniIf++;
+            zanoreniCelkemIf++;
+            zmenLabel(labelIf, "if", true, labelAktualniIf);
+            zmenLabel(labelElse, "else", true, labelAktualniIf);
+            zmenLabel(labelEndIf, "endif", true, labelAktualniIf);
+
+
+
+
 
 
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -862,6 +885,8 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+
+
             // výraz je false, skočí na else
             operand1 = initOperand(operand1, labelElse.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
@@ -874,7 +899,10 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+
             // výraz je true, provedly se příkazy za then, else se přeskočí
+
+
 
             operand1 = initOperand(operand1, labelEndIf.value, sIdentificator, F_DEFAULT, false, true, false,
                                    I_DEFAULT);
@@ -890,26 +918,30 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+
             // vygeneruje labl endifu
             operand1 = initOperand(operand1, labelEndIf.value, sIdentificator, F_DEFAULT, false, true, false,
                                    I_DEFAULT);
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            labelAktualniIf--;
+            zanoreniAktualniIf--;
+            zmenLabel(labelIf, "if", true, labelAktualniIf);
+            zmenLabel(labelElse, "else", true, labelAktualniIf);
+            zmenLabel(labelEndIf, "endif", true, labelAktualniIf);
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
+            if (zanoreniAktualniWhile == 0) {
+                labelAktualniWhile += zanoreniCelkemWhile;
+                zmenLabel(labelWhile, "while", true, zanoreniCelkemWhile);
+                zmenLabel(labelLoop, "loop", true, zanoreniCelkemWhile);
+            }
+            zanoreniAktualniWhile++;
+            labelAktualniWhile++;
+            zanoreniCelkemWhile++;
+            zmenLabel(labelWhile, "while", true, labelAktualniWhile);
+            zmenLabel(labelLoop, "loop", true, labelAktualniWhile);
 
-            if (whileLabelSet)
-                zvysLabel(labelWhile, "dowhile");
-            else {
-                stringAddChars(&labelWhile, "dowhile0");
-                whileLabelSet = true;
-            }
-            if (loopLabelSet)
-                zvysLabel(labelLoop, "loop");
-            else {
-                stringAddChars(&labelLoop, "loop0");
-                loopLabelSet = true;
-            }
             // vygenerování labelu dowhile
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
                                    I_DEFAULT);
@@ -951,6 +983,11 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_JUMP, operand1);
             operand1 = initOperand(operand1, labelLoop.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
+
+            labelAktualniWhile--;
+            zanoreniAktualniWhile--;
+            zmenLabel(labelWhile, "while", true, labelAktualniWhile);
+            zmenLabel(labelLoop, "loop", true, labelAktualniWhile);
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
