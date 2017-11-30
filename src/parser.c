@@ -10,11 +10,15 @@
  *            xrutad00, Dominik Ruta
  */
 #include "parser.h"
+#include "instlist.h"
 #include "string.h"
+#include "scanner.h"
+#include <stdlib.h>
+#include <ctype.h>
 
+extern tDLListInstruction instList;
 extern tSymtable glSymTable;
 extern tSymtable table;
-tDLListInstruction list;
 tToken aktualni_token;
 tBSTNodePtr node;
 tBSTNodePtr glNode;
@@ -41,6 +45,20 @@ int paramsToDeclare;
 bool inFunctionBody = false;
 //Promenna, ktera rika expressionu, jakeho typu by mel byt vyhodnocovany vyraz
 int expectedValue;
+tToken varToSet;
+tToken tmpToken;
+string labelIf;
+string labelElse;
+string labelEndIf;
+string labelWhile;
+string labelLoop;
+string test;
+bool ifLabelSet = false;
+bool elseLabelSet = false;
+bool endIfLabelSet = false;
+bool whileLabelSet = false;
+bool loopLabelSet = false;
+
 
 //Pomocna funkce, ktera z obsahu atributu tokenu klicovych slov priradi cislo k pouziti ve switchi
 int adjustTokenType(tToken tok) {
@@ -89,6 +107,34 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
+
+void zvysLabel(string actualLabel, char *type) {
+    int value;
+    string tmp;
+    stringInit(&tmp);
+    stringAddChars(&tmp, actualLabel.value);
+    char *p;
+    p = actualLabel.value;
+    while (*p) { // While there are more characters to process...
+        if (isdigit(*p)) { // Upon finding a digit, ...
+            value = strtol(p, &p, 10); // Read a number, ...
+            value++; // and print it.
+        } else { // Otherwise, move on to the next character.
+            p++;
+        }
+    }
+
+    char *cislo;
+    cislo = malloc(10);
+    sprintf(cislo, "%d", value);
+    stringClear(&actualLabel);
+
+    stringAddChars(&actualLabel, type);
+    stringAddChars(&actualLabel, cislo);
+
+}
+
+
 //Funkce projde tabulku a zkontroluje jestli byly vsechny deklarovane funkce i definovane
 void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) {
     if (TempTree != NULL) {
@@ -113,6 +159,14 @@ int dalsiToken() {
 }
 
 int parse() {
+    stringInit(&paramName);
+    stringInit(&functionName);
+    stringInit(&labelIf);
+    stringInit(&labelElse);
+    stringInit(&labelEndIf);
+    stringInit(&labelWhile);
+    stringInit(&labelLoop);
+    stringInit(&test);
     int result;
     //Nacteni prvniho tokenu
     if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -121,6 +175,14 @@ int parse() {
     else
         //Prvni token je v poradku, volame prvni pravidlo
         result = Program();
+    stringClear(&paramName);
+    stringClear(&functionName);
+    stringClear(&labelIf);
+    stringClear(&labelElse);
+    stringClear(&labelEndIf);
+    stringClear(&labelWhile);
+    stringClear(&labelLoop);
+    stringClear(&test);
     return result;
 }
 
@@ -138,6 +200,7 @@ int Line() {
 
     return result;
 }
+
 int Program() {
     //<Program> -> <Deklarace_funkci_definice_funkci><Telo_programu><EOF>
     int result;
@@ -239,12 +302,21 @@ int Telo_programu() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // Generování $$scope
+            operand1 = initOperand(operand1, "", sKeyWord, F_DEFAULT, false, false, true, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            writeInstructionNoOperand(&instList, I_CREATEFRAME);
+            writeInstructionNoOperand(&instList, I_PUSHFRAME);
             //Ve scope budou dekalrace promennych a prikazy
             result = Deklarace_prom_a_prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
+            // generování $endscope
+            writeInstructionNoOperand(&instList, I_POPFRAME);
+            operand1 = initOperand(operand1, "%endscope", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -280,6 +352,11 @@ int Definice_fce() {
             comingFromDefinition = 1;
             //A jdeme do hlavicky
             result = Hlavicka_fce();
+            operand1 = initOperand(operand1, functionName.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
+            writeInstructionNoOperand(&instList, I_PUSHFRAME);
+            //operand1 = initOperand(operand1, "%retval", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
             if (result != ERROR_CODE_OK) return result;
             //Vlozime funkci do globalni tabulky symbolu
             if ((symTableSearch(&glSymTable, functionName)) != NULL) {
@@ -615,7 +692,6 @@ int Telo_funkce() {
         symTableInsertVariable(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
         node = symTableSearch(&table, ((tDataFunction *) glNode->Data)->paramName[i]);
         switch (((tDataFunction *) glNode->Data)->parameters.value[i]) {
-
             case 'i':
                 ((tDataVariable *) node->Data)->dataType = sInteger;
                 break;
@@ -697,6 +773,10 @@ int Prikaz() {
             //ze ho nemusi kontrolovat
             expectedValue = -1;
             result = Vyraz();
+            //print
+            operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
@@ -725,6 +805,15 @@ int Prikaz() {
             //Overeni ze klic co jsme nasli je promenna a ne funkce, protze do funkce nic prirazovat nechci
             if (node->nodeDataType != ndtVariable)
                 return ERROR_CODE_SEM;
+
+            operand1 = initOperand(operand1, "?\\032", sString, F_LF, false, false, false, F_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
+
+            operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false,
+                                   F_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,
+                                   ((tDataVariable *) node->Data)->dataType);
+            writeInstructionTwoOperands(&instList, I_READ, operand1, operand2);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -732,8 +821,32 @@ int Prikaz() {
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
+            if (ifLabelSet)
+                zvysLabel(labelIf, "if");
+            else {
+                stringAddChars(&labelIf, "if0");
+                ifLabelSet = true;
+            }
+            if (elseLabelSet)
+                zvysLabel(labelElse, "else");
+            else {
+                stringAddChars(&labelElse, "else0");
+                elseLabelSet = true;
+            }
+            if (endIfLabelSet)
+                zvysLabel(labelEndIf, "endif");
+            else {
+                stringAddChars(&labelEndIf, "endif0");
+                endIfLabelSet = true;
+            }
+
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+
             //Pokud je aktualni token integer, nastavim promennou na integer
+            // vypsání unikátního ifu
+            operand1 = initOperand(operand1, labelIf.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             if (aktualni_token.type == sInteger)
                 expectedValue = sInteger;
                 //Pokud je aktualni token double, nastavim promennou na double
@@ -749,6 +862,11 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // výraz je false, skočí na else
+            operand1 = initOperand(operand1, labelElse.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            operand3 = initOperand(operand3, "false", 42, F_TF, false, false, false, I_DEFAULT);
+            writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
@@ -756,6 +874,13 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // výraz je true, provedly se příkazy za then, else se přeskočí
+
+            operand1 = initOperand(operand1, labelEndIf.value, sIdentificator, F_DEFAULT, false, true, false,
+                                   I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_JUMP, operand1);
+            operand1 = initOperand(operand1, labelElse.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
@@ -765,9 +890,30 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // vygeneruje labl endifu
+            operand1 = initOperand(operand1, labelEndIf.value, sIdentificator, F_DEFAULT, false, true, false,
+                                   I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
+
+            if (whileLabelSet)
+                zvysLabel(labelWhile, "dowhile");
+            else {
+                stringAddChars(&labelWhile, "dowhile0");
+                whileLabelSet = true;
+            }
+            if (loopLabelSet)
+                zvysLabel(labelLoop, "loop");
+            else {
+                stringAddChars(&labelLoop, "loop0");
+                loopLabelSet = true;
+            }
+            // vygenerování labelu dowhile
+            operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
+                                   I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -779,12 +925,19 @@ int Prikaz() {
                 expectedValue = sDouble;
             else
                 expectedValue = -1;
+
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // Vygenerování podmíněné skoku na konec cyklu
+            operand1 = initOperand(operand1, labelLoop.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            operand3 = initOperand(operand3, "false", 42, F_TF, false, false, false, I_DEFAULT);
+            writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
@@ -792,6 +945,12 @@ int Prikaz() {
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
+            // vygenerování labelu loop
+            operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
+                                   I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_JUMP, operand1);
+            operand1 = initOperand(operand1, labelLoop.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_LABEL, operand1);
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
@@ -802,6 +961,7 @@ int Prikaz() {
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
+                varToSet = aktualni_token;
 
             } else {
                 //Budu prirazovat do promenne a jsem ve scopu, podivam se jestli je v globalni tabulce
@@ -810,12 +970,17 @@ int Prikaz() {
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
+                varToSet = aktualni_token;
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             result = Vyraz();
+            // z tmp do varToSet
+            operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
@@ -823,7 +988,8 @@ int Prikaz() {
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
         case sReturn:
-            //
+
+
             if (inFunctionBody == false)
                 return ERROR_CODE_SYN;
             //V hlavnim tele scope nemuze return byt
@@ -840,6 +1006,10 @@ int Prikaz() {
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
+            //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_RETURN);
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             result = Line();
             if (result != ERROR_CODE_OK) return result;
@@ -856,6 +1026,11 @@ int Deklarace_promenne() {
         case sDim:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+
+
+            exprAdjust = true;
+            varToSet = aktualni_token;
+            varToSet.type = adjustTokenType(varToSet);
 
             if (inScope) {
                 //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
@@ -887,6 +1062,10 @@ int Deklarace_promenne() {
                     ((tDataVariable *) node->Data)->dataType = sString;
                     break;
             }
+            // Vypsání vytvoření proměnné
+            operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Rovnou si ulozim jeji typ i do promenne pro expression, kdyby se do ni hned prirazovalo
             expectedValue = ((tDataVariable *) node->Data)->dataType;
@@ -899,6 +1078,24 @@ int Deklarace_promenne() {
                     return ERROR_CODE_OK;
                 case sEndOfLine:
                     result = Line();
+                    if (expectedValue == sInteger) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    } else if (expectedValue == sDouble) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "0", sDouble, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    } else if (expectedValue == sString) {
+                        operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
+                                               I_DEFAULT);
+                        operand2 = initOperand(operand2, "\0", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                    }
+
+
                     if (result != ERROR_CODE_OK) return result;
                     return ERROR_CODE_OK;
 
@@ -948,6 +1145,9 @@ int Prirazeni_hodnoty() {
         case sAssignment:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
+            operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
+            operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             return result;
             //<Prirazeni_hodnoty> -> e
         case sEndOfLine:
@@ -971,6 +1171,8 @@ int Dalsi_vyrazy() {
         case sString:
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
+            operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_WRITE, operand1);
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             //<Dalsi_vyrazy> -> e

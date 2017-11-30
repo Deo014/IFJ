@@ -38,13 +38,13 @@ int stringLenght(string *str){
 
 bool stringCompare(string *str1, string *str2){
     char *a = str1->value; char *b = str2->value;
-        int i = 0;
-        while(i < stringLenght(str1))
-            if(a[i] != b[i])
-                return false;
-            else
-                i++;
-        return true;
+    int i = 0;
+    while(i < stringLenght(str1))
+        if(a[i] != b[i])
+            return false;
+        else
+            i++;
+    return true;
 }
 
 /*
@@ -54,7 +54,7 @@ int stringAddChar(string *str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
         // realokace pameti: navyseni o INIT_ALLOC_SIZE
-        if ( (str->value = (char*)realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE)) == NULL )
+        if ((str->value = (char *) realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE * sizeof(char))) == NULL)
             return ERROR_CODE_INTERNAL;
         str->lengthAllocated = str->lengthAllocated + INIT_ALLOC_SIZE;
     }
@@ -86,6 +86,12 @@ void stringUpdateLastChar(string *str, char c) {
     }
 }
 
+void stringUpdateCharOnIndex(string *str, char c, int index) {
+    if ((str->length > 0) && (str->length >= index)) {
+        str->value[index - 1] = c;
+    }
+}
+
 /*
  * Odstraneni posledniho znaku stringu
  */
@@ -97,11 +103,12 @@ void stringDeleteLastChar(string *str) {
 /*
  * Vlozeni znaku na zacatek stringu
  */
+
 int stringAddFirstChar(string * str, char c) {
     // pokud neni misto pro dalsi znak
     if (str->length+1 >= str->lengthAllocated) {
         // realokace pameti: navyseni o INIT_ALLOC_SIZE
-        if ( (str->value = (char*)realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE)) == NULL )
+        if ((str->value = (char *) realloc(str->value, str->lengthAllocated + INIT_ALLOC_SIZE * sizeof(char))) == NULL)
             return ERROR_CODE_INTERNAL;
         str->lengthAllocated = str->lengthAllocated + INIT_ALLOC_SIZE;
     }
@@ -138,6 +145,14 @@ char stringGetLastChar(string *str) {
     else
         return -1;
 }
+
+char stringGetCharOnIndex(string *str, int index) {
+    if ((str->length > 0) && (str->length >= index))
+        return str->value[index - 1];
+    else
+        return -1;
+}
+
 
 /*
  * Zjisteni, zda string je klicove slovo
@@ -248,3 +263,4 @@ int charToDec(char c) {
 char decToChar(int c) {
     return c+48;
 }
+

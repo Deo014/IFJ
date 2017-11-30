@@ -55,6 +55,7 @@ typedef struct exp_element{
     string value;   //Hodnota prvku
     int pt_index;   //Index (typ) prvku v rámci precedenční tabulky
     int token_type; //Typ tokenu (globálně)
+    int type;
     bool terminal;  //Určuje, zda je prvek terminál
     bool handle;    //Handle pro pomoc při redukci stacku
 }Exp_element;
