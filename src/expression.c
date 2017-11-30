@@ -653,8 +653,9 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
     if(operator == eDivideI){
         //Pokud není ani jeden z operandů string, oba se přetypují na int
         if (operand_type_l->type != sString && operand_type_r->type != sString){
-            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-            writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+           // writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+
             if(operand_type_r->type == sDouble){
 
                 operand_type_r->type = sInteger;
@@ -665,8 +666,8 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             else
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
 
-            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-            writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if(operand_type_l->type == sDouble){
                 operand_type_l->type = sInteger;
@@ -697,29 +698,116 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             (operand_type_l->type != sString && operand_type_r->type == sString)){
             return ERROR_CODE_SEM_COMP;
         }
-            //Jestli je jeden z operandů double, druhý se přetypuje na double
-        else if(operand_type_l->type == sDouble || operand_type_r->type == sDouble) {
-            operand_type_l->type = sDouble;
-            operand_type_r->type = sDouble;
-        }
         else if(operand_type_l->type == sString|| operand_type_r->type == sString) {
         }
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        else {
+            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+
+            if (operand_type_r->type == sInteger && operand_type_l->type == sDouble) {
+                operand_type_r->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
+
+            } else{
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+            }
+
+
+            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
+            if (operand_type_l->type == sInteger && operand_type_r->type == sDouble) {
+                operand_type_l->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
+            }
+            else{
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+            }
+
+            writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+            writeInstructionOneOperand(&instList, I_PUSHS, operand2);
+        }
+
         //Jinak máme v operaci dva stringy...
     }
 
         //Jestli se provádí operace *,/,-
-    else if(operator == eMultiply || operator == eMinus || operator == eDivideD){
+    else if(operator == eMultiply || operator == eMinus) {
 
         //Jestli je jeden z operandů string, je to sem. chyba
+        if (operand_type_l->type == sString || operand_type_r->type == sString) {
+            return ERROR_CODE_SEM_COMP;
+        }
+            //Jestli je jeden z operandů double, druhý se přetypuje na double
+        else {
+            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+
+            if (operand_type_r->type == sInteger && operand_type_l->type == sDouble) {
+                operand_type_r->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
+
+            } else{
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+            }
+
+
+            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
+            if (operand_type_l->type == sInteger && operand_type_r->type == sDouble) {
+                operand_type_l->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
+            }
+            else{
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+            }
+
+            writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+            writeInstructionOneOperand(&instList, I_PUSHS, operand2);
+        }
+    }
+    else if(operator == eDivideD){
+            //Jestli je jeden z operandů string, je to sem. chyba
         if (operand_type_l->type == sString || operand_type_r->type == sString){
             return ERROR_CODE_SEM_COMP;
         }
             //Jestli je jeden z operandů double, druhý se přetypuje na double
-        else if(operand_type_l->type == sDouble || operand_type_r->type == sDouble) {
-            operand_type_l->type = sDouble;
-            operand_type_r->type = sDouble;
+        else {
+            operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+           // writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
+
+            if(operand_type_r->type == sInteger){
+                operand_type_r->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
+            }
+            else
+                writeInstructionOneOperand(&instList, I_POPS, operand2);
+
+            operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+           // writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
+
+            if(operand_type_l->type == sInteger) {
+                operand_type_l->type = sDouble;
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+                writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
+            }
+            else{
+                writeInstructionOneOperand(&instList, I_POPS, operand1);
+            }
+
+
+
+
+            writeInstructionOneOperand(&instList, I_PUSHS, operand1);
+            writeInstructionOneOperand(&instList, I_PUSHS, operand2);
         }
-        //Jinak necháváme původní typ...
     }
     else{
         return ERROR_CODE_SEM_COMP;
@@ -731,10 +819,10 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 /* OPRAVIT*/
 ERROR_CODE checkResultType(ptrStack *expression_stack){
     if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack->value)->type != sDouble){
-        /*TODO přetypovat proměnnou výsledku*/
+        writeInstructionNoOperand(&instList, I_INT2FLOATS);
     }
     else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack->value)->type != sInteger){
-        /*TODO přetypovat proměnnou výsledku*/
+        writeInstructionNoOperand(&instList, I_FLOAT2INTS);
     }
 
     if(( ((Exp_element*)expression_stack->top_of_stack->value)->type != sString && sString == operation_type_global) ||

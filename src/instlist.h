@@ -17,6 +17,7 @@
 #include "expression.h"
 
 typedef enum {
+    F_GF,
     F_LF,
     F_TF,
     F_DEFAULT

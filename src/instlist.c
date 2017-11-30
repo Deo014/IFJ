@@ -19,6 +19,7 @@
 #define SCOPE "$$scope"
 #define TMP "GF@tmp"
 #define LABELSYMBOL "$"
+#define FRAMEGF "GF@"
 #define FRAMELF "LF@"
 #define FRAMETF "TF@"
 #define TYPEINT "int@"
@@ -58,6 +59,9 @@ void writeInstructionOneOperand(tDLListInstruction *L, int instType, tInstrOpera
             operand1 = TMP;
         else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
+            strcat(operand1, tmp_operand1);
+        }else if (tmp_operand1_frame == F_GF) {
+            strcpy(operand1, FRAMEGF);
             strcat(operand1, tmp_operand1);
         }
         else /* při práci s proměnnou na Temporary frame */{
@@ -103,6 +107,9 @@ void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOper
         else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
             strcat(operand1, tmp_operand1);
+        }else if (tmp_operand1_frame == F_GF) {
+            strcpy(operand1, FRAMEGF);
+            strcat(operand1, tmp_operand1);
         }
         else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand1, FRAMETF);
@@ -141,6 +148,9 @@ void writeInstructionTwoOperands(tDLListInstruction *L, int instType, tInstrOper
             operand2 = TMP;
         else if (tmp_operand2_frame == F_LF) {
             strcpy(operand2, FRAMELF);
+            strcat(operand2, tmp_operand2);
+        }else if (tmp_operand2_frame == F_GF) {
+            strcpy(operand2, FRAMEGF);
             strcat(operand2, tmp_operand2);
         }
         else /* při práci s proměnnou na Temporary frame */{
@@ -191,6 +201,9 @@ void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOp
         else if (tmp_operand1_frame == F_LF) {
             strcpy(operand1, FRAMELF);
             strcat(operand1, tmp_operand1);
+        }else if (tmp_operand1_frame == F_GF) {
+            strcpy(operand1, FRAMEGF);
+            strcat(operand1, tmp_operand1);
         }
         else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand1, FRAMETF);
@@ -229,6 +242,9 @@ void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOp
         else if (tmp_operand2_frame == F_LF) {
             strcpy(operand2, FRAMELF);
             strcat(operand2, tmp_operand2);
+        }else if (tmp_operand2_frame == F_GF) {
+            strcpy(operand2, FRAMEGF);
+            strcat(operand2, tmp_operand2);
         }
         else /* při práci s proměnnou na Temporary frame */{
             strcpy(operand2, FRAMETF);
@@ -266,6 +282,9 @@ void writeInstructionThreeOperands(tDLListInstruction *L, int instType, tInstrOp
             operand3 = TMP;
         else if (tmp_operand3_frame == F_LF) {
             strcpy(operand3, FRAMELF);
+            strcat(operand3, tmp_operand3);
+        }else if (tmp_operand3_frame == F_GF) {
+            strcpy(operand3, FRAMEGF);
             strcat(operand3, tmp_operand3);
         }
         else /* při práci s proměnnou na Temporary frame */{
