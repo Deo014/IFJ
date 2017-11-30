@@ -1,0 +1,12 @@
+/' volani vestavenych funkci '/
+
+scope
+	dim a as integer = 2
+	dim b as string = !"nahodny string"
+	
+	a = length(b)
+	b = substr(b,3, 5)
+	a = asc(b, 1)
+	b = chr(a)	
+	print a; b;
+end scope

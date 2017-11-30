@@ -1,0 +1,4 @@
+scope
+dim ab as integer
+	ab = ab#cd
+end scope

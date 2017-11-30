@@ -1,0 +1,7 @@
+/' vypis promenne '/
+
+scope
+dim a as integer
+a = 20
+print a;
+end scope

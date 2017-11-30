@@ -1,0 +1,7 @@
+/' prirazeni do funkce '/
+scope
+	if 1 < 42 then
+		substr() = 15
+	else
+	endif
+end scopE

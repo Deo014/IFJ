@@ -1,0 +1,8 @@
+/' konkatenace stringu '/
+
+scope
+	dim a as string
+	a = !"Jedna"
+	a = a + !" Dva"
+	print a;
+end scope

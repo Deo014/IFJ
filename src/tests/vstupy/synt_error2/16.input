@@ -1,0 +1,8 @@
+/' funkce ma dva nazvy '/
+
+function jedna dva (a as integer) as integer
+
+end function
+
+scope
+end scopE

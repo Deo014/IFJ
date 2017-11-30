@@ -1,0 +1,13 @@
+/' volani funkce '/
+
+function funkce1() as integer
+	dim a as integer
+	a = 20
+	return a
+end function
+
+scope
+	dim a as integer = funkce1()
+	a = a*0
+	print a;
+end scope

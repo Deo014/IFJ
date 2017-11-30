@@ -1,0 +1,5 @@
+/' prazdny print '/
+scope
+	dim _b as string
+	print;
+end scopE
