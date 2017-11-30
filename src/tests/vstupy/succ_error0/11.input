@@ -4,7 +4,7 @@
 scope 'Hlavni telo programu
 	Dim a As Integer
 	DIM vysl AS INTEGER
-	PrinT !"Zadejte cislo pro vypocet faktorialu";
+	PrinT !"Cislo pro vypocet faktorialu je 5";
 	a=5
 	If a < 0 THEN
 		print !"\nFaktorial nelze spocitat\n";

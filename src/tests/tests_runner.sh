@@ -46,8 +46,16 @@ do
 		if [ -z "$interpreter_result" ]; then
 			printf " INTERPRETER OUTPUT OK"
 		else
-			printf " INTERPRETER OUTPUT DIFFER\n"
+			printf " INTERPRETER OUTPUT DIFFER\n\n"
+			echo "#START INTERPRETER OUTPUT"
 			cat "$tmp_file_interpreter"
+			printf "\n"
+			echo "##END INTERPRETER OUTPUT"
+			printf "\n"
+			echo "#START EXPECTED OUTPUT"
+			cat "$outputs_succ_error0_path/$test_name.output"
+			printf "\n"
+			echo "##END EXPECTED OUTPUT"
 		fi
 	fi
 	printf "\n"
