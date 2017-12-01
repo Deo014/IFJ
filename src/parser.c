@@ -117,14 +117,14 @@ void zmenLabel(string actualLabel, char *type, bool inc, int kolik) {
     stringAddChars(&tmp, actualLabel.value);
     char *p;
     p = actualLabel.value;
-    while (*p) { // While there are more characters to process...
-        if (isdigit(*p)) { // Upon finding a digit, ...
-            value = strtol(p, &p, 10); // Read a number, ...
+    while (*p) {
+        if (isdigit(*p)) {
+            value = strtol(p, &p, 10);
             if (inc)
-                value = kolik; // and print it.
+                value = kolik;
             else
                 value = kolik;
-        } else { // Otherwise, move on to the next character.
+        } else {
             p++;
         }
     }
@@ -136,6 +136,8 @@ void zmenLabel(string actualLabel, char *type, bool inc, int kolik) {
 
     stringAddChars(&actualLabel, type);
     stringAddChars(&actualLabel, cislo);
+
+    free(cislo);
 
 }
 
