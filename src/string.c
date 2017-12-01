@@ -29,14 +29,22 @@ int stringInit(string *str) {
 }
 
 int stringLenght(string *str){
+    /*
     char *retezec = str->value;
     unsigned int i = 0;
     while(retezec[i] != '\0')
         i++;
     return i;
+    */
+    return strlen(str->value);
 }
 
 bool stringCompare(string *str1, string *str2){
+    if ( strcmp(str1->value, str2->value) == 0 )
+        return true;
+    else
+        return false;
+    /*
     char *a = str1->value; char *b = str2->value;
     int i = 0;
     while(i < stringLenght(str1))
@@ -45,6 +53,7 @@ bool stringCompare(string *str1, string *str2){
         else
             i++;
     return true;
+    */
 }
 
 /*
@@ -199,6 +208,15 @@ void stringToLowercase(string *str) {
             str->value[i] = str->value[i] + 32;
         }
     }
+}
+
+/*
+ * Uvolneni stringu
+ */
+void stringDispose(string *str) {
+    free(str->value);
+    str->value = NULL;
+    str->length = str->lengthAllocated = 0;
 }
 
 /* ----------------------------------------FUNKCE PRO PRACI SE ZNAKY--------------------------------------------------*/

@@ -16,9 +16,9 @@
 #include "parser.h"
 
 
-tSymtable glSymTable; // globalni tabulka symbolu
-tSymtable table;
-tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
+tSymtable glSymTable; /* globalni tabulka symbolu */
+tSymtable table;    /* lokalni tabulka symbolu */
+tDLListInstruction instList; /* globalni list vygenerovanych instrukci (instrukcni paska) */
 
 int main(int argc, char **argv)
 {
@@ -40,13 +40,9 @@ int main(int argc, char **argv)
     /*----------Syntakticka analyza, Semanticka analyza, Generovani 3AK----------*/
     result_code = parse();
 
-    //generateInstruction(&instList, I_DEFVAR, "variable", NULL, NULL);
     /*----------vypsani instrukcni pasky na stdout----------*/
     if (result_code == ERROR_CODE_OK) // instrukcni paska se vypise na stdout pouze pokud preklad probehl v poradku
         printInstructionList(&instList);
-
-    //*******************************************
-
 
     /*----------uvolneni alokovane pameti----------*/
     symTableDispose(&glSymTable); /* globalni tabulka symbolu */
