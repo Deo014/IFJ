@@ -147,7 +147,17 @@ void BSTDispose (tBSTNodePtr *RootPtr) {
         BSTDispose(&(*RootPtr)->LPtr); // zruseni leveho podstromu
         BSTDispose(&(*RootPtr)->RPtr); // zruseni praveho podstromu
         // uvolneni aktualniho prvku
-        free(*RootPtr);
+        free((*RootPtr)->Key); // uvolneni klice
+        (*RootPtr)->Key = NULL;
+
+        if ( (*RootPtr)->nodeDataType == ndtFunction ) {
+            stringDispose(&(((tDataFunction*)(*RootPtr)->Data)->parameters));
+        }
+
+        free((*RootPtr)->Data); // uvolneni dat
+        (*RootPtr)->Data = NULL;
+
+        free(*RootPtr); // uvolneni celeho uzlu
         *RootPtr = NULL;
     }
 

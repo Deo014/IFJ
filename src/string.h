@@ -33,6 +33,7 @@ int stringClear(string *);
 int stringLenght(string *);
 bool stringCompare(string *a, string *b);
 
+void stringDispose(string *str);
 //Pomocne funkce pro generovani unikatnich navesti
 char stringGetCharOnIndex(string *, int);
 
