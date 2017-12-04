@@ -77,3 +77,4 @@ char getSignFromTable();
 int convertTokenToIndex(int);
 
 #endif //IFJ_EXPRESSION_H
+ 
