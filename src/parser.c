@@ -106,22 +106,22 @@ int adjustTokenType(tToken tok) {
     return tok.type;
 }
 
-
-void zmenLabel(string actualLabel, char *type, int newNumber) {
-    int value;
+//Funkce upravi cislo navesti pro zapis instrukce
+int zmenLabel(string actualLabel, char *type, int newNumber) {
     string tmp;
     stringInit(&tmp);
     stringAddChars(&tmp, actualLabel.value);
-    value = newNumber;
-
     char *cislo;
     cislo = malloc(MAXINTLENGTH);
-    sprintf(cislo, "%d", value);
+    if (cislo == NULL)
+        return ERROR_CODE_INTERNAL;
+    sprintf(cislo, "%d", newNumber);
     stringClear(&actualLabel);
 
     stringAddChars(&actualLabel, type);
     stringAddChars(&actualLabel, cislo);
     free(cislo);
+    return ERROR_CODE_OK;
 }
 
 
@@ -833,16 +833,16 @@ int Prikaz() {
         case sIf:
             if (zanoreniAktualniIf == 0) {
                 labelAktualniIf += zanoreniCelkemIf;
-                zmenLabel(labelIf, "if", zanoreniCelkemIf);
-                zmenLabel(labelElse, "else", zanoreniCelkemIf);
-                zmenLabel(labelEndIf, "endif", zanoreniCelkemIf);
+                if (zmenLabel(labelIf, "if", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (zmenLabel(labelElse, "else", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (zmenLabel(labelEndIf, "endif", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             }
             zanoreniAktualniIf++;
             labelAktualniIf++;
             zanoreniCelkemIf++;
-            zmenLabel(labelIf, "if", labelAktualniIf);
-            zmenLabel(labelElse, "else", labelAktualniIf);
-            zmenLabel(labelEndIf, "endif", labelAktualniIf);
+            if (zmenLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
 
 
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -906,22 +906,22 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
             labelAktualniIf--;
             zanoreniAktualniIf--;
-            zmenLabel(labelIf, "if", labelAktualniIf);
-            zmenLabel(labelElse, "else", labelAktualniIf);
-            zmenLabel(labelEndIf, "endif", labelAktualniIf);
+            if (zmenLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
             if (zanoreniAktualniWhile == 0) {
                 labelAktualniWhile += zanoreniCelkemWhile;
-                zmenLabel(labelWhile, "while", zanoreniCelkemWhile);
-                zmenLabel(labelLoop, "loop", zanoreniCelkemWhile);
+                if (zmenLabel(labelWhile, "while", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (zmenLabel(labelLoop, "loop", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             }
             zanoreniAktualniWhile++;
             labelAktualniWhile++;
             zanoreniCelkemWhile++;
-            zmenLabel(labelWhile, "while", labelAktualniWhile);
-            zmenLabel(labelLoop, "loop", labelAktualniWhile);
+            if (zmenLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
 
             // vygenerování labelu dowhile
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
@@ -967,8 +967,8 @@ int Prikaz() {
 
             labelAktualniWhile--;
             zanoreniAktualniWhile--;
-            zmenLabel(labelWhile, "while", labelAktualniWhile);
-            zmenLabel(labelLoop, "loop", labelAktualniWhile);
+            if (zmenLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (zmenLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:

@@ -32,6 +32,8 @@ int param_length = 0;       //Počet parametrů kontr. funkce
 tDataFunction *function;    //Pokud řešíme volání funkce, zde se uloží nalezená funkce ze symtable
 bool concat_move_done = false;  //Pojistka, která při concatu zajišťuje přesun pouze prvního stringu do tmp
 
+string dollar;
+
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    F     ,     $
 /*  *  */ { '>' , '>' , '>' , '>' , '>' , '>' , '>' , '>' , '>' , '>' , '>' , '<' , '>' , '<' , '_' , '_' , '>' },
@@ -73,6 +75,7 @@ ERROR_CODE expression(tToken first_token,int operation_type){
 
         exp_function = false;
         concat_move_done = false;
+        stringDispose(&dollar);
         SDispose(&expression_stack);
     }
     return result;
@@ -84,7 +87,8 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
     ERROR_CODE error_type;
     //Inicializace stacku
-    initExpressionStack(expression_stack);
+    if ((error_type = initExpressionStack(expression_stack)) != ERROR_CODE_OK)
+        return error_type;
 
 
     char sign;
@@ -174,7 +178,7 @@ ERROR_CODE initExpressionStack(ptrStack *expression_stack){
         Exp_element *new_element;
 
         //Vytvořím string "$"
-        string dollar;
+
         stringInit(&dollar);
         stringAddChar(&dollar, '$');
 
@@ -185,11 +189,11 @@ ERROR_CODE initExpressionStack(ptrStack *expression_stack){
             return ERROR_CODE_OK;
         }
         else
-            return ERROR_CODE_SYN;
+            return ERROR_CODE_INTERNAL;
 
     }
     else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_INTERNAL;
 
 }
 
@@ -322,7 +326,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
         } else
             return ERROR_CODE_SYN;
     } else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_INTERNAL;
 }
 
 
@@ -502,7 +506,7 @@ ERROR_CODE useRule(ptrStack *expression_stack){
         return error_type;
     }
     else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_INTERNAL;
 }
 
 
@@ -538,7 +542,7 @@ ERROR_CODE checkBinary(ptrStack *expression_stack, int operator){
             return ERROR_CODE_SYN;
     }
     else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_INTERNAL;
 }
 
 
@@ -577,74 +581,81 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
         return ERROR_CODE_OK;
     }
     else
-        return ERROR_CODE_SYN;
+        return ERROR_CODE_INTERNAL;
 }
 
 //Redukce funkce
 ERROR_CODE reduceFunction(ptrStack *expression_stack){
-    //Pokud nesedí počet parametrů je to chyba
-    if(param_length != parameter_index)
-        return ERROR_CODE_SEM_COMP;
-    else {
-        Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
 
-        //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
-        while (del_element->pt_index != eFunction) {
+    if (expression_stack != NULL) {
 
-            SPop(expression_stack);
-            del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
+        //Pokud nesedí počet parametrů je to chyba
+        if (param_length != parameter_index)
+            return ERROR_CODE_SEM_COMP;
+        else {
+            Exp_element *del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
+
+            //Jelikož kontroluji pouze funkci, popuju dokud nenarazím na dollar
+            while (del_element->pt_index != eFunction) {
+
+                SPop(expression_stack);
+                del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
+            }
+            ((Exp_element *) expression_stack->top_of_stack->value)->handle = false;
+            ((Exp_element *) expression_stack->top_of_stack->value)->terminal = false;
+            first_terminal = expression_stack->top_of_stack->left;
+
+            /* GENEROVÁNÍ KÓDU: Zavolá se funkce. Až se vykoná, zruší se frame*/
+            operand1 = initOperand(operand1, ((Exp_element *) expression_stack->top_of_stack->value)->value.value,
+                                   sIdentificator, F_LF, false, true, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_CALL, operand1);
+            writeInstructionNoOperand(&instList, I_POPFRAME);
+            return ERROR_CODE_OK;
         }
-        ((Exp_element*)expression_stack->top_of_stack->value)->handle = false;
-        ((Exp_element*)expression_stack->top_of_stack->value)->terminal = false;
-        first_terminal = expression_stack->top_of_stack->left;
-
-        /* GENEROVÁNÍ KÓDU: Zavolá se funkce. Až se vykoná, zruší se frame*/
-        operand1 = initOperand(operand1, ((Exp_element*)expression_stack->top_of_stack->value)->value.value,  sIdentificator, F_LF, false, true, false, I_DEFAULT);
-        writeInstructionOneOperand(&instList, I_CALL, operand1);
-        writeInstructionNoOperand(&instList, I_POPFRAME);
-        return ERROR_CODE_OK;
-    }
+    } else
+        return ERROR_CODE_INTERNAL;
 
 }
 
 //Funkce kontroluj parametry funkce
 ERROR_CODE checkParams(Exp_element *element,int variable){
 
-    //Jestli má ještě stále co kontrolovat
-    if(params[parameter_index] != '\0') {
-        switch (params[parameter_index]) {
-            case 'i':
-                if (variable != sInteger) {
-                    if(variable == sDouble){
-                        element->type = sInteger;
+    if (element != NULL) {
+        //Jestli má ještě stále co kontrolovat
+        if (params[parameter_index] != '\0') {
+            switch (params[parameter_index]) {
+                case 'i':
+                    if (variable != sInteger) {
+                        if (variable == sDouble) {
+                            element->type = sInteger;
+                        } else
+                            return ERROR_CODE_SEM_COMP;
                     }
-                    else
-                        return ERROR_CODE_SEM_COMP;
-                }
-                break;
-            case 'd':
-                if (variable != sDouble) {
-                    if (variable == sInteger) {
-                        element->type = sDouble;
-                    } else
-                        return ERROR_CODE_SEM_COMP;
-                }
+                    break;
+                case 'd':
+                    if (variable != sDouble) {
+                        if (variable == sInteger) {
+                            element->type = sDouble;
+                        } else
+                            return ERROR_CODE_SEM_COMP;
+                    }
 
-                break;
-            case 's':
-                if (variable != sString)
-                    return ERROR_CODE_SEM_COMP;
-                break;
-            default:
-                break;
-        }
-        //Zvedne se index pro kontrolu dalšího parametru
-        parameter_index++;
-    }
-    else
-        return ERROR_CODE_SEM_COMP;
+                    break;
+                case 's':
+                    if (variable != sString)
+                        return ERROR_CODE_SEM_COMP;
+                    break;
+                default:
+                    break;
+            }
+            //Zvedne se index pro kontrolu dalšího parametru
+            parameter_index++;
+        } else
+            return ERROR_CODE_SEM_COMP;
 
-    return ERROR_CODE_OK;
+        return ERROR_CODE_OK;
+    } else
+        return ERROR_CODE_INTERNAL;
 
 }
 
@@ -850,22 +861,28 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 }
 
 ERROR_CODE checkResultType(ptrStack *expression_stack){
-    if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack->value)->type != sDouble){
+    if (expression_stack != NULL) {
+        if (operation_type_global == sDouble &&
+            ((Exp_element *) expression_stack->top_of_stack->value)->type != sDouble) {
 
-        /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z intu na float */
-        writeInstructionNoOperand(&instList, I_INT2FLOATS);
-    }
-    else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack->value)->type != sInteger){
+            /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z intu na float */
+            writeInstructionNoOperand(&instList, I_INT2FLOATS);
+        } else if (operation_type_global == sInteger &&
+                   ((Exp_element *) expression_stack->top_of_stack->value)->type != sInteger) {
 
-        /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z floatu na int */
-        writeInstructionNoOperand(&instList, I_FLOAT2INTS);
-    }
+            /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z floatu na int */
+            writeInstructionNoOperand(&instList, I_FLOAT2INTS);
+        }
 
-    if(( ((Exp_element*)expression_stack->top_of_stack->value)->type != sString && sString == operation_type_global) ||
-       (((Exp_element *) expression_stack->top_of_stack->value)->type == sString && sString != operation_type_global))
-        return ERROR_CODE_SEM_COMP;
-    tmpToken.type=((Exp_element*)expression_stack->top_of_stack->value)->type;
-    return ERROR_CODE_OK;
+        if ((((Exp_element *) expression_stack->top_of_stack->value)->type != sString &&
+             sString == operation_type_global) ||
+            (((Exp_element *) expression_stack->top_of_stack->value)->type == sString &&
+             sString != operation_type_global))
+            return ERROR_CODE_SEM_COMP;
+        tmpToken.type = ((Exp_element *) expression_stack->top_of_stack->value)->type;
+        return ERROR_CODE_OK;
+    } else
+        return ERROR_CODE_INTERNAL;
 }
 
 //Funkce vytvaří nový element pro vložení na stack
