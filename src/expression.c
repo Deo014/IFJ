@@ -11,12 +11,8 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
-#include "stack.h"
-#include "string.h"
-#include "scanner.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
-tToken fun_or_var;      //Uchovává proměnnou a čeká, jestli se bude řešit funkce nebo proměnná
 tStack *first_terminal; //Nejvyšší terminál na stacku
 
 
@@ -25,21 +21,16 @@ extern tSymtable glSymTable;            //GL tabulka symbolů
 extern tSymtable table;                 //Lokální tabulka
 extern tDLListInstruction instList;     //List instrukcí
 extern bool inFunctionBody;             //Indikátor, že se kontroluje tělo funkce
-extern tToken varToSet;
+extern tToken varToSet;                 //Token proměnné, do které se bude ukládat výsledek
 extern tToken tmpToken;
 
-//str_element result_element;
-
-//int operation;
 int operation_type_global;  //Typ výsledné proměnné //Typ výsledku
 bool exp_function;          //Pokud se řeší funkce je true
-//bool shift_saved_token = false;
-//bool exprEnd = false;
 int parameter_index = 0;    //Index kontrolovaného parametru
 char *params;               //Typy parametrů kontrolované funkce
 int param_length = 0;       //Počet parametrů kontr. funkce
-tDataFunction *function;
-bool concat_move_done = false;
+tDataFunction *function;    //Pokud řešíme volání funkce, zde se uloží nalezená funkce ze symtable
+bool concat_move_done = false;  //Pojistka, která při concatu zajišťuje přesun pouze prvního stringu do tmp
 
 const char precedenceTable[PT_SIZE][PT_SIZE] = {
 //           *     /     \     +     -     =    <>     <    <=     >    >=     (     )     ID    F     ,     $
@@ -72,14 +63,14 @@ ERROR_CODE expression(tToken first_token,int operation_type){
         return ERROR_CODE_SYN;
     } else {
         result = expressionAnalysis(&expression_stack, first_token);
-
-        // exprEnd = false;
-        //shift_saved_token = false;
         parameter_index = 0;
+
         if(!exp_function) {
+            /* GENEROVÁNÍ KÓDU: Výsledek se uloží do tmp proměnné */
             operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_POPS, operand1);
         }
+
         exp_function = false;
         concat_move_done = false;
         SDispose(&expression_stack);
@@ -97,8 +88,6 @@ ERROR_CODE expressionAnalysis(ptrStack *expression_stack,tToken first_token){
 
 
     char sign;
-
-    fun_or_var = first_token;
     next_exp_token = first_token;
     //Analýza výrazu
     while (1){
@@ -228,21 +217,21 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                         }
                     }
                 }
-                        //Pokud jsme nenašli v GL tabulce identifikator
+                    //Pokud jsme nenašli v GL tabulce identifikator
                 else {
                     //Pokud se nachazime v těle funkce, prohledame lokalni tabulku
                     if (inFunctionBody) {
                         element_id = symTableSearch(&table, new_element->value);
-                            //Pokud se i tak nic nenašlo nebo pokud našlo, ale není to proměnna, je to chyba
+                        //Pokud se i tak nic nenašlo nebo pokud našlo, ale není to proměnna, je to chyba
                         if (element_id == NULL || element_id->nodeDataType != ndtVariable) {
                             return ERROR_CODE_SEM;
                         }
                     }//Pokud neřešíme tělo funkce, nenašli jsme identifikator -> chyba
                     else
                         return ERROR_CODE_SEM;
-                    }
+                }
 
-                    //Pokud se jedná o proměnnou
+                //Pokud se jedná o proměnnou
                 if (element_id->nodeDataType == ndtVariable) {
                     tDataVariable *variable = ((tDataVariable *) (element_id->Data));
                     if (!exp_function) {
@@ -257,17 +246,21 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                             case sString:
                                 new_element->type = sString;
                                 break;
+                            default:
+                                break;
                         }
                     } else {
-                            //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
+                        //Pokud řešíme funkci, jedná se o parametr, který se zkontroluje
                         if ((error_type = checkParams(new_element, variable->dataType)) != ERROR_CODE_OK)
                             return error_type;
+
+                        /* GENEROVÁNÍ KÓDU: Předání hodnot parametrům funkce při její volání */
                         operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
                         operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
                         writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-                        }
                     }
-                        //Pokud se jedná o funkci
+                }
+                    //Pokud se jedná o funkci
                 else if (element_id->nodeDataType == ndtFunction) {
                     function = ((tDataFunction *) (element_id->Data));
                     if ((function->returnDataType != sString && sString == operation_type_global) ||
@@ -285,7 +278,9 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                             case sString:
                                 new_element->type = sString;
                                 break;
-                            }
+                            default:
+                                break;
+                        }
 
 
                         new_element->pt_index = eFunction;      //V tabulce budeme hledat funkci
@@ -295,6 +290,7 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                         //volání funkce
                         writeInstructionNoOperand(&instList, I_CREATEFRAME);
                         for(int i = 0; i < param_length; i++){
+                            /* GENEROVÁNÍ KÓDU: Vytvoření proměnných pro funkci podle definice */
                             operand1 = initOperand(operand1, function->paramName[i].value, sIdentificator, F_TF,false, false, false, I_DEFAULT);
                             writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
                         }
@@ -306,18 +302,20 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                 }
 
             }
-                    //Kontrola parametru, pokud parametr není proměnná
+                //Kontrola parametru, pokud parametr není proměnná
             else if (exp_function && (sString == new_element->type || sDouble == new_element->type ||
-                                          sInteger == new_element->type)) {
+                                      sInteger == new_element->type)) {
                 if ((error_type = checkParams(new_element, new_element->type)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Předání hodnot parametrům funkce při její volání */
                 operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
                 operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
                 writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             }
 
 
-                //Pushne se znak na vrchol stacku, který je zároveň nejvyšší terminál
+            //Pushne se znak na vrchol stacku, který je zároveň nejvyšší terminál
             SPush(expression_stack, new_element);
             first_terminal = expression_stack->top_of_stack;
             return ERROR_CODE_OK;
@@ -334,7 +332,6 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
     if(expression_stack != NULL) {
         tStack *stack_item = expression_stack->top_of_stack;
-        //operation = 0;
 
         //Zjistí se, které pravidlo se uplatní pro redukci
         switch (((Exp_element *) (first_terminal->value))->pt_index) {
@@ -351,29 +348,31 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if(!exp_function) {
 
+                    /* GENEROVÁNÍ KÓDU: Operand se pushne na zásobník */
                     operand1 = initOperand(operand1, ((Exp_element *) (stack_item->value))->value.value,
                                            ((Exp_element *) (stack_item->value))->token_type, F_LF, false, false,
                                            false, I_DEFAULT);
                     writeInstructionOneOperand(&instList, I_PUSHS, operand1);
                 }
 
-                //operation = eOperand;
                 return ERROR_CODE_OK;
 
                 //Řeší redukci násobení
             case eMultiply:
                 if((error_type = checkBinary(expression_stack, eMultiply)) != ERROR_CODE_OK)
                     return error_type;
-                writeInstructionNoOperand(&instList, I_MULS);
 
-                //operation = eMultiply;
+                /* GENEROVÁNÍ KÓDU: Operace * */
+                writeInstructionNoOperand(&instList, I_MULS);
                 break;
+
                 //Řeší redukci dělení
             case eDivideD:
 
                 if((error_type = checkBinary(expression_stack, eDivideD)) != ERROR_CODE_OK)
                     return error_type;
-                //operation = eDivideD;
+
+                /* GENEROVÁNÍ KÓDU: Operace / */
                 writeInstructionNoOperand(&instList, I_DIVS);
                 break;
 
@@ -382,8 +381,8 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eDivideI)) != ERROR_CODE_OK)
                     return error_type;
-                //operation = eDivideI;
 
+                /* GENEROVÁNÍ KÓDU: Operace \ */
                 writeInstructionNoOperand(&instList, I_DIVS);
                 writeInstructionNoOperand(&instList,I_FLOAT2INTS);
                 break;
@@ -393,7 +392,6 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                 if((error_type = checkBinary(expression_stack, ePlus)) != ERROR_CODE_OK)
                     return error_type;
                 if(((Exp_element*)(expression_stack->top_of_stack->value))->type == sString){
-                    //###
                     if(!concat_move_done) {
                         operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                         operand2 = initOperand(operand2,
@@ -403,26 +401,27 @@ ERROR_CODE useRule(ptrStack *expression_stack){
                         writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
                         concat_move_done = true;
                     }
-                    // concat dvou stringů
+
+                    /* GENEROVÁNÍ KÓDU: Operace + se stringy */
                     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                     operand2 = initOperand(operand3, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
                     operand3 = initOperand(operand2, ((Exp_element*)(expression_stack->top_of_stack->value))->value.value, ((Exp_element*)(expression_stack->top_of_stack->value))->token_type, F_LF, false, false, false, I_DEFAULT);
                     writeInstructionThreeOperands(&instList, I_CONCAT, operand1, operand2, operand3);
                     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
                     writeInstructionOneOperand(&instList, I_PUSHS, operand1);
-                    /*if(((Exp_element*)expression_stack->top_of_stack->left->left->value)->token_type == sString)
-                        stringAddChars(&((Exp_element*)expression_stack->top_of_stack->left->left->value)->value,((Exp_element*)(expression_stack->top_of_stack->value))->value.value);
-*/
                 } else
+
+                    /* GENEROVÁNÍ KÓDU: Operace + s čísly */
                     writeInstructionNoOperand(&instList, I_ADDS);
 
-                //operation = ePlus;
                 break;
 
                 //Řeší redukci odčítání
             case eMinus:
                 if((error_type = checkBinary(expression_stack, eMinus)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace - */
                 writeInstructionNoOperand(&instList, I_SUBS);
                 break;
 
@@ -431,58 +430,65 @@ ERROR_CODE useRule(ptrStack *expression_stack){
 
                 if((error_type = checkBinary(expression_stack, eEqual)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace = */
                 writeInstructionNoOperand(&instList, I_EQS);
-                //operation = eEqual;
                 break;
 
                 //Řeší redukci nerovnosti
             case eNotEqual:
                 if((error_type = checkBinary(expression_stack, eNotEqual)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace <> */
                 writeInstructionNoOperand(&instList, I_EQS);
                 writeInstructionNoOperand(&instList, I_NOTS);
-                //operation = eNotEqual;
                 break;
 
                 //Řeší redukci menšítka
             case eLess:
                 if((error_type = checkBinary(expression_stack, eLess)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace < */
                 writeInstructionNoOperand(&instList, I_LTS);
-                //operation = eLess;
                 break;
 
                 //Řeší redukci většítka
             case eMore:
                 if((error_type = checkBinary(expression_stack, eMore)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace > */
                 writeInstructionNoOperand(&instList, I_GTS);
-                //operation = eMore;
                 break;
 
                 //Řeší redukci menší nebo rovno
             case eLessEqual:
                 if((error_type = checkBinary(expression_stack, eLessEqual)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace <= */
                 writeInstructionNoOperand(&instList, I_GTS);
                 writeInstructionNoOperand(&instList, I_NOTS);
-                //operation = eLessEqual;
                 break;
 
                 //Řeší redukci větší nebo rovno
             case eMoreEqual:
                 if((error_type = checkBinary(expression_stack, eMoreEqual)) != ERROR_CODE_OK)
                     return error_type;
+
+                /* GENEROVÁNÍ KÓDU: Operace >= */
                 writeInstructionNoOperand(&instList, I_LTS);
                 writeInstructionNoOperand(&instList, I_NOTS);
-                //operation = eMoreEqual;
                 break;
 
             case eRightPar:
                 if((error_type = reduceFunction(expression_stack)) != ERROR_CODE_OK)
                     return error_type;
-                //operation = eFunction;
                 return ERROR_CODE_OK;
+            default:
+                break;
 
         }
 
@@ -546,7 +552,7 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
         tStack *tmp = expression_stack->top_of_stack->left; //Dočasné úložiště pro neterminál mezi závorkami
 
         if (((Exp_element *) (stack_item->left->value))->terminal == false &&
-           ((Exp_element*)(stack_item->left->left->value))->pt_index == eLeftPar){
+            ((Exp_element *) (stack_item->left->left->value))->pt_index == eLeftPar) {
 
             //Ze zásobníku se popnou 3 prvku
             for (int i = 0; i < 3; ++i) {
@@ -561,7 +567,6 @@ ERROR_CODE reducePars(ptrStack *expression_stack){
 
                 first_terminal = expression_stack->top_of_stack->left;
                 ((Exp_element*) (first_terminal->value))->handle = false;
-                //operation = eRightPar;
             }
             else
                 return ERROR_CODE_SYN;
@@ -589,11 +594,11 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
             SPop(expression_stack);
             del_element = ((Exp_element *) (expression_stack->top_of_stack->value));
         }
-        //operation = eFunction;
         ((Exp_element*)expression_stack->top_of_stack->value)->handle = false;
         ((Exp_element*)expression_stack->top_of_stack->value)->terminal = false;
         first_terminal = expression_stack->top_of_stack->left;
 
+        /* GENEROVÁNÍ KÓDU: Zavolá se funkce. Až se vykoná, zruší se frame*/
         operand1 = initOperand(operand1, ((Exp_element*)expression_stack->top_of_stack->value)->value.value,  sIdentificator, F_LF, false, true, false, I_DEFAULT);
         writeInstructionOneOperand(&instList, I_CALL, operand1);
         writeInstructionNoOperand(&instList, I_POPFRAME);
@@ -630,6 +635,8 @@ ERROR_CODE checkParams(Exp_element *element,int variable){
                 if (variable != sString)
                     return ERROR_CODE_SEM_COMP;
                 break;
+            default:
+                break;
         }
         //Zvedne se index pro kontrolu dalšího parametru
         parameter_index++;
@@ -655,34 +662,43 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
         //Pokud není ani jeden z operandů string, oba se přetypují na int
         if (operand_type_l->type != sString && operand_type_r->type != sString){
             operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-           // writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
 
             if(operand_type_r->type == sDouble){
 
                 operand_type_r->type = sInteger;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand a přetypuje ho*/
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
                 writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand2,operand2);
 
             }
             else
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
 
             operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if(operand_type_l->type == sDouble){
                 operand_type_l->type = sInteger;
 
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
                 writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand1,operand1);
 
             } else
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
 
 
+            /* GENEROVÁNÍ KÓDU: Inty se musí přetypovat zpět na float*/
             writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
             writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
 
+
+            /* GENEROVÁNÍ KÓDU: Operandy se pushnou zpět na stack ve správném pořadí */
             writeInstructionOneOperand(&instList, I_PUSHS, operand1);
             writeInstructionOneOperand(&instList, I_PUSHS, operand2);
 
@@ -704,35 +720,41 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             //Jestli je jeden z operandů double, druhý se přetypuje na double
         else {
             operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-            //writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
 
             if (operand_type_r->type == sInteger && operand_type_l->type == sDouble) {
                 operand_type_r->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand a přetypuje ho*/
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
 
             } else{
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
             }
 
 
             operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if (operand_type_l->type == sInteger && operand_type_r->type == sDouble) {
                 operand_type_l->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
             }
             else{
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand*/
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
             }
 
+            /* GENEROVÁNÍ KÓDU: Operandy se pushnou zpět na stack ve správném pořadí */
             writeInstructionOneOperand(&instList, I_PUSHS, operand1);
             writeInstructionOneOperand(&instList, I_PUSHS, operand2);
         }
 
-        //Jinak máme v operaci dva stringy...
     }
 
         //Jestli se provádí operace *,/,-
@@ -745,67 +767,77 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
             //Jestli je jeden z operandů double, druhý se přetypuje na double
         else {
             operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-            //writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
 
             if (operand_type_r->type == sInteger && operand_type_l->type == sDouble) {
                 operand_type_r->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand a přetypuje ho*/
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
 
             } else{
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
             }
 
 
             operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-            //writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if (operand_type_l->type == sInteger && operand_type_r->type == sDouble) {
                 operand_type_l->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
             }
             else{
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
             }
 
+            /* GENEROVÁNÍ KÓDU: Operandy se pushnou zpět na stack ve správném pořadí */
             writeInstructionOneOperand(&instList, I_PUSHS, operand1);
             writeInstructionOneOperand(&instList, I_PUSHS, operand2);
         }
     }
     else if(operator == eDivideD){
-            //Jestli je jeden z operandů string, je to sem. chyba
+        //Jestli je jeden z operandů string, je to sem. chyba
         if (operand_type_l->type == sString || operand_type_r->type == sString){
             return ERROR_CODE_SEM_COMP;
         }
             //Jestli je jeden z operandů double, druhý se přetypuje na double
         else {
+
             operand2 = initOperand(operand2, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-           // writeInstructionOneOperand(&instList, I_DEFVAR, operand2);
 
             if(operand_type_r->type == sInteger){
                 operand_type_r->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand2,operand2);
             }
             else
+                /* GENEROVÁNÍ KÓDU: Vezme si p. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
 
             operand1 = initOperand(operand1, "tmp_type", sIdentificator, F_GF, false, false, false, I_DEFAULT);
-           // writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
             if(operand_type_l->type == sInteger) {
                 operand_type_l->type = sDouble;
+
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
                 writeInstructionTwoOperands(&instList, I_INT2FLOAT,operand1,operand1);
             }
             else{
+                /* GENEROVÁNÍ KÓDU: Vezme si l. operand */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
             }
 
-
-
-
+            /* GENEROVÁNÍ KÓDU: Operandy se pushnou zpět na stack ve správném pořadí */
             writeInstructionOneOperand(&instList, I_PUSHS, operand1);
             writeInstructionOneOperand(&instList, I_PUSHS, operand2);
         }
@@ -817,17 +849,20 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
     return ERROR_CODE_OK;
 }
 
-/* OPRAVIT*/
 ERROR_CODE checkResultType(ptrStack *expression_stack){
     if(operation_type_global == sDouble && ((Exp_element*)expression_stack->top_of_stack->value)->type != sDouble){
+
+        /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z intu na float */
         writeInstructionNoOperand(&instList, I_INT2FLOATS);
     }
     else if(operation_type_global == sInteger && ((Exp_element*)expression_stack->top_of_stack->value)->type != sInteger){
+
+        /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z floatu na int */
         writeInstructionNoOperand(&instList, I_FLOAT2INTS);
     }
 
     if(( ((Exp_element*)expression_stack->top_of_stack->value)->type != sString && sString == operation_type_global) ||
-            (((Exp_element*)expression_stack->top_of_stack->value)->type == sString && sString != operation_type_global))
+       (((Exp_element *) expression_stack->top_of_stack->value)->type == sString && sString != operation_type_global))
         return ERROR_CODE_SEM_COMP;
     tmpToken.type=((Exp_element*)expression_stack->top_of_stack->value)->type;
     return ERROR_CODE_OK;
@@ -934,6 +969,8 @@ int convertTokenToIndex(int token_num){
 
         case sComma:
             return eComma;
+        default:
+            break;
     }
     return eOther;
 }

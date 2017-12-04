@@ -10,11 +10,8 @@
  *            xrutad00, Dominik Ruta
  */
 #include "parser.h"
-#include "instlist.h"
-#include "string.h"
-#include "scanner.h"
-#include <stdlib.h>
-#include <ctype.h>
+
+#define MAXINTLENGTH 10
 
 extern tDLListInstruction instList;
 extern tSymtable glSymTable;
@@ -110,33 +107,21 @@ int adjustTokenType(tToken tok) {
 }
 
 
-void zmenLabel(string actualLabel, char *type, bool inc, int kolik) {
+void zmenLabel(string actualLabel, char *type, int newNumber) {
     int value;
     string tmp;
     stringInit(&tmp);
     stringAddChars(&tmp, actualLabel.value);
-    char *p;
-    p = actualLabel.value;
-    while (*p) { // While there are more characters to process...
-        if (isdigit(*p)) { // Upon finding a digit, ...
-            value = strtol(p, &p, 10); // Read a number, ...
-            if (inc)
-                value = kolik; // and print it.
-            else
-                value = kolik;
-        } else { // Otherwise, move on to the next character.
-            p++;
-        }
-    }
+    value = newNumber;
 
     char *cislo;
-    cislo = malloc(10);
+    cislo = malloc(MAXINTLENGTH);
     sprintf(cislo, "%d", value);
     stringClear(&actualLabel);
 
     stringAddChars(&actualLabel, type);
     stringAddChars(&actualLabel, cislo);
-
+    free(cislo);
 }
 
 
@@ -192,12 +177,12 @@ int parse() {
 }
 
 //Funkce na "pozirani" EOLU
-int Line() {
+int smazEOL() {
     int result;
     switch (aktualni_token.type) {
         case sEndOfLine:
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = Line();
+            result = smazEOL();
         default:
             return ERROR_CODE_OK;
 
@@ -212,7 +197,7 @@ int Program() {
     switch (aktualni_token.type) {
         //Jeste nez bude prvni deklarace, definice, nebo scope mohou byt prazdne radky
         case sEndOfLine:
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
         case sDeclare:
         case sFuntion:
@@ -224,7 +209,7 @@ int Program() {
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfFile) return ERROR_CODE_SYN;
             return ERROR_CODE_OK;
@@ -305,7 +290,7 @@ int Telo_programu() {
             inScope = true;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             // Generování $$scope
             operand1 = initOperand(operand1, "", sKeyWord, F_DEFAULT, false, false, true, I_DEFAULT);
@@ -341,7 +326,7 @@ int Deklarace_fce() {
             if (result != ERROR_CODE_OK) return result;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
@@ -373,7 +358,7 @@ int Definice_fce() {
             }
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             //Jdeme do tela funkce
             result = Telo_funkce();
@@ -383,7 +368,7 @@ int Definice_fce() {
             if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
@@ -788,7 +773,7 @@ int Prikaz() {
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <Input><Id><EOL>
@@ -798,12 +783,12 @@ int Prikaz() {
             //Promenna musi byt v tabulce symbolu abychom do ni mohli neco prirazovat
             if (!inScope) {
                 //Nejsem ve scope, takze se divam do lokalni tabulky
-                if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                if (symTableSearch(&table, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
                 node = symTableSearch(&table, aktualni_token.atr);
 
             } else {
                 //Jsem ve scope, divam se do globalni tabulky
-                if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                if (symTableSearch(&glSymTable, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
                 node = symTableSearch(&glSymTable, aktualni_token.atr);
             }
 
@@ -841,27 +826,23 @@ int Prikaz() {
 */
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (zanoreniAktualniIf == 0) {
                 labelAktualniIf += zanoreniCelkemIf;
-                zmenLabel(labelIf, "if", true, zanoreniCelkemIf);
-                zmenLabel(labelElse, "else", true, zanoreniCelkemIf);
-                zmenLabel(labelEndIf, "endif", true, zanoreniCelkemIf);
+                zmenLabel(labelIf, "if", zanoreniCelkemIf);
+                zmenLabel(labelElse, "else", zanoreniCelkemIf);
+                zmenLabel(labelEndIf, "endif", zanoreniCelkemIf);
             }
             zanoreniAktualniIf++;
             labelAktualniIf++;
             zanoreniCelkemIf++;
-            zmenLabel(labelIf, "if", true, labelAktualniIf);
-            zmenLabel(labelElse, "else", true, labelAktualniIf);
-            zmenLabel(labelEndIf, "endif", true, labelAktualniIf);
-
-
-
-
+            zmenLabel(labelIf, "if", labelAktualniIf);
+            zmenLabel(labelElse, "else", labelAktualniIf);
+            zmenLabel(labelEndIf, "endif", labelAktualniIf);
 
 
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
@@ -883,7 +864,7 @@ int Prikaz() {
             if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
 
 
@@ -897,7 +878,7 @@ int Prikaz() {
             if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
 
             // výraz je true, provedly se příkazy za then, else se přeskočí
@@ -916,7 +897,7 @@ int Prikaz() {
             if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
 
             // vygeneruje labl endifu
@@ -925,22 +906,22 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
             labelAktualniIf--;
             zanoreniAktualniIf--;
-            zmenLabel(labelIf, "if", true, labelAktualniIf);
-            zmenLabel(labelElse, "else", true, labelAktualniIf);
-            zmenLabel(labelEndIf, "endif", true, labelAktualniIf);
+            zmenLabel(labelIf, "if", labelAktualniIf);
+            zmenLabel(labelElse, "else", labelAktualniIf);
+            zmenLabel(labelEndIf, "endif", labelAktualniIf);
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
             if (zanoreniAktualniWhile == 0) {
                 labelAktualniWhile += zanoreniCelkemWhile;
-                zmenLabel(labelWhile, "while", true, zanoreniCelkemWhile);
-                zmenLabel(labelLoop, "loop", true, zanoreniCelkemWhile);
+                zmenLabel(labelWhile, "while", zanoreniCelkemWhile);
+                zmenLabel(labelLoop, "loop", zanoreniCelkemWhile);
             }
             zanoreniAktualniWhile++;
             labelAktualniWhile++;
             zanoreniCelkemWhile++;
-            zmenLabel(labelWhile, "while", true, labelAktualniWhile);
-            zmenLabel(labelLoop, "loop", true, labelAktualniWhile);
+            zmenLabel(labelWhile, "while", labelAktualniWhile);
+            zmenLabel(labelLoop, "loop", labelAktualniWhile);
 
             // vygenerování labelu dowhile
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
@@ -962,7 +943,7 @@ int Prikaz() {
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             // Vygenerování podmíněné skoku na konec cyklu
             operand1 = initOperand(operand1, labelLoop.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
@@ -975,7 +956,7 @@ int Prikaz() {
             if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
             if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             // vygenerování labelu loop
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
@@ -986,14 +967,14 @@ int Prikaz() {
 
             labelAktualniWhile--;
             zanoreniAktualniWhile--;
-            zmenLabel(labelWhile, "while", true, labelAktualniWhile);
-            zmenLabel(labelLoop, "loop", true, labelAktualniWhile);
+            zmenLabel(labelWhile, "while", labelAktualniWhile);
+            zmenLabel(labelLoop, "loop", labelAktualniWhile);
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
             if (!inScope) {
                 //Budu prirazovat do promenne a jsem ve funkci, podivam se jestli je v lokalni tabulce
-                if (!((symTableSearch(&table, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                if (symTableSearch(&table, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
                 node = symTableSearch(&table, aktualni_token.atr);
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
@@ -1002,7 +983,7 @@ int Prikaz() {
 
             } else {
                 //Budu prirazovat do promenne a jsem ve scopu, podivam se jestli je v globalni tabulce
-                if (!((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL)) return ERROR_CODE_SEM;
+                if (symTableSearch(&glSymTable, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
                 node = symTableSearch(&glSymTable, aktualni_token.atr);
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
@@ -1020,7 +1001,7 @@ int Prikaz() {
             writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             if (result != ERROR_CODE_OK) return result;
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
@@ -1048,7 +1029,7 @@ int Prikaz() {
             //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             writeInstructionNoOperand(&instList, I_RETURN);
             if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = Line();
+            result = smazEOL();
             if (result != ERROR_CODE_OK) return result;
             break;
     }
@@ -1110,11 +1091,11 @@ int Deklarace_promenne() {
                 case sAssignment:
                     result = Prirazeni_hodnoty();
                     if (result != ERROR_CODE_OK) return result;
-                    result = Line();
+                    result = smazEOL();
                     if (result != ERROR_CODE_OK) return result;
                     return ERROR_CODE_OK;
                 case sEndOfLine:
-                    result = Line();
+                    result = smazEOL();
                     if (expectedValue == sInteger) {
                         operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
                                                I_DEFAULT);
