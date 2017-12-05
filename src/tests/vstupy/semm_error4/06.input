@@ -1,5 +1,0 @@
-/' prirazeni stringu do integeru  '/
-
-scope
-dim a as integer = !"ahoj"
-end scope

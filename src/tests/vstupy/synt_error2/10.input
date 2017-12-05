@@ -1,9 +1,0 @@
-/' chybi prava cast prirazeni '/
-function funkce() as double
-	return 25.2e2
-end function
-
-scope
-	dim vysl as double
-	vysl = /'funkce() '/
-end scope

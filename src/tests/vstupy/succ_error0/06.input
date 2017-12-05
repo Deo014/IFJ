@@ -1,7 +1,0 @@
-/' pouze definice funkce '/
-
-function funkce1() as integer
-end function
-
-scope
-end scope

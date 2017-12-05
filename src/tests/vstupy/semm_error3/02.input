@@ -1,9 +1,0 @@
-/' deklarovana funkce ma jine argumenty, nez definovana + je znova definovana s jinymi parametry'/
-
-declare function funkce(a as double, b as integer) as integer
-
-function funkce (a as double, b as double) as integer
-end function
-
-scope
-end scope

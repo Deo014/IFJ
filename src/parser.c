@@ -10,13 +10,13 @@
  *            xrutad00, Dominik Ruta
  */
 #include "parser.h"
-
+//pomocná proměnná pro alokaci při číslování návěští
 #define MAXINTLENGTH 10
 
 extern tDLListInstruction instList;
 extern tSymtable glSymTable;
 extern tSymtable table;
-tToken aktualni_token;
+tToken actual_token;
 tBSTNodePtr node;
 tBSTNodePtr glNode;
 extern tToken next_exp_token;
@@ -107,23 +107,22 @@ int adjustTokenType(tToken tok) {
 }
 
 //Funkce upravi cislo navesti pro zapis instrukce
-int zmenLabel(string actualLabel, char *type, int newNumber) {
+int adjustLabel(string actualLabel, char *type, int newNumber) {
     string tmp;
     stringInit(&tmp);
     stringAddChars(&tmp, actualLabel.value);
-    char *cislo;
-    cislo = malloc(MAXINTLENGTH);
-    if (cislo == NULL)
+    char *num;
+    num = malloc(MAXINTLENGTH);
+    if (num == NULL)
         return ERROR_CODE_INTERNAL;
-    sprintf(cislo, "%d", newNumber);
+    sprintf(num, "%d", newNumber);
     stringClear(&actualLabel);
 
     stringAddChars(&actualLabel, type);
-    stringAddChars(&actualLabel, cislo);
-    free(cislo);
+    stringAddChars(&actualLabel, num);
+    free(num);
     return ERROR_CODE_OK;
 }
-
 
 //Funkce projde tabulku a zkontroluje jestli byly vsechny deklarovane funkce i definovane
 void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) {
@@ -139,10 +138,10 @@ void checkDefinitionsOfDeclarations(tBSTNodePtr TempTree) {
 }
 
 //Funkce nacte dalsi token a upravi jeho typ pokud ze scanneru prisel stav klicove slovo
-int dalsiToken() {
-    aktualni_token = getNextToken();
-    if (aktualni_token.type != sLexError) {
-        aktualni_token.type = adjustTokenType(aktualni_token);
+int nextToken() {
+    actual_token = getNextToken();
+    if (actual_token.type != sLexError) {
+        actual_token.type = adjustTokenType(actual_token);
         return ERROR_CODE_OK;
     } else
         return ERROR_CODE_LEX;
@@ -159,8 +158,8 @@ int parse() {
     stringInit(&test);
     int result;
     //Nacteni prvniho tokenu
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    if (aktualni_token.type == sLexError)
+    if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (actual_token.type == sLexError)
         result = ERROR_CODE_LEX;
     else
         //Prvni token je v poradku, volame prvni pravidlo
@@ -177,12 +176,12 @@ int parse() {
 }
 
 //Funkce na "pozirani" EOLU
-int smazEOL() {
+int EOLY() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         case sEndOfLine:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = EOLY();
         default:
             return ERROR_CODE_OK;
 
@@ -194,10 +193,10 @@ int smazEOL() {
 int Program() {
     //<Program> -> <Deklarace_funkci_definice_funkci><Telo_programu><EOF>
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //Jeste nez bude prvni deklarace, definice, nebo scope mohou byt prazdne radky
         case sEndOfLine:
-            result = smazEOL();
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
         case sDeclare:
         case sFuntion:
@@ -208,10 +207,10 @@ int Program() {
             //Vstup do tela programu
             result = Telo_programu();
             if (result != ERROR_CODE_OK) return result;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEndOfFile) return ERROR_CODE_SYN;
+            if (actual_token.type != sEndOfFile) return ERROR_CODE_SYN;
             return ERROR_CODE_OK;
     }
     return ERROR_CODE_SYN;
@@ -219,7 +218,7 @@ int Program() {
 
 int Deklarace_fci_definice_fci() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Deklarace_funkci_definice_funkci> -> < Nekolik_Deklaraci_fce > <Deklarace_funkci_definice_funkci>
         case sDeclare:
             result = Nekolik_deklaraci_fce();
@@ -244,7 +243,7 @@ int Deklarace_fci_definice_fci() {
 
 int Nekolik_deklaraci_fce() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Nekolik_Deklaraci_fce> -> <Deklarace_fce> <Nekolik_Deklaraci_fce>
         case sDeclare:
             result = Deklarace_fce();
@@ -262,7 +261,7 @@ int Nekolik_deklaraci_fce() {
 
 int Nekolik_definici_fce() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Nekolik_Definici_fce> -> < Definice_fce><Nekolik_Definici_fce>
         case sFuntion:
             result = Definice_fce();
@@ -280,7 +279,7 @@ int Nekolik_definici_fce() {
 int Telo_programu() {
     //<Telo_programu> -> <Scope><Deklarace_promennych_a _prikazy><End><Scope>
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         case sScope:
             //Pred vstupem do tela programu zkontrolujeme jestli vsechny deklarovane funkce byly i definovany
             checkDefinitionsOfDeclarations(glSymTable.root);
@@ -288,9 +287,9 @@ int Telo_programu() {
                 return ERROR_CODE_SEM;
             //Pomocnou promennou nastavime ze jsme ve scopu
             inScope = true;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             // Generování $$scope
             operand1 = initOperand(operand1, "", sKeyWord, F_DEFAULT, false, false, true, I_DEFAULT);
@@ -300,9 +299,9 @@ int Telo_programu() {
             //Ve scope budou dekalrace promennych a prikazy
             result = Deklarace_prom_a_prikazy();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sScope) return ERROR_CODE_SYN;
+            if (actual_token.type != sEnd) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sScope) return ERROR_CODE_SYN;
             // generování $endscope
             writeInstructionNoOperand(&instList, I_POPFRAME);
             operand1 = initOperand(operand1, "%endscope", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
@@ -315,18 +314,18 @@ int Telo_programu() {
 int Deklarace_fce() {
     //<Deklarace_fce> -> <Declare> <Hlavicka_fce><EOL>
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         case sDeclare:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sFuntion) return ERROR_CODE_SYN;
             //Pomocnou promennou si nastavime ze jdeme z deklarace ne z definice
             comingFromDefinition = false;
             //A jdeme do hlavicky fce
             result = Hlavicka_fce();
             if (result != ERROR_CODE_OK) return result;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
@@ -336,7 +335,7 @@ int Deklarace_fce() {
 int Definice_fce() {
     //<Definice_fce> -> <Hlavicka_fce><EOL><Telo_fce><End><Function><EOL>
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         case sFuntion:
             //Pomocnou promennou si nastavime ze jdeme z definice ne z deklarace
             comingFromDefinition = 1;
@@ -356,19 +355,19 @@ int Definice_fce() {
                     //Pocet parametru v definici neni stejny jako v deklaraci, takze error
                     return ERROR_CODE_SEM;
             }
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             //Jdeme do tela funkce
             result = Telo_funkce();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sFuntion) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sEnd) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sFuntion) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
     }
@@ -378,17 +377,17 @@ int Definice_fce() {
 int Hlavicka_fce() {
     //<Hlavicka_fce> -> <Function><Id><<(><Parametry><)><As><Typ>
     int result;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+    if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (actual_token.type != sIdentificator) return ERROR_CODE_SYN;
     //Jedna se o definici nebo deklaraci?
     if (comingFromDefinition == true) {
         //Pokus o definici fce
         //Podivame se jestli je uz fce v tabulce
         //Uchovame si v promenne jmeno definovane funkce
-        functionName = aktualni_token.atr;
-        if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) {
+        functionName = actual_token.atr;
+        if ((symTableSearch(&glSymTable, actual_token.atr)) != NULL) {
             //V tabulce uz je o teto funkci nejaky zaznam
-            node = symTableSearch(&glSymTable, aktualni_token.atr);
+            node = symTableSearch(&glSymTable, actual_token.atr);
             if (((tDataFunction *) node->Data)->defined == true) {
                 //Uz byla definovana, pokus o redefinici -> error
                 return ERROR_CODE_SEM;
@@ -398,8 +397,8 @@ int Hlavicka_fce() {
             }
         } else {
             //Neni v tabulce, a jdu z definice, vlozim a reknu ze je od ted definovana a deklarovana
-            symTableInsertFunction(&glSymTable, aktualni_token.atr);
-            node = symTableSearch(&glSymTable, aktualni_token.atr);
+            symTableInsertFunction(&glSymTable, actual_token.atr);
+            node = symTableSearch(&glSymTable, actual_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
             //Kvuli kontrole parametru si ulozim do promenne ze byla ted deklarovana/definovana
             declRecently = true;
@@ -409,11 +408,11 @@ int Hlavicka_fce() {
     } else {
         //Comingfromdefinition==0, takze jsem tu z deklarace
         //Neco o funkci tam je, coz u deklarace nelze
-        if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+        if ((symTableSearch(&glSymTable, actual_token.atr)) != NULL) return ERROR_CODE_SEM;
         else {
             //Jdu z deklarace a fce je deklarovana poprve
-            symTableInsertFunction(&glSymTable, aktualni_token.atr);
-            node = symTableSearch(&glSymTable, aktualni_token.atr);
+            symTableInsertFunction(&glSymTable, actual_token.atr);
+            node = symTableSearch(&glSymTable, actual_token.atr);
             ((tDataFunction *) node->Data)->declared = true;
             declRecently = true;
             //Jdu z deklarace, takze to, ze je definovana nastavim na false
@@ -421,25 +420,25 @@ int Hlavicka_fce() {
         }
 
     }
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    if (aktualni_token.type != sLeftPar)return ERROR_CODE_SYN;
+    if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (actual_token.type != sLeftPar)return ERROR_CODE_SYN;
     //Vynuluju index parametru pro kontrolu nebo vkladani
     paramIndex = 0;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
     //Jdu do parametru
     result = Parametry();
     if (result != ERROR_CODE_OK)return result;
-    if (aktualni_token.type != sRightPar)return ERROR_CODE_SYN;
-    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
-    if (aktualni_token.type != sAs)return ERROR_CODE_SYN;
-    if (dalsiToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
+    if (actual_token.type != sRightPar)return ERROR_CODE_SYN;
+    if (nextToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
+    if (actual_token.type != sAs)return ERROR_CODE_SYN;
+    if (nextToken() != ERROR_CODE_OK)return ERROR_CODE_LEX;
     result = Typ();
     if (result != ERROR_CODE_OK)return result;
     //Jeste se musi zaznamenat navratovy typ fce
     if (comingFromDefinition == 1) {
         if (declRecently != true) {
             //Jdu z definice a funkce byla kdysi deklarovana, takze zkontoluju parametry v definici s temi v drivejsi deklaraci
-            switch (aktualni_token.type) {
+            switch (actual_token.type) {
                 case tInteger:
                     if ((((tDataFunction *) node->Data)->returnDataType) != sInteger)
                         //Parametr nesouhlasi, takze chyba
@@ -462,7 +461,7 @@ int Hlavicka_fce() {
 
         } else {
             //Funkci prave definuji, takze musim zaznamenat i jeji navratovy typ
-            switch (aktualni_token.type) {
+            switch (actual_token.type) {
                 case tInteger:
                     ((tDataFunction *) node->Data)->returnDataType = sInteger;
                     break;
@@ -477,7 +476,7 @@ int Hlavicka_fce() {
         }
     } else {
         //Jdu z deklarace, tudiz funkce jeste nebyla definovana, takze rovnou zaznamenam jeji navratovy typ
-        switch (aktualni_token.type) {
+        switch (actual_token.type) {
             case tInteger:
                 ((tDataFunction *) node->Data)->returnDataType = sInteger;
                 break;
@@ -496,7 +495,7 @@ int Hlavicka_fce() {
 }
 
 int Typ() {
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Typ> -> <Integer>
         //<Typ> -> <Double>
         //<Typ> -> <String>
@@ -512,18 +511,18 @@ int Typ() {
 
 int Parametry() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Parametry> -> <Id><As><Typ><Dalsi_parametry>
         case sIdentificator:
-            paramName = aktualni_token.atr;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            paramName = actual_token.atr;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sAs) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
             if (comingFromDefinition == 0) {
                 //Jdu z deklarace, parametry nekontroluju jen zapisu, protoze zadny zaznam o funkci jeste neni
-                switch (aktualni_token.type) {
+                switch (actual_token.type) {
                     case tInteger:
                         stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
                         //Zkontroluji jestli se nektery z predchozich parametru nejmenuje stejne jako ten, co ted vkladam
@@ -569,7 +568,7 @@ int Parametry() {
 
                 //Jdu z definice a funkce byla deklarovana, musim zkontrolovat, jestli souhlasi typy parametru
                 if (!declRecently) {
-                    switch (aktualni_token.type) {
+                    switch (actual_token.type) {
                         case tInteger:
                             //  stringAddChar(,'a');
                             if (((tDataFunction *) node->Data)->parameters.value[paramIndex] != 'i')
@@ -591,7 +590,7 @@ int Parametry() {
 
 
                 } else {
-                    switch (aktualni_token.type) {
+                    switch (actual_token.type) {
                         case tInteger:
                             //  stringAddChar(,'a');
                             stringAddChar(&((tDataFunction *) node->Data)->parameters, 'i');
@@ -637,7 +636,7 @@ int Parametry() {
             }
             //Pri pristim pruchodu se bude resit dalsi parametr v poradi, takze inkrementurju jeho index
             paramIndex++;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Dalsi_parametry();
             if (result != ERROR_CODE_OK) return result;
             return ERROR_CODE_OK;
@@ -653,11 +652,11 @@ int Parametry() {
 
 int Dalsi_parametry() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Dalsi_parametry> -> <,><Parametry><Dalsi_parametry>
         case sComma:
             //Carka, takze bude dalsi parametr
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Parametry();
             if (result != ERROR_CODE_OK) return result;
             return Dalsi_parametry();
@@ -705,7 +704,7 @@ int Telo_funkce() {
 
 int Deklarace_promennych() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //< Deklarace _promennych> ->< Deklarace_promenne> <Deklarace_promennych>
         case sDim:
             result = Deklarace_promenne();
@@ -729,7 +728,7 @@ int Deklarace_promennych() {
 
 int Prikazy() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Prikazy> -> <Prikaz><Prikazy>
         case sPrint:
         case sInput:
@@ -755,10 +754,10 @@ int Prikazy() {
 
 int Prikaz() {
     int result = 0;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Prikaz> -> <Print><Vyraz><;><Dalsi_vyrazy><EOL>
         case sPrint:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Tisknout muzu jakykoliv typ vyrazu bez kontroly, nastavim promennou na -1 jako signal expressionu,
             //ze ho nemusi kontrolovat
             expectedValue = -1;
@@ -768,28 +767,28 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_WRITE, operand1);
 
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sSemicolon) return ERROR_CODE_SYN;
+            if (actual_token.type != sSemicolon) return ERROR_CODE_SYN;
             if (result != ERROR_CODE_OK) return result;
             result = Dalsi_vyrazy();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <Input><Id><EOL>
         case sInput:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sIdentificator) return ERROR_CODE_SYN;
             //Promenna musi byt v tabulce symbolu abychom do ni mohli neco prirazovat
             if (!inScope) {
                 //Nejsem ve scope, takze se divam do lokalni tabulky
-                if (symTableSearch(&table, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
-                node = symTableSearch(&table, aktualni_token.atr);
+                if (symTableSearch(&table, actual_token.atr) == NULL) return ERROR_CODE_SEM;
+                node = symTableSearch(&table, actual_token.atr);
 
             } else {
                 //Jsem ve scope, divam se do globalni tabulky
-                if (symTableSearch(&glSymTable, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
-                node = symTableSearch(&glSymTable, aktualni_token.atr);
+                if (symTableSearch(&glSymTable, actual_token.atr) == NULL) return ERROR_CODE_SEM;
+                node = symTableSearch(&glSymTable, actual_token.atr);
             }
 
             //Overeni ze klic co jsme nasli je promenna a ne funkce, protze do funkce nic prirazovat nechci
@@ -798,8 +797,8 @@ int Prikaz() {
 
             operand1 = initOperand(operand1, "?\\032", sString, F_LF, false, false, false, F_DEFAULT);
             writeInstructionOneOperand(&instList, I_WRITE, operand1);
- 
-            operand1 = initOperand(operand1, aktualni_token.atr.value, sIdentificator, F_LF, false, false, false,
+
+            operand1 = initOperand(operand1, actual_token.atr.value, sIdentificator, F_LF, false, false, false,
                                    F_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, false, false, false,
                                    ((tDataVariable *) node->Data)->dataType);
@@ -824,47 +823,47 @@ int Prikaz() {
             }
 
 */
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <If><Vyraz><Then><EOL><Prikazy><Else><EOL><Prikazy><End><If><EOL>
         case sIf:
             if (zanoreniAktualniIf == 0) {
                 labelAktualniIf += zanoreniCelkemIf;
-                if (zmenLabel(labelIf, "if", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-                if (zmenLabel(labelElse, "else", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-                if (zmenLabel(labelEndIf, "endif", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (adjustLabel(labelIf, "if", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (adjustLabel(labelElse, "else", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (adjustLabel(labelEndIf, "endif", zanoreniCelkemIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             }
             zanoreniAktualniIf++;
             labelAktualniIf++;
             zanoreniCelkemIf++;
-            if (zmenLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
 
 
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             //Pokud je aktualni token integer, nastavim promennou na integer
             // vypsání unikátního ifu
             operand1 = initOperand(operand1, labelIf.value, sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
-            if (aktualni_token.type == sInteger)
+            if (actual_token.type == sInteger)
                 expectedValue = sInteger;
                 //Pokud je aktualni token double, nastavim promennou na double
-            else if (aktualni_token.type == sDouble)
+            else if (actual_token.type == sDouble)
                 expectedValue = sDouble;
             else
                 //Pokud to neni ani integer ani double nebudu to kontrolovat
                 expectedValue = -1;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sThen) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sThen) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
 
 
@@ -875,10 +874,10 @@ int Prikaz() {
             writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sElse) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sElse) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
 
             // výraz je true, provedly se příkazy za then, else se přeskočí
@@ -892,12 +891,12 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEnd) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sIf) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sEnd) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sIf) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
 
             // vygeneruje labl endifu
@@ -906,44 +905,44 @@ int Prikaz() {
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
             labelAktualniIf--;
             zanoreniAktualniIf--;
-            if (zmenLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelIf, "if", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelElse, "else", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelEndIf, "endif", labelAktualniIf) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             break;
             //<Prikaz> -> <Do><While><Vyraz><EOL><Prikazy><Loop><EOL>
         case sDo:
             if (zanoreniAktualniWhile == 0) {
                 labelAktualniWhile += zanoreniCelkemWhile;
-                if (zmenLabel(labelWhile, "while", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-                if (zmenLabel(labelLoop, "loop", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (adjustLabel(labelWhile, "while", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+                if (adjustLabel(labelLoop, "loop", zanoreniCelkemWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             }
             zanoreniAktualniWhile++;
             labelAktualniWhile++;
             zanoreniCelkemWhile++;
-            if (zmenLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
 
             // vygenerování labelu dowhile
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
                                    I_DEFAULT);
             writeInstructionOneOperand(&instList, I_LABEL, operand1);
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sWhile) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sWhile) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Pokud je aktualni token integer, nastavim promennou na integer
-            if (aktualni_token.type == sInteger)
+            if (actual_token.type == sInteger)
                 expectedValue = sInteger;
                 //Pokud je aktualni token double, nastavim promennou na double
-            else if (aktualni_token.type == sDouble)
+            else if (actual_token.type == sDouble)
                 expectedValue = sDouble;
             else
                 expectedValue = -1;
 
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            result = smazEOL();
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             // Vygenerování podmíněné skoku na konec cyklu
             operand1 = initOperand(operand1, labelLoop.value, sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
@@ -953,10 +952,10 @@ int Prikaz() {
 
             result = Prikazy();
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sLoop) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sLoop) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             // vygenerování labelu loop
             operand1 = initOperand(operand1, labelWhile.value, sIdentificator, F_DEFAULT, false, true, false,
@@ -967,41 +966,42 @@ int Prikaz() {
 
             labelAktualniWhile--;
             zanoreniAktualniWhile--;
-            if (zmenLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
-            if (zmenLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelWhile, "while", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
+            if (adjustLabel(labelLoop, "loop", labelAktualniWhile) != ERROR_CODE_OK) return ERROR_CODE_INTERNAL;
             break;
             //<Prikaz> -> <Id><=><Vyraz><EOL>
         case sIdentificator:
             if (!inScope) {
                 //Budu prirazovat do promenne a jsem ve funkci, podivam se jestli je v lokalni tabulce
-                if (symTableSearch(&table, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
-                node = symTableSearch(&table, aktualni_token.atr);
+                if (symTableSearch(&table, actual_token.atr) == NULL) return ERROR_CODE_SEM;
+                node = symTableSearch(&table, actual_token.atr);
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
-                varToSet = aktualni_token;
+                varToSet = actual_token;
 
             } else {
                 //Budu prirazovat do promenne a jsem ve scopu, podivam se jestli je v globalni tabulce
-                if (symTableSearch(&glSymTable, aktualni_token.atr) == NULL) return ERROR_CODE_SEM;
-                node = symTableSearch(&glSymTable, aktualni_token.atr);
+                if (symTableSearch(&glSymTable, actual_token.atr) == NULL) return ERROR_CODE_SEM;
+                node = symTableSearch(&glSymTable, actual_token.atr);
                 //Nastavim odpovidajici datovy typ aby mohl expression zkontrolovat jestli to lze po vyhodnoceni
                 //vyrazu nastavit
                 expectedValue = ((tDataVariable *) node->Data)->dataType;
-                varToSet = aktualni_token;
+                varToSet = actual_token;
             }
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sAssignment) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sAssignment) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
 
             result = Vyraz();
             // z tmp do varToSet
             operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
             writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_CLEARS);
             if (result != ERROR_CODE_OK) return result;
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             break;
             //<Prikaz> -> <Return><Vyraz><EOL>
@@ -1021,15 +1021,15 @@ int Prikaz() {
             expectedValue = ((tDataFunction *) node->Data)->returnDataType;
 
 
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             if (result != ERROR_CODE_OK) return result;
             //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
             //operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
             //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
             writeInstructionNoOperand(&instList, I_RETURN);
-            if (aktualni_token.type != sEndOfLine) return ERROR_CODE_SYN;
-            result = smazEOL();
+            if (actual_token.type != sEndOfLine) return ERROR_CODE_SYN;
+            result = EOLY();
             if (result != ERROR_CODE_OK) return result;
             break;
     }
@@ -1040,36 +1040,36 @@ int Prikaz() {
 int Deklarace_promenne() {
     //<Deklarace_promenne> -> <Dim><Id><As><Typ><Prirazeni_hodnoty>
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         case sDim:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sIdentificator) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sIdentificator) return ERROR_CODE_SYN;
 
 
             exprAdjust = true;
-            varToSet = aktualni_token;
+            varToSet = actual_token;
             varToSet.type = adjustTokenType(varToSet);
 
             if (inScope) {
                 //Jsem ve scopu a chci vkladat promennou, podivam se jestli uz neni v globalni tabulce
-                if ((symTableSearch(&glSymTable, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+                if ((symTableSearch(&glSymTable, actual_token.atr)) != NULL) return ERROR_CODE_SEM;
                 //Nebyla, vlozime ju
-                symTableInsertVariable(&glSymTable, aktualni_token.atr);
-                node = symTableSearch(&glSymTable, aktualni_token.atr);
+                symTableInsertVariable(&glSymTable, actual_token.atr);
+                node = symTableSearch(&glSymTable, actual_token.atr);
             } else {
                 //Jsem ve funkci a chci vkladat promennou, podivam se jestli uz neni v lokalni tabulce
-                if ((symTableSearch(&table, aktualni_token.atr)) != NULL) return ERROR_CODE_SEM;
+                if ((symTableSearch(&table, actual_token.atr)) != NULL) return ERROR_CODE_SEM;
                 //Nebyla, vlozime ju
-                symTableInsertVariable(&table, aktualni_token.atr);
-                node = symTableSearch(&table, aktualni_token.atr);
+                symTableInsertVariable(&table, actual_token.atr);
+                node = symTableSearch(&table, actual_token.atr);
             }
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-            if (aktualni_token.type != sAs) return ERROR_CODE_SYN;
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (actual_token.type != sAs) return ERROR_CODE_SYN;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Typ();
             if (result != ERROR_CODE_OK) return result;
             //Nastavim typ promenne
-            switch (aktualni_token.type) {
+            switch (actual_token.type) {
                 case tInteger:
                     ((tDataVariable *) node->Data)->dataType = sInteger;
                     break;
@@ -1084,18 +1084,18 @@ int Deklarace_promenne() {
             operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
 
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             //Rovnou si ulozim jeji typ i do promenne pro expression, kdyby se do ni hned prirazovalo
             expectedValue = ((tDataVariable *) node->Data)->dataType;
-            switch (aktualni_token.type) {
+            switch (actual_token.type) {
                 case sAssignment:
                     result = Prirazeni_hodnoty();
                     if (result != ERROR_CODE_OK) return result;
-                    result = smazEOL();
+                    result = EOLY();
                     if (result != ERROR_CODE_OK) return result;
                     return ERROR_CODE_OK;
                 case sEndOfLine:
-                    result = smazEOL();
+                    result = EOLY();
                     if (expectedValue == sInteger) {
                         operand1 = initOperand(operand1, varToSet.atr.value, sIdentificator, F_LF, false, false, false,
                                                I_DEFAULT);
@@ -1127,7 +1127,7 @@ int Deklarace_promenne() {
 
 int Deklarace_prom_a_prikazy() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //< Deklarace_promennych_a _prikazy >-> <Prikazy><Deklarace_promennych_a _prikazy>
         case sPrint:
         case sInput:
@@ -1158,18 +1158,19 @@ int Deklarace_prom_a_prikazy() {
 
 int Prirazeni_hodnoty() {
     int result;
-    switch (aktualni_token.type) {
+    switch (actual_token.type) {
         //<Prirazeni_hodnoty> -><=><Vyraz>
         case sAssignment:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             result = Vyraz();
             operand1 = initOperand(operand1, varToSet.atr.value, varToSet.type, F_LF, false, false, false, I_DEFAULT);
             operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
             writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+            writeInstructionNoOperand(&instList, I_CLEARS);
             return result;
             //<Prirazeni_hodnoty> -> e
         case sEndOfLine:
-            if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+            if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
             return ERROR_CODE_OK;
 
     }
@@ -1179,8 +1180,8 @@ int Prirazeni_hodnoty() {
 
 int Dalsi_vyrazy() {
     int result;
-    if (dalsiToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
-    switch (aktualni_token.type) {
+    if (nextToken() != ERROR_CODE_OK) return ERROR_CODE_LEX;
+    switch (actual_token.type) {
         //<Dalsi_vyrazy> -> <Vyraz> <;><Dalsi_vyrazy>
         case sMinus:
         case sIdentificator:
@@ -1205,12 +1206,12 @@ int Dalsi_vyrazy() {
 int Vyraz() {
     int result;
     //Zavolam funkci, ktera vyhodnoti vyraz s aktualnim tokenem a hodnotou, do ktere se vyraz pripadne bude ukladat
-    result = expression(aktualni_token, expectedValue);
+    result = expression(actual_token, expectedValue);
     //Nastavim si promennou, ktera docasne povoli upravu typu tokenu, kdyby expression pouzival jine typy
     exprAdjust = true;
     //Do aktualniho tokenu si nactu ten, se kterym naposledy exprssion pracoval
-    aktualni_token = next_exp_token;
+    actual_token = next_exp_token;
     //Pokud je to potreba upravim jeho typ
-    aktualni_token.type = adjustTokenType(aktualni_token);
+    actual_token.type = adjustTokenType(actual_token);
     return result;
 }

@@ -1,9 +1,0 @@
-/' deklarace a definice funkce '/
-
-declare function funkce1(a as integer, b as string) as integer
-
-function funkce1(a as integer, b as string) as integer
-end function
-
-scope
-end scope

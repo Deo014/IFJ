@@ -1,6 +1,0 @@
-function foo(a as double, b as integer) as string
-end function
-
-scope
-	print %
-end scope

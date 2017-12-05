@@ -1,5 +1,0 @@
-/' redef. promenne '/
-scope
-	dim a as integer
-	dim a as double
-end scope

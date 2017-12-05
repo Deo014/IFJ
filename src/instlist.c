@@ -892,12 +892,7 @@ void writeSubstr(){
     operand1 = initOperand(operand1, "substr", sKeyWord, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_PUSHFRAME);
-/*
-    operand1 = initOperand(operand1, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "i", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
-*/
+
     operand1 = initOperand(operand1, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
     operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
@@ -908,7 +903,6 @@ void writeSubstr(){
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
     operand1 = initOperand(operand1, "substr_char", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_DEFVAR, operand1);
-
     operand1 = initOperand(operand1, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "s", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
@@ -918,78 +912,61 @@ void writeSubstr(){
     operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "n", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-
-    //JUMPIFEQ $%substr LF@substr_index int@1
-    operand1 = initOperand(operand1, "$%substr ", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-
-    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
-
     operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
-
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%error_shift ", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_EQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%emptystring ", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_STRLEN, operand1, operand2);
     operand1 = initOperand(operand1, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
-
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "", sString, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_LT, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
-    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-
-
-    operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "n", sIdentificator, F_LF, false, false, false, I_DEFAULT);
-    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
-    operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
-    operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
-    writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-
-    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_GT, operand1, operand2, operand3);
-
-
-    operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_LF, false, true, false, I_DEFAULT);
-    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "%error_shift ", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "true", 42, F_DEFAULT, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_JUMPIFEQ, operand1, operand2, operand3);
-
-
-    operand1 = initOperand(operand1, "%substr", sIdentificator, F_LF, false, true, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_JUMP, operand1);
     operand1 = initOperand(operand1, "%error_shift", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
@@ -997,6 +974,82 @@ void writeSubstr(){
     operand2 = initOperand(operand2, "substr_len", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+//jkknbknbkn
+
+
+
+
+    /*JUMP $%substr
+    LABEL $%error_shift
+
+    SUB LF@substr_shift LF@substr_len LF@substr_index
+    SUB LF@substr_index LF@substr_index int@1
+
+    LABEL $%substr2
+    MOVE GF@tmp string@\00
+    LABEL $%do_substr2
+    GETCHAR LF@substr_char LF@substr_string LF@substr_index
+    ADD LF@substr_index LF@substr_index int@1
+    CONCAT GF@tmp GF@tmp LF@substr_char
+    SUB LF@substr_shift LF@substr_shift int@1
+    JUMPIFNEQ $%do_substr2 LF@substr_shift int@-1
+    MOVE GF@tmp GF@tmp
+    JUMP $%endsubstr*/
+
+
+    operand1 = initOperand(operand1, "%substr2", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "\\00", sString, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%do_substr2", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+    operand1 = initOperand(operand1, "substr_char", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GETCHAR, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_ADD, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_char", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_CONCAT, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%do_substr2", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    //tadz
+    operand3 = initOperand(operand3, "-1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_JUMPIFNEQ, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_JUMP, operand1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     operand1 = initOperand(operand1, "%substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
@@ -1020,10 +1073,29 @@ void writeSubstr(){
     operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
     operand3 = initOperand(operand3, "1", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_SUB, operand1, operand2, operand3);
+
+
     operand1 = initOperand(operand1, "%do_substr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     operand2 = initOperand(operand2, "substr_shift", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    //tadz
     operand3 = initOperand(operand3, "0", sInteger, F_DEFAULT, false, false, false, I_DEFAULT);
     writeInstructionThreeOperands(&instList, I_JUMPIFNEQ, operand1, operand2, operand3);
+
+
+
+    /*********
+     GETCHAR GF@tmp_type2 LF@substr_string LF@substr_index
+    CONCAT GF@tmp GF@tmp GF@tmp_type2
+     */
+    /*operand1 = initOperand(operand1, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "substr_string", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "substr_index", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_GETCHAR, operand1, operand2, operand3);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+    operand3 = initOperand(operand3, "tmp_type2", sIdentificator, F_GF, false, false, false, I_DEFAULT);
+    writeInstructionThreeOperands(&instList, I_CONCAT, operand1, operand2, operand3);*/
+
 
     operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
@@ -1031,15 +1103,20 @@ void writeSubstr(){
 
     operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_JUMP, operand1);
+    operand1 = initOperand(operand1, "%fullstring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_LABEL, operand1);
+//nevim
+    operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand2 = initOperand(operand2, "s", sIdentificator, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+    operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
+    writeInstructionOneOperand(&instList, I_JUMP, operand1);
     operand1 = initOperand(operand1, "%emptystring", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
-    operand1 = initOperand(operand1, "", sIdentificator, F_LF, true, false, false, I_DEFAULT);
+    operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
     operand2 = initOperand(operand2, "", sString, F_DEFAULT, false, false, false, I_DEFAULT);
     writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
     operand1 = initOperand(operand1, "%endsubstr", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
-    writeInstructionOneOperand(&instList, I_LABEL, operand1);
-    //writeInstructionNoOperand(&instList, I_POPFRAME);
-    operand1 = initOperand(operand1, "%substrzero", sIdentificator, F_DEFAULT, false, true, false, I_DEFAULT);
     writeInstructionOneOperand(&instList, I_LABEL, operand1);
     writeInstructionNoOperand(&instList, I_RETURN);
     return;

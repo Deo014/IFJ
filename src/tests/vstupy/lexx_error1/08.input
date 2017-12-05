@@ -1,4 +1,0 @@
-scope
-	dim b as integer
-	dim ^ as string
-end scope

@@ -1,6 +1,0 @@
-/' chybi then'/
-scope
-	if 1 < 2
-	else
-	end if
-end scopE

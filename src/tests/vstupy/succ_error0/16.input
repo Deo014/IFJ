@@ -1,6 +1,0 @@
-/' vypis stringu '/
-
-scope
-	print !"Prvni radek\n";
-	print !"Druhy radek\n";
-end scope

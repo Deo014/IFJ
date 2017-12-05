@@ -11,6 +11,7 @@
  *            xrutad00, Dominik Ruta
  */
 #include "expression.h"
+#include "string.h"
 
 tToken next_exp_token; //Převzatý token od scanneru
 tStack *first_terminal; //Nejvyšší terminál na stacku
@@ -259,9 +260,10 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                             return error_type;
 
                         /* GENEROVÁNÍ KÓDU: Předání hodnot parametrům funkce při její volání */
-                        operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
-                        operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
-                        writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                        //operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
+                        //operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
+                        //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                        //writeInstructionOneOperand(&instList, I_POPS, operand1);
                     }
                 }
                     //Pokud se jedná o funkci
@@ -313,9 +315,10 @@ ERROR_CODE shiftToStack(ptrStack *expression_stack) {
                     return error_type;
 
                 /* GENEROVÁNÍ KÓDU: Předání hodnot parametrům funkce při její volání */
-                operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
-                operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
-                writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                //operand1 = initOperand(operand1, function->paramName[parameter_index-1].value, sIdentificator, F_TF, false, false, false, I_DEFAULT);
+                //operand2 = initOperand(operand2, new_element->value.value, new_element->token_type, F_LF, false, false, false, I_DEFAULT);
+                //writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
+                //writeInstructionOneOperand(&instList, I_POPS, operand1);
             }
 
 
@@ -610,6 +613,8 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
                                    sIdentificator, F_LF, false, true, false, I_DEFAULT);
             writeInstructionOneOperand(&instList, I_CALL, operand1);
             writeInstructionNoOperand(&instList, I_POPFRAME);
+            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_PUSHS, operand1);
             return ERROR_CODE_OK;
         }
     } else
@@ -619,7 +624,10 @@ ERROR_CODE reduceFunction(ptrStack *expression_stack){
 
 //Funkce kontroluj parametry funkce
 ERROR_CODE checkParams(Exp_element *element,int variable){
-
+    operand1 = initOperand(operand1, function->paramName[parameter_index].value, sIdentificator, F_TF, false, false,
+                           false, I_DEFAULT);
+    operand2 = initOperand(operand2, element->value.value, element->token_type, F_LF, false, false, false, I_DEFAULT);
+    writeInstructionTwoOperands(&instList, I_MOVE, operand1, operand2);
     if (element != NULL) {
         //Jestli má ještě stále co kontrolovat
         if (params[parameter_index] != '\0') {
@@ -628,6 +636,7 @@ ERROR_CODE checkParams(Exp_element *element,int variable){
                     if (variable != sInteger) {
                         if (variable == sDouble) {
                             element->type = sInteger;
+                            writeInstructionTwoOperands(&instList, I_FLOAT2R2EINT, operand1, operand1);
                         } else
                             return ERROR_CODE_SEM_COMP;
                     }
@@ -636,6 +645,7 @@ ERROR_CODE checkParams(Exp_element *element,int variable){
                     if (variable != sDouble) {
                         if (variable == sInteger) {
                             element->type = sDouble;
+                            writeInstructionTwoOperands(&instList, I_INT2FLOAT, operand1, operand1);
                         } else
                             return ERROR_CODE_SEM_COMP;
                     }
@@ -680,7 +690,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 
                 /* GENEROVÁNÍ KÓDU: Vezme si p. operand a přetypuje ho*/
                 writeInstructionOneOperand(&instList, I_POPS, operand2);
-                writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand2,operand2);
+                writeInstructionTwoOperands(&instList, I_FLOAT2R2EINT, operand2, operand2);
 
             }
             else
@@ -696,7 +706,7 @@ ERROR_CODE checkSemAConv( Exp_element *operand_type_l,int operator, Exp_element 
 
                 /* GENEROVÁNÍ KÓDU: Vezme si l. operand a přetypuje si ho */
                 writeInstructionOneOperand(&instList, I_POPS, operand1);
-                writeInstructionTwoOperands(&instList, I_FLOAT2INT,operand1,operand1);
+                writeInstructionTwoOperands(&instList, I_FLOAT2R2EINT, operand1, operand1);
 
             } else
 
@@ -871,7 +881,7 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
                    ((Exp_element *) expression_stack->top_of_stack->value)->type != sInteger) {
 
             /* GENEROVÁNÍ KÓDU: Přetypuje výsledek na z floatu na int */
-            writeInstructionNoOperand(&instList, I_FLOAT2INTS);
+            writeInstructionNoOperand(&instList, I_FLOAT2R2EINTS);
         }
 
         if ((((Exp_element *) expression_stack->top_of_stack->value)->type != sString &&
@@ -880,6 +890,11 @@ ERROR_CODE checkResultType(ptrStack *expression_stack){
              sString != operation_type_global))
             return ERROR_CODE_SEM_COMP;
         tmpToken.type = ((Exp_element *) expression_stack->top_of_stack->value)->type;
+        if (exp_function) {
+            operand1 = initOperand(operand1, "", sIdentificator, F_DEFAULT, true, false, false, I_DEFAULT);
+            writeInstructionOneOperand(&instList, I_POPS, operand1);
+        }
+
         return ERROR_CODE_OK;
     } else
         return ERROR_CODE_INTERNAL;

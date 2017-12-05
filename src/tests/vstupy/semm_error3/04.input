@@ -1,5 +1,0 @@
-/' nedef. funkce '/
-scope
-	dim a as integer
-	a = funkce1()
-end scope

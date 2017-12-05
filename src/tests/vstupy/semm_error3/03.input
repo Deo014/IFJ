@@ -1,7 +1,0 @@
-/' nedef. promenna '/
-function funkce1() as integer
-end function
-
-scope
-ahoj = funkce1(42)
-end scope

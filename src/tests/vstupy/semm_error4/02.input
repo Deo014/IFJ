@@ -1,8 +1,0 @@
-/' spatny pocet parametru pri volani fce '/
-function funkce1(a as integer) as integer
-end function
-
-scope
-dim a as integer
-a=funkce1()
-end scope

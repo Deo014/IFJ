@@ -1,9 +1,0 @@
-/' redef. funkce '/
-function funkce1(a as string) as integer
-end function
-
-function funkce1() as integer
-end function
-
-scope
-end scope
