@@ -190,6 +190,5 @@ void writeChr();
 void writeSubstr();
 
 tInstrOperand operand1; tInstrOperand operand2; tInstrOperand operand3; // Globální proměnné pro operandy instrukcí
-//tDLListInstruction instList; // globalni list vygenerovanych instrukci (instrukcni paska)
 
 #endif //IFJ_INSTLIST_H
