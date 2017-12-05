@@ -16,70 +16,74 @@
 
 #include "string.h"
 
-// datkovy typ enum popisujici stavy automatu
+/*
+ * Datkovy typ enum popisujici stavy automatu
+ */
 typedef enum {
-    sStart,                     //      POCATECNI STAV AUTOMATU
+    sStart,                     //  S       POCATECNI STAV AUTOMATU
 
     /* identifikator / klicove slovo */
-    sIdentificator,             //      KONCOVY STAV
-    sIdentificatorOrKeyWord,    //      mezistav
-    sKeyWord,                   //      KONCOVY STAV
-    //sResKeyWord,                //      KONCOVY STAV
+            sIdentificator,             //  F15     KONCOVY STAV
+    sIdentificatorOrKeyWord,    //  F21     mezistav
+    sKeyWord,                   //          KONCOVY STAV
+    //sResKeyWord,              //          KONCOVY STAV
 
     /* datove type */
-    sInteger,                   //      KONCOVY STAV
+            sInteger,                   //  F12     KONCOVY STAV
 
-    sDouble,                    //      KONCOVY STAV
-    sDoublePoint,               //      mezistav
-    sDoublePointNumber,         //      mezistav
-    sDoubleExponent,            //      mezistav
-    sDoubleExponentOperator,    //      mezistav
+    sDouble,                    //  F13     KONCOVY STAV
+    sDoublePoint,               //  Q1      mezistav
+    sDoublePointNumber,         //  Q2      mezistav
+    sDoubleExponent,            //  Q3      mezistav
+    sDoubleExponentOperator,    //  Q8      mezistav
 
-    sString,                    //      KONCOVY STAV
-    sStringStart,               //      mezistav
-    sStringEscape,              //      mezistav
-    sStringEscapeNumber,        //      mezistav
+    sString,                    //  F14     KONCOVY STAV
+    sStringStart,               //  Q4      mezistav
+    sStringRead,                //  Q7      mezistav
+    sStringEscape,              //  Q6      mezistav
+    sStringEscapeNumber,        //  Q11-12  mezistav
 
     /* operatory */
-    sPlus,                      //      KONCOVY STAV    +
-    sMinus,                     //      KONCOVY STAV    -
-    sDivideD,                   //      KONCOVY STAV    /
-    sDivideDOrBlockComment,     //      mezistav
-    sMultiply,                  //      KONCOVY STAV    *
-    sDivideI,                   //      KONCOVY STAV    obracene lomitko
-    sLess,                      //      KONCOVY STAV    <
-    sNotEqual,                  //      KONCOVY STAV    <>
-    sLessEqual,                 //      KONCOVY STAV    <=
-    sMore,                      //      KONCOVY STAV    >
-    sMoreEqual,                 //      KONCOVY STAV    >=
-    sAssignment,                //      KONCOVY STAV    =
+            sPlus,                      //  F1      KONCOVY STAV    +
+    sMinus,                     //  F2      KONCOVY STAV    -
+    sDivideD,                   //  F3      KONCOVY STAV    /
+    sDivideDOrBlockComment,     //          mezistav
+    sMultiply,                  //  F4      KONCOVY STAV    *
+    sDivideI,                   //  F5      KONCOVY STAV    obracene lomitko
+    sLess,                      //  F6      KONCOVY STAV    <
+    sNotEqual,                  //  F7      KONCOVY STAV    <>
+    sLessEqual,                 //  F8      KONCOVY STAV    <=
+    sMore,                      //  F9      KONCOVY STAV    >
+    sMoreEqual,                 //  F10     KONCOVY STAV    >=
+    sAssignment,                //  F11     KONCOVY STAV    =
 
-    sLeftPar,                   //      KONCOVY STAV    (
-    sRightPar,                  //      KONCOVY STAV    )
-    sSemicolon,                 //      KONCOVY STAV    ;
-    sComma,                     //      KONCOVY STAV    ,
+    sLeftPar,                   //  F16     KONCOVY STAV    (
+    sRightPar,                  //  F17     KONCOVY STAV    )
+    sSemicolon,                 //  F20     KONCOVY STAV    ;
+    sComma,                     //  F22     KONCOVY STAV    ,
 
     /* komentare */
-    sLineComment,               //      mezistav        '
-    sBlockComment,              //      mezistav /' ( ceka na ukonceni komentare: '/ )
+            sLineComment,               //  Q10     mezistav        '
+    sBlockComment,              //  Q9      mezistav /' ( ceka na ukonceni komentare: '/ )
 
-    sEndOfLine,                 //      NOVY RADEK
-    sEndOfFile,                 //      KONEC VSTUPNIHO SOUBORU
-    //sEnd
+    sEndOfLine,                 //          KONCOVY STAV
+    sEndOfFile,                 //          KONCOVY STAV    KONEC VSTUPNIHO SOUBORU
+
     /* chybovy stav */
-    sLexError = -1,             //      LEXIKALNI CHYBA
-
-
-
+            sLexError = -1,             //          KONCOVY STAV
 } tState;
 
-// struktura popisujici token
+/*
+ * Struktura popisujici token
+ */
 typedef struct {
     string atr;
     int type;
 } tToken;
 
-// funkce vracejici dalsi token
+/*
+ * Funkce vrati nasledujici token ze vstupniho souboru
+ */
 tToken getNextToken();
 
 #endif //IFJ_SCANNER_H
