@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   string.h - pomocná knihovna pro lexikální analyzátor
+ * Soubor   :   string.h - ADT String
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1

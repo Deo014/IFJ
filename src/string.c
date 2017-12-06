@@ -1,6 +1,6 @@
 /*
  * Předmět  :   IFJ / IAL
- * Soubor   :   string.c - pomocná knihovna pro lexikální analyzátor
+ * Soubor   :   string.c - ADT String
  * Projekt  :   Implementace překladače imperativního jazyka IFJ17
  * Tým č    :   21
  * Varianta :   1
@@ -29,13 +29,6 @@ int stringInit(string *str) {
 }
 
 int stringLenght(string *str){
-    /*
-    char *retezec = str->value;
-    unsigned int i = 0;
-    while(retezec[i] != '\0')
-        i++;
-    return i;
-    */
     return strlen(str->value);
 }
 
@@ -44,16 +37,6 @@ bool stringCompare(string *str1, string *str2){
         return true;
     else
         return false;
-    /*
-    char *a = str1->value; char *b = str2->value;
-    int i = 0;
-    while(i < stringLenght(str1))
-        if(a[i] != b[i])
-            return false;
-        else
-            i++;
-    return true;
-    */
 }
 
 /*
