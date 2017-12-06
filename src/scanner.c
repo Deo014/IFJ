@@ -466,6 +466,7 @@ tToken getNextToken(){
             case sEndOfLine: // pouze pro preklad
             case sEndOfFile:
             case sLexError:
+            case sString:
                 break;
         }
     }
