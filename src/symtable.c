@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* ----------------------------------------BINARNIH VYHLEDAVACI STROM-------------------------------------------------*/
+/* ----------------------------------------BINARNIH VYHLEDAVACI STROM (prevzato z DU IAL)-----------------------------*/
 
 /*
  * Inicializace

@@ -546,7 +546,7 @@ void printInstructionList(tDLListInstruction *L) {
     }
 }
 
-/* ----------------------------------------FUNKCE PRO PRACI S OBOUSTRANNE VAZANYM SEZNAMEM----------------------------*/
+/* --------------FUNKCE PRO PRACI S OBOUSTRANNE VAZANYM SEZNAMEM (prevzato z DU IAL)----------------------------------*/
 void DLInitList (tDLListInstruction *L) {
     // pocatecni ukazatele jsou NULL
     L->First = NULL;
